@@ -12,13 +12,9 @@ implement the approval step in Admin Panel Ul or directly via the email.
 {
     "action": {
         "resource": "points",
-        "operation": {
-            "type": "increment",
-            "value": 10
-            "where": {
-                "user_id": ""
-            }
-        }
+        "actiontype": "increment",
+        "value": 10
+        "userId":  ""
     },
     "maker": "",
     "description": "",
@@ -31,7 +27,8 @@ implement the approval step in Admin Panel Ul or directly via the email.
 ## process
 
 ### create a transaction
-makers --> lambda (mc) --> aurora (txn) --triggers?--> lambda (find checkers based on makers) --> ses --> checkers
+makers --> lambda (mc) --> aurora (txn) 
+                       --> (find checkers based on makers) --> ses --> checkers
 
 ### validate transaction
 checkers --> lambda (mc) --> aurora (txn)
