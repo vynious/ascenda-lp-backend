@@ -19,11 +19,10 @@ func init() {
 func LambdaHandler(ctx context.Context, req *events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 
 	/*
-		check role/user of requested
-
-
-		req.RequestContext.Identity??
-
+		check role/user of requested => req.RequestContext.Identity??
+		create transaction entry in aurora => connect to aurora db
+		get checkers based on makers => connect to aurora to get
+		send message through ses
 	*/
 
 	var requestBody makerchecker.CreateMakerRequestBody
