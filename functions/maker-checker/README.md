@@ -11,8 +11,8 @@ implement the approval step in Admin Panel Ul or directly via the email.
 ```
 {
     "action": {
-        "resource": "points",
-        "actiontype": "increment",
+        "resourcetype": "point/user",
+        "actiontype": "increment/update/delete/get/...",
         "value": 10
         "userId":  ""
     },
