@@ -40,3 +40,6 @@ type UpdateTransactionRequestBody struct {
 type UpdateTransactionResponseBody struct {
 	Txn Transaction
 }
+
+type Email struct {
+}

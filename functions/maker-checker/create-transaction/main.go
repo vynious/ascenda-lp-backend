@@ -6,13 +6,14 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/joho/godotenv"
-	"github.com/vynious/ascenda-lp-backend/aurora"
+	"github.com/vynious/ascenda-lp-backend/db"
+	"github.com/vynious/ascenda-lp-backend/emailer"
 	makerchecker "github.com/vynious/ascenda-lp-backend/types/maker-checker"
 	"log"
 )
 
 var (
-	DBService    *aurora.DBService
+	DBService    *db.DBService
 	requestBody  makerchecker.CreateTransactionBody
 	responseBody makerchecker.CreateMakerResponseBody
 	err          error
@@ -24,7 +25,7 @@ func init() {
 	}
 
 	// Initialise global variable DBService tied to Aurora
-	DBService, err = aurora.GetConnection()
+	DBService, err = db.SpawnDBService()
 	if err != nil {
 		log.Fatalf(err.Error())
 	}
@@ -35,9 +36,9 @@ func LambdaHandler(ctx context.Context, req *events.APIGatewayProxyRequest) (eve
 	defer DBService.CloseConn()
 
 	/*
-		create transaction entry in aurora => connect to aurora db
-		get checkers based on makers => connect to aurora to get
-		send message through ses
+		create transaction entry in db => connect to db db
+		get checkers based on makers => connect to db to get
+		send message through emailer
 	*/
 
 	if err := json.Unmarshal([]byte(req.Body), &requestBody); err != nil {
@@ -68,9 +69,16 @@ func LambdaHandler(ctx context.Context, req *events.APIGatewayProxyRequest) (eve
 		responseBody.Txn = *txn
 	}
 
+	if err = emailer.EmailCheckers(ctx, "<makerId>"); err != nil {
+		log.Println(err.Error())
+	}
+
 	bod, err := json.Marshal(requestBody)
 	if err != nil {
-
+		return events.APIGatewayProxyResponse{
+			StatusCode: 201,
+			Body:       err.Error(),
+		}, nil
 	}
 
 	return events.APIGatewayProxyResponse{

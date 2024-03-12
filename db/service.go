@@ -1,4 +1,4 @@
-package aurora
+package db
 
 import (
 	"context"
@@ -11,19 +11,19 @@ import (
 	"time"
 )
 
-//type IDBService interface {
-//	CreateTransaction()
-//	UpdateTransaction()
-//	GetMakers()
-//	GetCheckers()
-//}
+type IDBService interface {
+	CreateTransaction()
+	UpdateTransaction()
+	GetMakers()
+	GetCheckers()
+}
 
 type DBService struct {
 	conn    *sql.DB
 	timeout time.Duration
 }
 
-func GetConnection() (*DBService, error) {
+func SpawnDBService() (*DBService, error) {
 	username := os.Getenv("db_user")
 	password := os.Getenv("db_pass")
 	dbName := os.Getenv("db_name")
@@ -45,7 +45,6 @@ func GetConnection() (*DBService, error) {
 // CreateTransaction creates a maker-checker transaction
 func (dbs *DBService) CreateTransaction(ctx context.Context, req *makerchecker.CreateTransactionBody) (*makerchecker.Transaction, error) {
 	// todo: add logic
-
 	return &makerchecker.Transaction{}, nil
 }
 
