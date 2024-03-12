@@ -2,20 +2,22 @@ package makerchecker
 
 import "time"
 
-type CreateMakerRequestBody struct {
+type CreateTransactionBody struct {
 	Action      MakerAction
 	MakerId     string
 	Description string
 }
 
 type MakerAction struct {
-	Resource   string
-	ActionType string
-	Value      int64
-	UserId     string
+	ResourceType string
+	ActionType   string
+	Value        int64
+	UserId       string
 }
 
-type CreateMakerResponseBody struct{}
+type CreateMakerResponseBody struct {
+	Txn Transaction
+}
 
 type Transaction struct {
 	Id          string
@@ -23,6 +25,21 @@ type Transaction struct {
 	MakerId     string
 	Description string
 	CheckerId   string
+	Status      string
+	Approval    bool
 	CreatedAt   *time.Duration
 	UpdatedAt   *time.Duration
+}
+
+type UpdateTransactionRequestBody struct {
+	TransactionId string
+	CheckerId     string
+	Approval      bool
+}
+
+type UpdateTransactionResponseBody struct {
+	Txn Transaction
+}
+
+type Email struct {
 }
