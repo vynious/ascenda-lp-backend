@@ -3,8 +3,8 @@ package makerchecker
 import "time"
 
 type CreateTransactionBody struct {
-	Action      MakerAction
-	MakerId     string
+	Action MakerAction
+	//MakerId     string
 	Description string
 }
 
@@ -33,8 +33,8 @@ type Transaction struct {
 
 type UpdateTransactionRequestBody struct {
 	TransactionId string
-	CheckerId     string
-	Approval      bool
+	//CheckerId     string
+	Approval bool
 }
 
 type UpdateTransactionResponseBody struct {

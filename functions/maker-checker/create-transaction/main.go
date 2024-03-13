@@ -32,11 +32,13 @@ func init() {
 }
 
 func LambdaHandler(ctx context.Context, req *events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-
 	defer DBService.CloseConn()
 
+	role := "product-manager"                   // do I need?
+	makerId := req.RequestContext.Identity.User // ?
+
 	/*
-		create transaction entry in db => connect to db db
+		create transaction entry in db => connect to db
 		get checkers based on makers => connect to db to get
 		send message through emailer
 	*/
@@ -48,32 +50,39 @@ func LambdaHandler(ctx context.Context, req *events.APIGatewayProxyRequest) (eve
 		}, nil
 	}
 
+	// don't need the switch case
 	switch requestBody.Action.ResourceType {
 	case "User":
-		txn, err := DBService.CreateTransaction(ctx, &requestBody)
+		txn, err := DBService.CreateTransaction(ctx, requestBody.Action, makerId, requestBody.Description)
 		if err != nil {
 			return events.APIGatewayProxyResponse{
-				StatusCode: 400,
+				StatusCode: 500,
 				Body:       "",
 			}, nil
 		}
 		responseBody.Txn = *txn
 	case "Point":
-		txn, err := DBService.CreateTransaction(ctx, &requestBody)
+		txn, err := DBService.CreateTransaction(ctx, requestBody.Action, makerId, requestBody.Description)
 		if err != nil {
 			return events.APIGatewayProxyResponse{
-				StatusCode: 400,
+				StatusCode: 500,
 				Body:       "",
 			}, nil
 		}
 		responseBody.Txn = *txn
 	}
 
-	if err = emailer.EmailCheckers(ctx, "<makerId>"); err != nil {
+	// get checkerId
+	checkersEmail, err := DBService.GetCheckers(ctx, makerId, role)
+	if err != nil {
 		log.Println(err.Error())
 	}
 
-	bod, err := json.Marshal(requestBody)
+	if err = emailer.EmailCheckers(ctx, checkersEmail); err != nil {
+		log.Println(err.Error())
+	}
+
+	bod, err := json.Marshal(responseBody)
 	if err != nil {
 		return events.APIGatewayProxyResponse{
 			StatusCode: 201,
