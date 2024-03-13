@@ -9,10 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ses/types"
 )
 
-func EmailCheckers(ctx context.Context, makerId string) error {
-
-	var checkersEmail []string
-	// todo:  get checkers email from makerId
+func EmailCheckers(ctx context.Context, checkersEmail []string) error {
 
 	cfg, err := config.LoadDefaultConfig(ctx)
 	if err != nil {

@@ -12,10 +12,9 @@ import (
 )
 
 type IDBService interface {
-	CreateTransaction()
-	UpdateTransaction()
-	GetMakers()
-	GetCheckers()
+	CreateTransaction(ctx context.Context, action makerchecker.MakerAction, makerId, description string) (*makerchecker.Transaction, error)
+	UpdateTransaction(ctx context.Context, txnId string, checkerId string, approval bool) (*makerchecker.Transaction, error)
+	GetCheckers(ctx context.Context, makerId string, role string) ([]string, error)
 }
 
 type DBService struct {
@@ -43,7 +42,18 @@ func SpawnDBService() (*DBService, error) {
 }
 
 // CreateTransaction creates a maker-checker transaction
-func (dbs *DBService) CreateTransaction(ctx context.Context, req *makerchecker.CreateTransactionBody) (*makerchecker.Transaction, error) {
+func (dbs *DBService) CreateTransaction(ctx context.Context, action makerchecker.MakerAction, makerId, description string) (*makerchecker.Transaction, error) {
+	// todo: add logic
+	return &makerchecker.Transaction{}, nil
+}
+
+func (dbs *DBService) GetCheckers(ctx context.Context, makerId string, role string) ([]string, error) {
+	var checkersEmail []string
+	// todo: add logic
+	return checkersEmail, nil
+}
+
+func (dbs *DBService) UpdateTransaction(ctx context.Context, txnId string, checkerId string, approval bool) (*makerchecker.Transaction, error) {
 	// todo: add logic
 	return &makerchecker.Transaction{}, nil
 }
