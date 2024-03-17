@@ -33,9 +33,9 @@ func init() {
 	log.Printf(cfg.AppID)
 
 	dbUser := "postgres"
-	password := "SmuComedy123"
+	password := ""
 	dbName := "ascenda"
-	dbHost := "database-2.cluster-cyzzcyzcqgrq.ap-southeast-1.rds.amazonaws.com"
+	dbHost := ""
 	// dbPort := 5432
 	// region := "ap-southeast-1"
 
