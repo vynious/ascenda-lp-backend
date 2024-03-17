@@ -1,11 +1,13 @@
 package makerchecker
 
-import "time"
+import (
+	"github.com/vynious/ascenda-lp-backend/db"
+)
 
 type CreateTransactionBody struct {
-	Action MakerAction
-	//MakerId     string
+	Action      MakerAction
 	Description string
+	//MakerId   string
 }
 
 type MakerAction struct {
@@ -16,30 +18,15 @@ type MakerAction struct {
 }
 
 type CreateMakerResponseBody struct {
-	Txn Transaction
-}
-
-type Transaction struct {
-	Id          string
-	Action      MakerAction
-	MakerId     string
-	Description string
-	CheckerId   string
-	Status      string
-	Approval    bool
-	CreatedAt   *time.Duration
-	UpdatedAt   *time.Duration
+	Txn db.Transaction
 }
 
 type UpdateTransactionRequestBody struct {
 	TransactionId string
-	//CheckerId     string
-	Approval bool
+	Approval      bool
+	//CheckerId   string
 }
 
 type UpdateTransactionResponseBody struct {
-	Txn Transaction
-}
-
-type Email struct {
+	Txn db.Transaction
 }

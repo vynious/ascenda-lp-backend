@@ -7,8 +7,8 @@ import (
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/joho/godotenv"
 	"github.com/vynious/ascenda-lp-backend/db"
-	"github.com/vynious/ascenda-lp-backend/emailer"
 	makerchecker "github.com/vynious/ascenda-lp-backend/types/maker-checker"
+	"github.com/vynious/ascenda-lp-backend/util"
 	"log"
 )
 
@@ -78,7 +78,7 @@ func LambdaHandler(ctx context.Context, req *events.APIGatewayProxyRequest) (eve
 		log.Println(err.Error())
 	}
 
-	if err = emailer.EmailCheckers(ctx, checkersEmail); err != nil {
+	if err = util.EmailCheckers(ctx, checkersEmail); err != nil {
 		log.Println(err.Error())
 	}
 
