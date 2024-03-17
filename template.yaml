@@ -1,0 +1,39 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: SAM Template
+
+Globals:
+  Function:
+    Timeout: 5
+    Runtime: provided.al2023
+    Architectures:
+      - x86_64
+
+Resources:
+  GetPointsFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: go1.x
+    Properties:
+      FunctionName: "get_points"
+      # must refer to the directory containing your main package
+      CodeUri: functions/points/get-points/
+      Handler: bootstrap
+      Role: 
+      Events:
+        CatchAll:
+          Type: Api
+          Properties:
+            Path: /points
+            Method: GET
+
+Outputs:
+  # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
+  # Find out more about other implicit resources you can reference within SAM
+  # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
+  APIEndpoint:
+    Description: "API Gateway endpoint URL for Prod environment for First Function"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/points/"
+  GetPointsFunction:
+    Description: "First Lambda Function ARN"
+    Value: !GetAtt GetPointsFunction.Arn
