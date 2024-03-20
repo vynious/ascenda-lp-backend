@@ -31,8 +31,6 @@ Resources:
           dbName: "ascenda"
           dbHost: "database-2.cluster-cyzzcyzcqgrq.ap-southeast-1.rds.amazonaws.com"
           dbPwd: '{{resolve:secretsmanager:arn:aws:secretsmanager:ap-southeast-1:276374573009:secret:rds-admin-EtkU6T:SecretString:password}}'
-          # dbHost: "db-dev.cluster-cyzzcyzcqgrq.ap-southeast-1.rds.amazonaws.com"
-          # dbPwd: "z2bb7xmQhbfjUuAjbKCA"
       Policies:
         - Statement:
           - Action:
