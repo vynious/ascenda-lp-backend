@@ -2,16 +2,14 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
+	"os"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
-	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/rds"
 	"github.com/vynious/ascenda-lp-backend/db"
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
+	"github.com/vynious/ascenda-lp-backend/types/points"
 )
 
 var (
@@ -22,45 +20,9 @@ var (
 
 func init() {
 	log.Printf("INIT")
+	DBService, err = db.SpawnDBService()
 
-	// Initialise global variable DBService tied to Aurora
-	cfg, err := config.LoadDefaultConfig(context.TODO())
-	if err != nil {
-		fmt.Println("Couldn't load default configuration. Have you set up your AWS account?")
-		fmt.Println(err)
-		return
-	}
-	log.Printf(cfg.AppID)
-
-	dbUser := "postgres"
-	password := ""
-	dbName := "ascenda"
-	dbHost := ""
-	// dbPort := 5432
-	// region := "ap-southeast-1"
-
-	// authenticationToken, err := auth.BuildAuthToken(
-	// 	context.TODO(), dbHost, region, dbUser, cfg.Credentials)
-	// if err != nil {
-	// 	panic("failed to create authentication token: " + err.Error())
-	// }
-
-	// dsn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s",
-	// 	dbHost, dbPort, dbUser, authenticationToken, dbName,
-	// )
-	// conn, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
-	// log.Printf(conn.Name())
-
-	// TEST GORM
-
-	dsn := fmt.Sprintf("host=%s user=%s dbname=%s sslmode=disable password=%s", dbHost, dbUser, dbName, password)
-	conn, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
-	// conn, err := sql.Open("postgres", dsn)
-	if err != nil {
-		log.Fatalf("Failed to connect to RDS")
-	}
-	log.Printf("Connected to DB %s", conn.Name())
-	// log.Printf("%s", conn.Stats())
+	defer DBService.CloseConn()
 }
 
 func main() {
@@ -69,6 +31,21 @@ func main() {
 }
 
 func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
+	log.Printf(os.Getenv("dbHost"))
+	log.Printf(request.Body)
+
+	conn := DBService.Conn
+	var pointsRecords []points.Points
+
+	res := conn.Find(&pointsRecords)
+	if res.RowsAffected == 0 {
+		log.Printf("No points record found %s", res.Error)
+		return events.APIGatewayV2HTTPResponse{
+			StatusCode: 200,
+			Body:       "No record found",
+		}, nil
+	}
+
 	return events.APIGatewayV2HTTPResponse{
 		StatusCode: 200,
 		Body:       "Hello",
