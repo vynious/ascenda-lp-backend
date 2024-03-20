@@ -9,6 +9,12 @@ Globals:
     Architectures:
       - x86_64
 
+Parameters:
+  secretName:
+    Default: arn:aws:secretsmanager:ap-southeast-1:276374573009:secret:rds-admin-EtkU6T
+    Description: Database password secret name
+    Type: String
+
 Resources:
   GetPointsFunction:
     Type: AWS::Serverless::Function
@@ -19,13 +25,54 @@ Resources:
       # must refer to the directory containing your main package
       CodeUri: functions/points/get-points/
       Handler: bootstrap
-      Role: 
+      Environment:
+        Variables:
+          dbUser: "postgres"
+          dbName: "ascenda"
+          dbHost: "database-2.cluster-cyzzcyzcqgrq.ap-southeast-1.rds.amazonaws.com"
+          dbPwd: '{{resolve:secretsmanager:arn:aws:secretsmanager:ap-southeast-1:276374573009:secret:rds-admin-EtkU6T:SecretString:password}}'
+          # dbHost: "db-dev.cluster-cyzzcyzcqgrq.ap-southeast-1.rds.amazonaws.com"
+          # dbPwd: "z2bb7xmQhbfjUuAjbKCA"
+      Policies:
+        - Statement:
+          - Action:
+              - dynamodb:GetItem
+              - dynamodb:PutItem
+              - dynamodb:UpdateItem
+              - dynamodb:DeleteItem
+              - dynamodb:Query
+              - dynamodb:Scan
+              - dynamodb:BatchWriteItem
+              - ec2:CreateNetworkInterface
+              - ec2:DescribeNetworkInterfaces
+              - ec2:DescribeSubnets
+              - ec2:DeleteNetworkInterface
+              - ec2:AssignPrivateIpAddresses
+              - ec2:UnassignPrivateIpAddresses
+              - logs:CreateLogGroup
+              - logs:CreateLogStream
+              - logs:PutLogEvents
+              - ssm:GetParameter
+              - secretsmanager:GetResourcePolicy
+              - secretsmanager:GetSecretValue
+              - secretsmanager:DescribeSecret
+              - secretsmanager:ListSecretVersionIds
+              - secretsmanager:ListSecrets
+            Effect: Allow
+            Resource: '*'
+      VpcConfig:
+        SecurityGroupIds:
+          - sg-08f58f539a3e92eb4
+        SubnetIds:
+          - subnet-39ee2971
+          - subnet-0e2ff868
       Events:
         CatchAll:
           Type: Api
           Properties:
             Path: /points
             Method: GET
+
 
 Outputs:
   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
