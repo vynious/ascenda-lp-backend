@@ -1,4 +1,4 @@
-package emailer
+package util
 
 import (
 	"context"

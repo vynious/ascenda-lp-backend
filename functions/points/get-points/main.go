@@ -3,13 +3,13 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"github.com/vynious/ascenda-lp-backend/types"
 	"log"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go-v2/service/rds"
 	"github.com/vynious/ascenda-lp-backend/db"
-	"github.com/vynious/ascenda-lp-backend/types/points"
 	"gorm.io/gorm"
 )
 
@@ -34,11 +34,11 @@ func main() {
 func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
 	log.Printf(request.Body)
 
-	req := points.GetPointsByUserRequestBody{}
+	req := types.GetPointsByUserRequestBody{}
 	json.Unmarshal([]byte(request.Body), &req)
 
 	conn := DBService.Conn
-	var pointsRecords []points.Points
+	var pointsRecords []types.Points
 
 	var res *gorm.DB
 	if req.UserId != "" {
