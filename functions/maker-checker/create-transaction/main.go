@@ -17,6 +17,7 @@ var (
 	DBService    *db.DBService
 	requestBody  makerchecker.CreateTransactionBody
 	responseBody makerchecker.CreateMakerResponseBody
+	action       makerchecker.MakerAction
 	err          error
 )
 
@@ -32,7 +33,7 @@ func init() {
 	}
 }
 
-func LambdaHandler(ctx context.Context, req *events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+func CreateTransactionHandler(ctx context.Context, req *events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	defer DBService.CloseConn()
 
 	role := "product-manager"                   // do I need?
@@ -51,35 +52,31 @@ func LambdaHandler(ctx context.Context, req *events.APIGatewayProxyRequest) (eve
 		}, nil
 	}
 
-	// don't need the switch case
-	switch requestBody.Action.ResourceType {
-	case "User":
-		txn, err := DBService.CreateTransaction(ctx, requestBody.Action, makerId, requestBody.Description)
-		if err != nil {
-			return events.APIGatewayProxyResponse{
-				StatusCode: 500,
-				Body:       "",
-			}, nil
-		}
-		responseBody.Txn = *txn
-	case "Point":
-		txn, err := DBService.CreateTransaction(ctx, requestBody.Action, makerId, requestBody.Description)
-		if err != nil {
-			return events.APIGatewayProxyResponse{
-				StatusCode: 500,
-				Body:       "",
-			}, nil
-		}
-		responseBody.Txn = *txn
+	action = makerchecker.MakerAction{
+		ResourceType: requestBody.ResourceType,
+		ActionType:   requestBody.ActionType,
+		RequestBody:  requestBody.RequestBody,
+		UserId:       requestBody.UserId,
 	}
 
-	// get checkerId
-	checkersEmail, err := DBService.GetCheckers(ctx, makerId, role)
+	// Calls DB Service to create transaction
+	txn, err := DBService.CreateTransaction(ctx, action, makerId, requestBody.Description)
+	if err != nil {
+		return events.APIGatewayProxyResponse{
+			StatusCode: 500,
+			Body:       "",
+		}, nil
+	}
+
+	responseBody.Txn = *txn
+
+	// Send emails seek checker's approval
+	checkersEmail, err := DBService.GetCheckers(ctx, role)
 	if err != nil {
 		log.Println(err.Error())
 	}
 
-	if err = util.EmailCheckers(ctx, requestBody.Action.ResourceType, checkersEmail); err != nil {
+	if err = util.EmailCheckers(ctx, requestBody.ResourceType, checkersEmail); err != nil {
 		log.Println(err.Error())
 	}
 
@@ -98,5 +95,5 @@ func LambdaHandler(ctx context.Context, req *events.APIGatewayProxyRequest) (eve
 }
 
 func main() {
-	lambda.Start(LambdaHandler)
+	lambda.Start(CreateTransactionHandler)
 }

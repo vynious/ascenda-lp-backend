@@ -30,15 +30,18 @@ type Transaction struct {
 
 // Others
 type CreateTransactionBody struct {
-	Action      MakerAction
-	Description string
+	Description  string
+	ResourceType string
+	ActionType   string
+	RequestBody  string
+	UserId       string
 	//MakerId   string
 }
 
 type MakerAction struct {
 	ResourceType string
 	ActionType   string
-	Value        int64
+	RequestBody  string
 	UserId       string
 }
 
@@ -49,7 +52,6 @@ type CreateMakerResponseBody struct {
 type UpdateTransactionRequestBody struct {
 	TransactionId string
 	Approval      bool
-	//CheckerId   string
 }
 
 type UpdateTransactionResponseBody struct {

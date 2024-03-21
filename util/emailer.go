@@ -9,7 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ses/types"
 )
 
-func EmailCheckers(ctx context.Context, checkersEmail []string) error {
+func EmailCheckers(ctx context.Context, actionType string, checkersEmail []string) error {
 
 	cfg, err := config.LoadDefaultConfig(ctx)
 	if err != nil {
@@ -25,12 +25,12 @@ func EmailCheckers(ctx context.Context, checkersEmail []string) error {
 			Body: &types.Body{
 				Text: &types.Content{
 					Charset: aws.String("UTF-8"),
-					Data:    aws.String(""),
+					Data:    aws.String("Dear Checker,\n\tYou have a pending transaction for approval."),
 				},
 			},
 			Subject: &types.Content{
 				Charset: aws.String("UTF-8"),
-				Data:    aws.String(""),
+				Data:    aws.String(fmt.Sprintf("[Action Required] %s Request", actionType)),
 			},
 		},
 		Source: aws.String(""),
