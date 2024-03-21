@@ -1,2 +1,6 @@
 .idea
+.vscode
+
 .env
+env.json
+.aws-sam

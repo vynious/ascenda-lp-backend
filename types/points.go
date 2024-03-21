@@ -1,8 +1,11 @@
 package types
 
+import "gorm.io/gorm"
+
 type Points struct {
-	Id      string
-	UserId  string
+	gorm.Model
+	Id      string `gorm:"primaryKey"`
+	UserId  string `gorm:"foreignKey:Id"`
 	Balance int32
 }
 

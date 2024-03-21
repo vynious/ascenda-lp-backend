@@ -3,18 +3,18 @@ package db
 import (
 	"context"
 	"fmt"
-	makerchecker "github.com/vynious/ascenda-lp-backend/types"
 	"log"
 	"os"
 	"time"
 
+	"github.com/vynious/ascenda-lp-backend/types"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
 type IDBService interface {
-	CreateTransaction(ctx context.Context, action makerchecker.MakerAction, makerId, description string) (*makerchecker.Transaction, error)
-	UpdateTransaction(ctx context.Context, txnId string, checkerId string, approval bool) (*makerchecker.Transaction, error)
+	CreateTransaction(ctx context.Context, action types.MakerAction, makerId, description string) (*types.Transaction, error)
+	UpdateTransaction(ctx context.Context, txnId string, checkerId string, approval bool) (*types.Transaction, error)
 	GetCheckers(ctx context.Context, makerId string, role string) ([]string, error)
 	GetPoints(ctx context.Context, userId string) ([]string, error)
 }
