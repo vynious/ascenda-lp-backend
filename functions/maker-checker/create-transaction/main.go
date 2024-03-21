@@ -3,13 +3,14 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"log"
+
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/joho/godotenv"
 	"github.com/vynious/ascenda-lp-backend/db"
 	makerchecker "github.com/vynious/ascenda-lp-backend/types"
 	"github.com/vynious/ascenda-lp-backend/util"
-	"log"
 )
 
 var (
