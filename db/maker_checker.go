@@ -3,16 +3,16 @@ package db
 import (
 	"context"
 	"fmt"
-	makerchecker "github.com/vynious/ascenda-lp-backend/types"
+	types "github.com/vynious/ascenda-lp-backend/types"
 	"gorm.io/gorm/clause"
 )
 
 // CreateTransaction creates a maker-checker transaction
-func (dbs *DBService) CreateTransaction(ctx context.Context, action makerchecker.MakerAction, makerId, description string) (*makerchecker.Transaction, error) {
+func (dbs *DBService) CreateTransaction(ctx context.Context, action types.MakerAction, makerId, description string) (*types.Transaction, error) {
 
 	tx := dbs.Conn.WithContext(ctx)
 
-	txn := &makerchecker.Transaction{
+	txn := &types.Transaction{
 		MakerId:     makerId,
 		Description: description,
 		Action:      action,
@@ -33,7 +33,7 @@ func (dbs *DBService) GetCheckers(ctx context.Context, role string) ([]string, e
 	return checkersEmail, nil
 }
 
-func (dbs *DBService) UpdateTransaction(ctx context.Context, txnId string, checkerId string, approval bool) (*makerchecker.Transaction, error) {
+func (dbs *DBService) UpdateTransaction(ctx context.Context, txnId string, checkerId string, approval bool) (*types.Transaction, error) {
 
 	// Start a transaction
 	tx := dbs.Conn.WithContext(ctx).Begin()
@@ -48,13 +48,13 @@ func (dbs *DBService) UpdateTransaction(ctx context.Context, txnId string, check
 	}
 
 	// Update the transaction and locks the current entry
-	if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).Model(&makerchecker.Transaction{}).Where("TransactionId = ?", txnId).Updates(decision).Error; err != nil {
+	if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).Model(&types.Transaction{}).Where("TransactionId = ?", txnId).Updates(decision).Error; err != nil {
 		tx.Rollback()
 		return nil, err
 	}
 
 	// Retrieve the updated transaction
-	var updatedTransaction makerchecker.Transaction
+	var updatedTransaction types.Transaction
 
 	if err := tx.Where("TransactionId = ?", txnId).First(&updatedTransaction).Error; err != nil {
 		tx.Rollback()
