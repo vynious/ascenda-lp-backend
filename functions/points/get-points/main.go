@@ -2,14 +2,15 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"log"
-	"os"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go-v2/service/rds"
 	"github.com/vynious/ascenda-lp-backend/db"
 	"github.com/vynious/ascenda-lp-backend/types/points"
+	"gorm.io/gorm"
 )
 
 var (
@@ -21,33 +22,58 @@ var (
 func init() {
 	log.Printf("INIT")
 	DBService, err = db.SpawnDBService()
-
-	defer DBService.CloseConn()
 }
 
 func main() {
 	// we are simulating a lambda behind an ApiGatewayV2
 	lambda.Start(handler)
+
+	defer DBService.CloseConn()
 }
 
 func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
-	log.Printf(os.Getenv("dbHost"))
 	log.Printf(request.Body)
+
+	req := points.GetPointsByUserRequestBody{}
+	json.Unmarshal([]byte(request.Body), &req)
 
 	conn := DBService.Conn
 	var pointsRecords []points.Points
 
-	res := conn.Find(&pointsRecords)
-	if res.RowsAffected == 0 {
-		log.Printf("No points record found %s", res.Error)
+	var res *gorm.DB
+	if req.UserId != "" {
+		res = conn.Where("user_id = ?", req.UserId).First(&pointsRecords)
+	} else {
+		res = conn.Find(&pointsRecords)
+	}
+
+	if res.Error != nil {
+		log.Printf("Database error %s", res.Error)
 		return events.APIGatewayV2HTTPResponse{
-			StatusCode: 200,
-			Body:       "No record found",
+			StatusCode: 500,
+			Body:       "Internal server error",
+		}, nil
+	}
+
+	if res.RowsAffected == 0 {
+		// Return 404 response if no points records are found
+		return events.APIGatewayV2HTTPResponse{
+			StatusCode: 404,
+			Body:       "No points records found",
+		}, nil
+	}
+
+	obj, err := json.Marshal(pointsRecords)
+	if err != nil {
+		log.Printf("Failed to parse points records: %v", err)
+		return events.APIGatewayV2HTTPResponse{
+			StatusCode: 500,
+			Body:       "Internal server error",
 		}, nil
 	}
 
 	return events.APIGatewayV2HTTPResponse{
 		StatusCode: 200,
-		Body:       "Hello",
+		Body:       string(obj),
 	}, nil
 }
