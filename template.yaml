@@ -8,6 +8,12 @@ Globals:
     Runtime: provided.al2023
     Architectures:
       - x86_64
+    Environment:
+        Variables:
+          dbUser: "postgres"
+          dbName: "ascenda"
+          dbHost: "database-2.cluster-cyzzcyzcqgrq.ap-southeast-1.rds.amazonaws.com"
+          dbPwd: '{{resolve:secretsmanager:arn:aws:secretsmanager:ap-southeast-1:276374573009:secret:rds-admin-EtkU6T:SecretString:password}}'
 
 Parameters:
   secretName:
@@ -25,12 +31,6 @@ Resources:
       # must refer to the directory containing your main package
       CodeUri: functions/points/get-points/
       Handler: bootstrap
-      Environment:
-        Variables:
-          dbUser: "postgres"
-          dbName: "ascenda"
-          dbHost: "database-2.cluster-cyzzcyzcqgrq.ap-southeast-1.rds.amazonaws.com"
-          dbPwd: '{{resolve:secretsmanager:arn:aws:secretsmanager:ap-southeast-1:276374573009:secret:rds-admin-EtkU6T:SecretString:password}}'
       Policies:
         - Statement:
           - Action:

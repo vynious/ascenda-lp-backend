@@ -43,23 +43,6 @@ func SpawnDBService() (*DBService, error) {
 	}, nil
 }
 
-// CreateTransaction creates a maker-checker transaction
-func (dbs *DBService) CreateTransaction(ctx context.Context, action makerchecker.MakerAction, makerId, description string) (*makerchecker.Transaction, error) {
-	// todo: add logic
-	return &makerchecker.Transaction{}, nil
-}
-
-func (dbs *DBService) GetCheckers(ctx context.Context, makerId string, role string) ([]string, error) {
-	var checkersEmail []string
-	// todo: add logic
-	return checkersEmail, nil
-}
-
-func (dbs *DBService) UpdateTransaction(ctx context.Context, txnId string, checkerId string, approval bool) (*makerchecker.Transaction, error) {
-	// todo: add logic
-	return &makerchecker.Transaction{}, nil
-}
-
 // CloseConn closes connection to db
 func (dbs *DBService) CloseConn() error {
 	db, _ := dbs.Conn.DB()
