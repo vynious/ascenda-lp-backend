@@ -8,6 +8,8 @@ github.com/aws/aws-sdk-go-v2/credentials v1.17.7 h1:WJd+ubWKoBeRh7A5iNMnxEOs982S
 github.com/aws/aws-sdk-go-v2/credentials v1.17.7/go.mod h1:UQi7LMR0Vhvs+44w5ec8Q+VS+cd10cjwgHwiVkE0YGU=
 github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.15.3 h1:p+y7FvkK2dxS+FEwRIDHDe//ZX+jDhP8HHE50ppj4iI=
 github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.15.3/go.mod h1:/fYB+FZbDlwlAiynK9KDXlzZl3ANI9JkD0Uhz5FjNT4=
+github.com/aws/aws-sdk-go-v2/feature/rds/auth v1.4.3 h1:mfxA6HX/mla8BrjVHdVD0G49+0Z+xKel//NCPBk0qbo=
+github.com/aws/aws-sdk-go-v2/feature/rds/auth v1.4.3/go.mod h1:PjvlBlYNNXPrMAGarXrnV+UYv1T9XyTT2Ono41NQjq8=
 github.com/aws/aws-sdk-go-v2/internal/configsources v1.3.3 h1:ifbIbHZyGl1alsAhPIYsHOg5MuApgqOvVeI8wIugXfs=
 github.com/aws/aws-sdk-go-v2/internal/configsources v1.3.3/go.mod h1:oQZXg3c6SNeY6OZrDY+xHcF4VGIEoNotX2B4PrDeoJI=
 github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.6.3 h1:Qvodo9gHG9F3E8SfYOspPeBt0bjSbsevK8WhRAUHcoY=
@@ -18,6 +20,10 @@ github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.11.1 h1:EyBZibR
 github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.11.1/go.mod h1:JKpmtYhhPs7D97NL/ltqz7yCkERFW5dOlHyVl66ZYF8=
 github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.11.5 h1:K/NXvIftOlX+oGgWGIa3jDyYLDNsdVhsjHmsBH2GLAQ=
 github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.11.5/go.mod h1:cl9HGLV66EnCmMNzq4sYOti+/xo8w34CsgzVtm2GgsY=
+github.com/aws/aws-sdk-go-v2/service/rds v1.75.2 h1:/etI5hk4BQURwtGvBP+BYd9X+4LJEB4C6pQ01OuOYec=
+github.com/aws/aws-sdk-go-v2/service/rds v1.75.2/go.mod h1:rkt5KtuoWuz6e6OMAMvR2h5o+7kUVEUCuBuDZhw5CIE=
+github.com/aws/aws-sdk-go-v2/service/secretsmanager v1.28.3 h1:nMvMpooRz9Kbbn+NPoWdQ4SPdjM6HzVJ6Wzsa1IgRwI=
+github.com/aws/aws-sdk-go-v2/service/secretsmanager v1.28.3/go.mod h1:GvNHKQAAOSKjmlccE/+Ww2gDbwYP9EewIuvWiQSquQs=
 github.com/aws/aws-sdk-go-v2/service/ses v1.22.2 h1:cW5JtW23Lio3KDJ4l3jqRiOcCPKxJg7ooRA1SpIiuMo=
 github.com/aws/aws-sdk-go-v2/service/ses v1.22.2/go.mod h1:MLj/NROJoperecxBME2zMN/O8Zrm0wv+6ah1Uqwpa1E=
 github.com/aws/aws-sdk-go-v2/service/sso v1.20.2 h1:XOPfar83RIRPEzfihnp+U6udOveKZJvPQ76SKWrLRHc=
