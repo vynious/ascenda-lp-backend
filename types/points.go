@@ -1,4 +1,4 @@
-package points
+package types
 
 type Points struct {
 	Id      string

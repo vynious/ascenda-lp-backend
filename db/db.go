@@ -3,11 +3,11 @@ package db
 import (
 	"context"
 	"fmt"
+	makerchecker "github.com/vynious/ascenda-lp-backend/types"
 	"log"
 	"os"
 	"time"
 
-	makerchecker "github.com/vynious/ascenda-lp-backend/types/maker-checker"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -36,7 +36,6 @@ func SpawnDBService() (*DBService, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to make connection")
 	}
-
 	log.Printf("Successfully connected to Database")
 	return &DBService{
 		Conn: cc,

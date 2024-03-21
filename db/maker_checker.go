@@ -2,13 +2,24 @@ package db
 
 import (
 	"context"
-
-	makerchecker "github.com/vynious/ascenda-lp-backend/types/maker-checker"
+	"fmt"
+	makerchecker "github.com/vynious/ascenda-lp-backend/types"
 )
 
 // CreateTransaction creates a maker-checker transaction
 func (dbs *DBService) CreateTransaction(ctx context.Context, action makerchecker.MakerAction, makerId, description string) (*makerchecker.Transaction, error) {
 	// todo: add logic
+	tx := dbs.Conn.WithContext(ctx)
+
+	txn := &makerchecker.Transaction{
+		MakerId:     makerId,
+		Description: description,
+		Action:      action,
+	}
+
+	if err := tx.Create(&txn).Error; err != nil {
+		return nil, fmt.Errorf(err.Error())
+	}
 	return &makerchecker.Transaction{}, nil
 }
 
