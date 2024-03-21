@@ -78,7 +78,7 @@ func LambdaHandler(ctx context.Context, req *events.APIGatewayProxyRequest) (eve
 		log.Println(err.Error())
 	}
 
-	if err = util.EmailCheckers(ctx, checkersEmail); err != nil {
+	if err = util.EmailCheckers(ctx, requestBody.Action.ResourceType, checkersEmail); err != nil {
 		log.Println(err.Error())
 	}
 
