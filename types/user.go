@@ -8,5 +8,5 @@ type User struct {
 	Email     string
 	FirstName string
 	LastName  string
-	Role      string
+	Roles     []Role `gorm:"many2many:user_roles;"`
 }
