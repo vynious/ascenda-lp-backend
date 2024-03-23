@@ -38,7 +38,7 @@ func main() {
 
 	seedFile("users", DB)
 	seedFile("points", DB)
-	seedFile("rolesAndPermissions", DB)
+	seedRolesAndPermissions(DB)
 }
 
 func seedFile(filename string, DB *db.DBService) {
@@ -58,8 +58,6 @@ func seedFile(filename string, DB *db.DBService) {
 		seedPoints(records, DB)
 	case "users":
 		seedUsers(records, DB)
-	case "rolesAndPermissions":
-		seedRolesAndPermissions(DB)
 	default:
 		log.Fatalf("Unsupported file type: %s", filename)
 	}
