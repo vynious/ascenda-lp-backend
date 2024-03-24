@@ -34,6 +34,7 @@ Resources:
       Policies:
         - Statement:
           - Action:
+              # TODO: REMOVE UNNECESSARY PERMISSIONS
               - dynamodb:GetItem
               - dynamodb:PutItem
               - dynamodb:UpdateItem
@@ -70,6 +71,132 @@ Resources:
           Properties:
             Path: /points
             Method: GET
+    
+  UpdatePointsFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: go1.x
+    Properties:
+      FunctionName: "update_points"
+      # must refer to the directory containing your main package
+      CodeUri: functions/points/update-points/
+      Handler: bootstrap
+      Policies:
+        - Statement:
+          - Action:
+              - ec2:CreateNetworkInterface
+              - ec2:DescribeNetworkInterfaces
+              - ec2:DescribeSubnets
+              - ec2:DeleteNetworkInterface
+              - ec2:AssignPrivateIpAddresses
+              - ec2:UnassignPrivateIpAddresses
+              - logs:CreateLogGroup
+              - logs:CreateLogStream
+              - logs:PutLogEvents
+              - ssm:GetParameter
+              - secretsmanager:GetResourcePolicy
+              - secretsmanager:GetSecretValue
+              - secretsmanager:DescribeSecret
+              - secretsmanager:ListSecretVersionIds
+              - secretsmanager:ListSecrets
+            Effect: Allow
+            Resource: '*'
+      VpcConfig:
+        SecurityGroupIds:
+          - sg-08f58f539a3e92eb4
+        SubnetIds:
+          - subnet-39ee2971
+          - subnet-0e2ff868
+      Events:
+        CatchAll:
+          Type: Api
+          Properties:
+            Path: /points
+            Method: PUT
+  
+  CreatePointsFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: go1.x
+    Properties:
+      FunctionName: "create_points"
+      # must refer to the directory containing your main package
+      CodeUri: functions/points/create-points/
+      Handler: bootstrap
+      Policies:
+        - Statement:
+          - Action:
+              - ec2:CreateNetworkInterface
+              - ec2:DescribeNetworkInterfaces
+              - ec2:DescribeSubnets
+              - ec2:DeleteNetworkInterface
+              - ec2:AssignPrivateIpAddresses
+              - ec2:UnassignPrivateIpAddresses
+              - logs:CreateLogGroup
+              - logs:CreateLogStream
+              - logs:PutLogEvents
+              - ssm:GetParameter
+              - secretsmanager:GetResourcePolicy
+              - secretsmanager:GetSecretValue
+              - secretsmanager:DescribeSecret
+              - secretsmanager:ListSecretVersionIds
+              - secretsmanager:ListSecrets
+            Effect: Allow
+            Resource: '*'
+      VpcConfig:
+        SecurityGroupIds:
+          - sg-08f58f539a3e92eb4
+        SubnetIds:
+          - subnet-39ee2971
+          - subnet-0e2ff868
+      Events:
+        CatchAll:
+          Type: Api
+          Properties:
+            Path: /points
+            Method: POST
+  
+  DeletePointsFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: go1.x
+    Properties:
+      FunctionName: "delete_points"
+      # must refer to the directory containing your main package
+      CodeUri: functions/points/delete-points/
+      Handler: bootstrap
+      Policies:
+        - Statement:
+          - Action:
+              - ec2:CreateNetworkInterface
+              - ec2:DescribeNetworkInterfaces
+              - ec2:DescribeSubnets
+              - ec2:DeleteNetworkInterface
+              - ec2:AssignPrivateIpAddresses
+              - ec2:UnassignPrivateIpAddresses
+              - logs:CreateLogGroup
+              - logs:CreateLogStream
+              - logs:PutLogEvents
+              - ssm:GetParameter
+              - secretsmanager:GetResourcePolicy
+              - secretsmanager:GetSecretValue
+              - secretsmanager:DescribeSecret
+              - secretsmanager:ListSecretVersionIds
+              - secretsmanager:ListSecrets
+            Effect: Allow
+            Resource: '*'
+      VpcConfig:
+        SecurityGroupIds:
+          - sg-08f58f539a3e92eb4
+        SubnetIds:
+          - subnet-39ee2971
+          - subnet-0e2ff868
+      Events:
+        CatchAll:
+          Type: Api
+          Properties:
+            Path: /points
+            Method: DELETE
 
 
 Outputs:
