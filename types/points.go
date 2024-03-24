@@ -4,22 +4,32 @@ import "gorm.io/gorm"
 
 type Points struct {
 	gorm.Model
-	Id      string `gorm:"primaryKey"`
-	UserId  string `gorm:"foreignKey:Id"`
+	ID      string `gorm:"type:uuid;primary_key;"`
+	UserID  string
+	User    User `gorm:"foreignKey:UserID;constraint:OnUpdate:SET NULL,OnDelete:CASCADE;"`
 	Balance int32
 }
 
 type GetPointsRequestBody struct{}
 
-type GetPointsByUserRequestBody struct {
-	UserId string
+type GetPointsAccountsByUserRequestBody struct {
+	UserID *string `json:"user_id,omitempty"`
 }
 
 type UpdatePointsRequestBody struct {
-	UserId     string
-	NewBalance int32
+	ID         *string `json:"id,omitempty"`
+	NewBalance *int32  `json:"new_balance,omitempty"`
 }
 
 type UpdatePointsResponseBody struct {
 	Status bool
+}
+
+type CreatePointsAccountRequestBody struct {
+	UserID     *string `json:"user_id,omitempty"`
+	NewBalance *int32  `json:"new_balance,omitempty"`
+}
+
+type DeletePointsAccountRequestBody struct {
+	ID *string `json:"id,omitempty"`
 }
