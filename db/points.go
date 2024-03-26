@@ -50,15 +50,15 @@ func (dbs *DBService) GetPointsAccountsByUser(ctx context.Context, userId string
 	return pointsRecords, nil
 }
 
-func (dbs *DBService) UpdatePoints(ctx context.Context, accId string, newBalance int32) (*types.Points, error) {
+func (dbs *DBService) UpdatePoints(ctx context.Context, req types.UpdatePointsRequestBody) (*types.Points, error) {
 
 	var pointsRecords []types.Points
-	pointsRecords, err := dbs.GetPointsByID(ctx, accId)
+	pointsRecords, err := dbs.GetPointsByID(ctx, *req.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	res := dbs.Conn.Model(pointsRecords).Update("balance", newBalance).First(&pointsRecords)
+	res := dbs.Conn.Model(pointsRecords).Update("balance", req.NewBalance).First(&pointsRecords)
 	if res.RowsAffected == 0 {
 		return nil, res.Error
 	}
@@ -66,12 +66,12 @@ func (dbs *DBService) UpdatePoints(ctx context.Context, accId string, newBalance
 	return &pointsRecords[0], nil
 }
 
-func (dbs *DBService) CreatePointsAccount(ctx context.Context, userId string, newBalance int32) (*types.Points, error) {
+func (dbs *DBService) CreatePointsAccount(ctx context.Context, req types.CreatePointsAccountRequestBody) (*types.Points, error) {
 
 	pointsRecord := types.Points{
 		ID:      uuid.NewString(),
-		UserID:  userId,
-		Balance: newBalance,
+		UserID:  *req.UserID,
+		Balance: *req.NewBalance,
 	}
 	res := dbs.Conn.Model(types.Points{}).Create(&pointsRecord)
 	if res.RowsAffected == 0 {
