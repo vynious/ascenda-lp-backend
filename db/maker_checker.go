@@ -15,10 +15,12 @@ func (dbs *DBService) CreateTransaction(ctx context.Context, action types.MakerA
 	tx := dbs.Conn.WithContext(ctx)
 	log.Printf("receiving %v from %s", action, makerId)
 
+	jsonMsgAction, _ := json.Marshal(action)
+
 	txn := &types.Transaction{
 		TransactionId: uuid.NewString(),
 		MakerId:       makerId,
-		Action:        action,
+		Action:        jsonMsgAction,
 	}
 
 	if err := tx.Create(&txn).Error; err != nil {
@@ -33,7 +35,7 @@ func (dbs *DBService) GetTransaction(ctx context.Context, txnId string) (*types.
 
 	tx := dbs.Conn.WithContext(ctx)
 
-	if err := tx.Where("TransactionId = ?", txnId).First(&transaction).Error; err != nil {
+	if err := tx.Where("transaction_id = ?", txnId).First(&transaction).Error; err != nil {
 		return nil, err
 	}
 
@@ -52,10 +54,11 @@ func (dbs *DBService) UpdateTransaction(ctx context.Context, txnId string, check
 	decision := map[string]interface{}{
 		"CheckerId": checkerId,
 		"Approval":  approval,
+		"Status":    "completed",
 	}
 
 	// Update the transaction and locks the current entry
-	if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).Model(&types.Transaction{}).Where("TransactionId = ?", txnId).Updates(decision).Error; err != nil {
+	if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).Model(&types.Transaction{}).Where("transaction_id = ?", txnId).Updates(decision).Error; err != nil {
 		tx.Rollback()
 		return nil, err
 	}
@@ -63,22 +66,27 @@ func (dbs *DBService) UpdateTransaction(ctx context.Context, txnId string, check
 	// Retrieve the updated transaction
 	var updatedTransaction types.Transaction
 
-	if err := tx.Where("TransactionId = ?", txnId).First(&updatedTransaction).Error; err != nil {
+	if err := tx.Where("transaction_id = ?", txnId).First(&updatedTransaction).Error; err != nil {
 		tx.Rollback()
 		return nil, err
 	}
 
 	// Commit the transaction
-	if err := tx.Commit().Error; err != nil {
-		return nil, err
-	}
 
 	if approval == true {
-		go func() {
-			if err := dbs.ProcessTransaction(&updatedTransaction.Action); err != nil {
-			}
-		}()
+		var makerAction types.MakerAction
+		if err := json.Unmarshal(updatedTransaction.Action, &makerAction); err != nil {
+			tx.Rollback()
+			return nil, err
+		}
+		if err := dbs.ProcessTransaction(&makerAction); err != nil {
+			tx.Rollback()
+			return nil, err
+		}
+	}
 
+	if err := tx.Commit().Error; err != nil {
+		return nil, err
 	}
 
 	return &updatedTransaction, nil
@@ -99,7 +107,7 @@ func (dbs *DBService) GetCheckers(ctx context.Context, makerRole string) ([]stri
 	tx := dbs.Conn.WithContext(ctx).Begin()
 
 	// SELECT email FROM users WHERE role_id IN (1, 2, 3);
-	if err := tx.Model(&types.User{}).Where("Role IN ?", checkerRole).Pluck("Email", &checkersEmail).Error; err != nil {
+	if err := tx.Model(&types.User{}).Where("role IN ?", checkerRole).Pluck("Email", &checkersEmail).Error; err != nil {
 		return nil, err
 	}
 	return checkersEmail, nil

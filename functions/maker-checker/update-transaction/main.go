@@ -39,7 +39,7 @@ func LambdaHandler(ctx context.Context, req *events.APIGatewayV2HTTPRequest) (ev
 		}, nil
 	}
 
-	updatedTxn, err := DBService.UpdateTransaction(ctx, requestBody.TransactionId, requestBody.MakerId, requestBody.Approval)
+	updatedTxn, err := DBService.UpdateTransaction(ctx, requestBody.TransactionId, requestBody.CheckerId, requestBody.Approval)
 	if err != nil {
 		return events.APIGatewayV2HTTPResponse{
 			StatusCode: 500,
