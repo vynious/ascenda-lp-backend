@@ -17,8 +17,8 @@ type GetPointsAccountsByUserRequestBody struct {
 }
 
 type UpdatePointsRequestBody struct {
-	ID         *string `json:"id,omitempty"`
-	NewBalance *int32  `json:"new_balance,omitempty"`
+	ID         string `json:"id,omitempty"`
+	NewBalance int32  `json:"new_balance,omitempty"`
 }
 
 type UpdatePointsResponseBody struct {

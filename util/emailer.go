@@ -25,9 +25,12 @@ func EmailCheckers(ctx context.Context, actionType string, checkersEmail []strin
 		Please login to view.
 		`
 
+	// mock
+	checkersEmail = []string{"shawn.thiah.2022@scis.smu.edu.sg"}
+
 	input := &ses.SendEmailInput{
 		Destination: &types.Destination{
-			ToAddresses: []string{"shawn.thiah.2022@scis.smu.edu.sg"},
+			ToAddresses: checkersEmail,
 		},
 		Message: &types.Message{
 			Body: &types.Body{

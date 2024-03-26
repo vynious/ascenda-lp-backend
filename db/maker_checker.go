@@ -2,19 +2,23 @@ package db
 
 import (
 	"context"
-	"fmt"
+	"encoding/json"
+	"github.com/google/uuid"
 	"github.com/vynious/ascenda-lp-backend/types"
 	"gorm.io/gorm/clause"
+	"log"
 )
 
 // CreateTransaction creates a maker-checker transaction
 func (dbs *DBService) CreateTransaction(ctx context.Context, action types.MakerAction, makerId string) (*types.Transaction, error) {
 
 	tx := dbs.Conn.WithContext(ctx)
+	log.Printf("receiving %v from %s", action, makerId)
 
 	txn := &types.Transaction{
-		MakerId: makerId,
-		Action:  action,
+		TransactionId: uuid.NewString(),
+		MakerId:       makerId,
+		Action:        action,
 	}
 
 	if err := tx.Create(&txn).Error; err != nil {
@@ -95,7 +99,7 @@ func (dbs *DBService) GetCheckers(ctx context.Context, makerRole string) ([]stri
 	tx := dbs.Conn.WithContext(ctx).Begin()
 
 	// SELECT email FROM users WHERE role_id IN (1, 2, 3);
-	if err := tx.Model(&types.User{}).Where("Role IN ?", checkerRole).Pluck("Email", checkersEmail).Error; err != nil {
+	if err := tx.Model(&types.User{}).Where("Role IN ?", checkerRole).Pluck("Email", &checkersEmail).Error; err != nil {
 		return nil, err
 	}
 	return checkersEmail, nil
@@ -105,12 +109,11 @@ func (dbs *DBService) ProcessTransaction(action *types.MakerAction) error {
 
 	switch action.ActionType {
 	case "UpdatePoints":
-
-		requestBody, ok := action.RequestBody.(types.UpdatePointsRequestBody)
-		if !ok {
-			return fmt.Errorf("request body for update points does not match")
+		var updatePointsRequestBody types.UpdatePointsRequestBody
+		if err := json.Unmarshal(action.RequestBody, &updatePointsRequestBody); err != nil {
+			return err
 		}
-		if _, err := dbs.UpdatePoints(context.Background(), requestBody); err != nil {
+		if _, err := dbs.UpdatePoints(context.Background(), updatePointsRequestBody); err != nil {
 			return err
 		}
 	case "UpdateUser":

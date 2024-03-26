@@ -32,7 +32,7 @@ func init() {
 func CreateTransactionHandler(ctx context.Context, req *events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
 	defer DBService.CloseConn()
 
-	role := ""
+	role := "product_owner"
 
 	if err := json.Unmarshal([]byte(req.Body), &requestBody); err != nil {
 		return events.APIGatewayV2HTTPResponse{
@@ -41,28 +41,63 @@ func CreateTransactionHandler(ctx context.Context, req *events.APIGatewayV2HTTPR
 		}, nil
 	}
 
-	// Calls DB Service to create transaction
-	txn, err := DBService.CreateTransaction(ctx, action, requestBody.MakerId, requestBody.Description)
-	if err != nil {
+	makerId := requestBody.MakerId
+
+	switch requestBody.Action.ActionType {
+	case "UpdatePoints":
+
+		// to check if the request body matches UpdatePointsRequesBody struct
+		var updatePointsRequestBody types.UpdatePointsRequestBody
+		if err := json.Unmarshal(requestBody.Action.RequestBody, &updatePointsRequestBody); err != nil {
+			log.Printf("Error unmarshalling UpdatePointsRequestBody: %v", err)
+			return events.APIGatewayV2HTTPResponse{
+				StatusCode: 400,
+				Body:       "Invalid request format for UpdatePoints",
+			}, nil
+		}
+
+		log.Printf("UpdatePointsRequestBody: %+v", updatePointsRequestBody)
+
+		// convert to json.RawMessage to fit MakerAction struct
+		rawJsonBody, _ := json.Marshal(updatePointsRequestBody)
+
+		// recreate the MakerAction struct to store
+		updatedMakerCheckerAction := types.MakerAction{
+			ActionType:  "UpdatePoints",
+			RequestBody: rawJsonBody,
+		}
+
+		txn, err := DBService.CreateTransaction(ctx, updatedMakerCheckerAction, makerId)
+		if err != nil {
+			return events.APIGatewayV2HTTPResponse{
+				StatusCode: 500,
+				Body:       "",
+			}, nil
+		}
+		responseBody.Txn = *txn
+	case "UpdateUser":
+
+	default:
 		return events.APIGatewayV2HTTPResponse{
-			StatusCode: 500,
-			Body:       "",
+			StatusCode: 404,
+			Body:       "Bad Request",
 		}, nil
 	}
 
-	responseBody.Txn = *txn
-
 	// Send emails seek checker's approval (Async)
-	checkersEmail, err := DBService.GetCheckers(ctx, role)
-	if err != nil {
-		log.Println(err.Error())
-	}
-	if err = util.EmailCheckers(ctx, requestBody.ResourceType,
-		checkersEmail); err != nil {
-		log.Println(err.Error())
-	}
+	go func() {
+		checkersEmail, err := DBService.GetCheckers(ctx, role)
+		if err != nil {
+			log.Println(err.Error())
+		}
+		if err = util.EmailCheckers(ctx, requestBody.Action.ActionType,
+			checkersEmail); err != nil {
+			log.Println(err.Error())
+		}
 
-	bod, err := json.Marshal(responseBody)
+	}()
+
+	respBod, err := json.Marshal(responseBody)
 	if err != nil {
 		return events.APIGatewayV2HTTPResponse{
 			StatusCode: 201,
@@ -72,7 +107,7 @@ func CreateTransactionHandler(ctx context.Context, req *events.APIGatewayV2HTTPR
 
 	return events.APIGatewayV2HTTPResponse{
 		StatusCode: 201,
-		Body:       string(bod),
+		Body:       string(respBod),
 	}, nil
 }
 

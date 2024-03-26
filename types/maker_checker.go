@@ -1,14 +1,12 @@
 package types
 
 import (
+	"encoding/json"
 	"time"
-
-	"gorm.io/gorm"
 )
 
 // Transaction => Database Model
 type Transaction struct {
-	gorm.Model
 	TransactionId string      `gorm:"type:string;primary_key;"`
 	Action        MakerAction `gorm:"type:json"`
 	MakerId       string      `gorm:"type:string;index"`
@@ -30,15 +28,15 @@ type Transaction struct {
 
 // Others
 type CreateTransactionBody struct {
-	MakerId string      `gorm:"type:string;index"`
-	Action  MakerAction `gorm:"type:json"`
+	MakerId string      `json:"maker_id"`
+	Action  MakerAction `json:"action"`
 }
 
 // TODO: need to update
 
 type MakerAction struct {
-	ActionType  string      `json:"action_type"`
-	RequestBody interface{} `json:"request_body"` // based off other function's request body
+	ActionType  string          `json:"action_type"`
+	RequestBody json.RawMessage `json:"request_body"` // based off other function's request body
 }
 
 type UpdateTransactionRequestBody struct {

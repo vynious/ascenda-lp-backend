@@ -53,7 +53,7 @@ func (dbs *DBService) GetPointsAccountsByUser(ctx context.Context, userId string
 func (dbs *DBService) UpdatePoints(ctx context.Context, req types.UpdatePointsRequestBody) (*types.Points, error) {
 
 	var pointsRecords []types.Points
-	pointsRecords, err := dbs.GetPointsByID(ctx, *req.ID)
+	pointsRecords, err := dbs.GetPointsByID(ctx, req.ID)
 	if err != nil {
 		return nil, err
 	}
