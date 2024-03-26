@@ -17,15 +17,23 @@ func EmailCheckers(ctx context.Context, actionType string, checkersEmail []strin
 	}
 	sesClient := ses.NewFromConfig(cfg)
 
+	body := `
+		"Dear Checker,
+		
+		You have a pending transaction for approval.
+
+		Please login to view.
+		`
+
 	input := &ses.SendEmailInput{
 		Destination: &types.Destination{
-			ToAddresses: checkersEmail,
+			ToAddresses: []string{"shawn.thiah.2022@scis.smu.edu.sg"},
 		},
 		Message: &types.Message{
 			Body: &types.Body{
 				Text: &types.Content{
 					Charset: aws.String("UTF-8"),
-					Data:    aws.String("Dear Checker,\n\tYou have a pending transaction for approval."),
+					Data:    aws.String(body),
 				},
 			},
 			Subject: &types.Content{

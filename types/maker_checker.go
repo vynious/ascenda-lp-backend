@@ -6,20 +6,20 @@ import (
 	"gorm.io/gorm"
 )
 
-// Database Models
+// Transaction => Database Model
 type Transaction struct {
 	gorm.Model
-	Id          string      `gorm:"type:string;primary_key;"`
-	Action      MakerAction // Assuming the type of Action doesn't need to change
-	MakerId     string      `gorm:"type:string;index"` // Index for query optimization
-	CheckerId   string      `gorm:"type:string;index"` // Index for query optimization
-	Description string
-	Status      string
-	Approval    bool
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
+	TransactionId string      `gorm:"type:string;primary_key;"`
+	Action        MakerAction `gorm:"type:json"`
+	MakerId       string      `gorm:"type:string;index"`
+	CheckerId     string      `gorm:"type:string;default:null;index"`
+	Status        string      `gorm:"type:string;default:pending"`
+	Approval      bool        `gorm:"type:boolean;default:false"`
+	CreatedAt     time.Time
+	UpdatedAt     time.Time
 }
 
+// MakerChecker => Database Model (mock)
 //type MakerChecker struct {
 //	gorm.Model
 //	MakerRoleId    string   `gorm:"type:string;"`
@@ -30,30 +30,27 @@ type Transaction struct {
 
 // Others
 type CreateTransactionBody struct {
-	Description  string
-	ResourceType string
-	ActionType   string
-	RequestBody  string
-	UserId       string
-	//MakerId   string
+	MakerId string      `gorm:"type:string;index"`
+	Action  MakerAction `gorm:"type:json"`
 }
+
+// TODO: need to update
 
 type MakerAction struct {
-	ResourceType string
-	ActionType   string
-	RequestBody  string
-	UserId       string
-}
-
-type CreateMakerResponseBody struct {
-	Txn Transaction
+	ActionType  string      `json:"action_type"`
+	RequestBody interface{} `json:"request_body"` // based off other function's request body
 }
 
 type UpdateTransactionRequestBody struct {
-	TransactionId string
-	Approval      bool
+	MakerId       string `json:"maker_id"`
+	TransactionId string `json:"transaction_id"`
+	Approval      bool   `json:"approval"`
 }
 
-type UpdateTransactionResponseBody struct {
+type TransactionResponseBody struct {
 	Txn Transaction
+}
+
+type GetTransactionRequestBody struct {
+	TransactionId string `json:"transaction_id"`
 }

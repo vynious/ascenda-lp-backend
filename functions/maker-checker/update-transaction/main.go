@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
-	"github.com/joho/godotenv"
 	"github.com/vynious/ascenda-lp-backend/db"
 	makerchecker "github.com/vynious/ascenda-lp-backend/types"
 	"log"
@@ -14,14 +13,11 @@ import (
 var (
 	DBService    *db.DBService
 	requestBody  makerchecker.UpdateTransactionRequestBody
-	responseBody makerchecker.UpdateTransactionResponseBody
+	responseBody makerchecker.TransactionResponseBody
 	err          error
 )
 
 func init() {
-	if err := godotenv.Load(); err != nil {
-		log.Fatalf("error loading .env")
-	}
 
 	// Initialise global variable DBService tied to Aurora
 	DBService, err = db.SpawnDBService()
@@ -30,24 +26,22 @@ func init() {
 	}
 }
 
-func LambdaHandler(ctx context.Context, req *events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+func LambdaHandler(ctx context.Context, req *events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
 
 	/*
 		check role/user of requested
 	*/
 
-	checkerId := req.RequestContext.Identity.User
-
 	if err := json.Unmarshal([]byte(req.Body), &requestBody); err != nil {
-		return events.APIGatewayProxyResponse{
+		return events.APIGatewayV2HTTPResponse{
 			StatusCode: 404,
 			Body:       "Bad Request",
 		}, nil
 	}
 
-	updatedTxn, err := DBService.UpdateTransaction(ctx, requestBody.TransactionId, checkerId, requestBody.Approval)
+	updatedTxn, err := DBService.UpdateTransaction(ctx, requestBody.TransactionId, requestBody.MakerId, requestBody.Approval)
 	if err != nil {
-		return events.APIGatewayProxyResponse{
+		return events.APIGatewayV2HTTPResponse{
 			StatusCode: 500,
 			Body:       "",
 		}, nil
@@ -56,13 +50,13 @@ func LambdaHandler(ctx context.Context, req *events.APIGatewayProxyRequest) (eve
 
 	bod, err := json.Marshal(responseBody)
 	if err != nil {
-		return events.APIGatewayProxyResponse{
+		return events.APIGatewayV2HTTPResponse{
 			StatusCode: 201,
 			Body:       err.Error(),
 		}, nil
 	}
 
-	return events.APIGatewayProxyResponse{
+	return events.APIGatewayV2HTTPResponse{
 		StatusCode: 201,
 		Body:       string(bod),
 	}, nil

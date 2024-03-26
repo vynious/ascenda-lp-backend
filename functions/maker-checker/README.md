@@ -13,8 +13,8 @@ implement the approval step in Admin Panel Ul or directly via the email.
     "action": {
         "resourcetype": "point/user",
         "actiontype": "increment/update/delete/get/...",
-        "value": 10
-        "userId":  ""
+        "value": 10,
+        "userId":  "",
     },
     "maker": "",
     "description": "",
@@ -33,4 +33,5 @@ makers --> lambda (mc) --> aurora (txn)
 ### validate transaction
 checkers --> lambda (mc) --> aurora (txn)
                          --> aurora (resource)
+
 

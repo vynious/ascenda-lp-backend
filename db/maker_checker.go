@@ -3,34 +3,37 @@ package db
 import (
 	"context"
 	"fmt"
-	types "github.com/vynious/ascenda-lp-backend/types"
+	"github.com/vynious/ascenda-lp-backend/types"
 	"gorm.io/gorm/clause"
 )
 
 // CreateTransaction creates a maker-checker transaction
-func (dbs *DBService) CreateTransaction(ctx context.Context, action types.MakerAction, makerId, description string) (*types.Transaction, error) {
+func (dbs *DBService) CreateTransaction(ctx context.Context, action types.MakerAction, makerId string) (*types.Transaction, error) {
 
 	tx := dbs.Conn.WithContext(ctx)
 
 	txn := &types.Transaction{
-		MakerId:     makerId,
-		Description: description,
-		Action:      action,
+		MakerId: makerId,
+		Action:  action,
 	}
 
 	if err := tx.Create(&txn).Error; err != nil {
-		return nil, fmt.Errorf(err.Error())
+		return nil, err
 	}
 
 	return txn, nil
 }
 
-func (dbs *DBService) GetCheckers(ctx context.Context, role string) ([]string, error) {
-	var checkersEmail []string
+func (dbs *DBService) GetTransaction(ctx context.Context, txnId string) (*types.Transaction, error) {
+	var transaction types.Transaction
 
-	// find user's email based on maker checker roles mapping
+	tx := dbs.Conn.WithContext(ctx)
 
-	return checkersEmail, nil
+	if err := tx.Where("TransactionId = ?", txnId).First(&transaction).Error; err != nil {
+		return nil, err
+	}
+
+	return &transaction, nil
 }
 
 func (dbs *DBService) UpdateTransaction(ctx context.Context, txnId string, checkerId string, approval bool) (*types.Transaction, error) {
@@ -66,5 +69,50 @@ func (dbs *DBService) UpdateTransaction(ctx context.Context, txnId string, check
 		return nil, err
 	}
 
+	if approval == true {
+		go func() {
+			if err := dbs.ProcessTransaction(&updatedTransaction.Action); err != nil {
+			}
+		}()
+
+	}
+
 	return &updatedTransaction, nil
+}
+
+func (dbs *DBService) GetCheckers(ctx context.Context, makerRole string) ([]string, error) {
+	var checkersEmail []string // need to convert to aws.String() ??
+
+	// mapping
+	roleMap := map[string][]string{
+		"product_owner": {"owner"},
+		"engineer":      {"manager", "owner"},
+	}
+
+	checkerRole := roleMap[makerRole]
+
+	// find user's email based on maker checker roles mapping
+	tx := dbs.Conn.WithContext(ctx).Begin()
+
+	// SELECT email FROM users WHERE role_id IN (1, 2, 3);
+	if err := tx.Model(&types.User{}).Where("Role IN ?", checkerRole).Pluck("Email", checkersEmail).Error; err != nil {
+		return nil, err
+	}
+	return checkersEmail, nil
+}
+
+func (dbs *DBService) ProcessTransaction(action *types.MakerAction) error {
+
+	switch action.ActionType {
+	case "UpdatePoints":
+
+		requestBody, ok := action.RequestBody.(types.UpdatePointsRequestBody)
+		if !ok {
+			return fmt.Errorf("request body for update points does not match")
+		}
+
+	case "UpdateUser":
+
+	}
+	return nil
 }
