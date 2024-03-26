@@ -110,7 +110,9 @@ func (dbs *DBService) ProcessTransaction(action *types.MakerAction) error {
 		if !ok {
 			return fmt.Errorf("request body for update points does not match")
 		}
-
+		if _, err := dbs.UpdatePoints(context.Background(), requestBody); err != nil {
+			return err
+		}
 	case "UpdateUser":
 
 	}
