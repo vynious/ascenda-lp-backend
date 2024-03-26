@@ -14,8 +14,8 @@ type Role struct {
 }
 
 type RolePermission struct {
-	Id        int  `gorm:"primaryKey"`
-	RoleID    int  `gorm:"index"`
+	Id        uint `gorm:"primaryKey"`
+	RoleID    uint `gorm:"index"`
 	CanCreate bool `gorm:"default:false"`
 	CanRead   bool `gorm:"default:false"`
 	CanUpdate bool `gorm:"default:false"`
