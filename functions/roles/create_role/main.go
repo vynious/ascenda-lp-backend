@@ -44,11 +44,11 @@ func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (event
 		}, nil
 	}
 
-	_, err := db.RetrieveRoleByRoleName(ctx, DBService, roleRequestBody.RoleName)
+	_, err := db.RetrieveRoleWithRoleName(ctx, DBService, roleRequestBody.RoleName)
 	if err != nil {
 		log.Println(err)
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			roleName, err := db.CreateRole(ctx, DBService, roleRequestBody)
+			roleName, err := db.CreateRoleWithCreateRoleRequestBody(ctx, DBService, roleRequestBody)
 			if err != nil {
 				log.Printf("Database error: %s", err)
 				return events.APIGatewayV2HTTPResponse{

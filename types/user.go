@@ -1,12 +1,17 @@
 package types
 
-import "gorm.io/gorm"
+import (
+	"time"
+)
 
 type User struct {
-	gorm.Model
 	Id        string `gorm:"primaryKey"`
 	Email     string
 	FirstName string
 	LastName  string
 	Roles     []Role `gorm:"many2many:user_roles;"`
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }
+
+type UserList []User

@@ -33,9 +33,9 @@ func init() {
 }
 
 func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
-	var updateRequestBody types.UpdateRoleRequestBody
+	var deleteRequestBody types.DeleteRoleRequestBody
 
-	if err := json.Unmarshal([]byte(request.Body), &updateRequestBody); err != nil {
+	if err := json.Unmarshal([]byte(request.Body), &deleteRequestBody); err != nil {
 		log.Printf("JSON unmarshal error: %s", err)
 		return events.APIGatewayV2HTTPResponse{
 			StatusCode: 400,
@@ -43,7 +43,7 @@ func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (event
 		}, nil
 	}
 
-	err := db.UpdateRole(ctx, DBService, updateRequestBody)
+	err := db.DeleteRoleWithDeleteRoleRequestBody(ctx, DBService, deleteRequestBody)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return events.APIGatewayV2HTTPResponse{
@@ -60,7 +60,7 @@ func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (event
 
 	return events.APIGatewayV2HTTPResponse{
 		StatusCode: 200,
-		Body:       "Role updated successfully",
+		Body:       "Role deleted successfully",
 	}, nil
 }
 

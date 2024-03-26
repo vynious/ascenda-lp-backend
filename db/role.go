@@ -7,7 +7,7 @@ import (
 	"github.com/vynious/ascenda-lp-backend/types"
 )
 
-func CreateRole(ctx context.Context, dbs *DBService, roleRequestBody types.CreateRoleRequestBody) (string, error) {
+func CreateRoleWithCreateRoleRequestBody(ctx context.Context, dbs *DBService, roleRequestBody types.CreateRoleRequestBody) (string, error) {
 	role := types.Role{
 		RoleName: roleRequestBody.RoleName,
 	}
@@ -27,7 +27,7 @@ func CreateRole(ctx context.Context, dbs *DBService, roleRequestBody types.Creat
 	return role.RoleName, nil
 }
 
-func RetrieveRoleByRoleName(ctx context.Context, dbs *DBService, roleName string) (types.Role, error) {
+func RetrieveRoleWithRoleName(ctx context.Context, dbs *DBService, roleName string) (types.Role, error) {
 	var role types.Role
 
 	tx := dbs.Conn.WithContext(ctx)
@@ -40,10 +40,23 @@ func RetrieveRoleByRoleName(ctx context.Context, dbs *DBService, roleName string
 
 }
 
-func DeleteRoleByRoleName(ctx context.Context, dbs *DBService, roleName string) error {
+func RetrieveRoleWithRetrieveRoleRequestBody(ctx context.Context, dbs *DBService, roleRequestBody types.GetRoleRequestBody) (types.Role, error) {
+	var role types.Role
+
+	tx := dbs.Conn.WithContext(ctx)
+	res := tx.Preload("Permissions").Preload("Users").Where("role_name = ?", roleRequestBody.RoleName).First(&role)
+
+	if res.Error != nil {
+		return types.Role{}, res.Error
+	}
+	return role, nil
+
+}
+
+func DeleteRoleWithDeleteRoleRequestBody(ctx context.Context, dbs *DBService, roleRequestBody types.DeleteRoleRequestBody) error {
 	var role types.Role
 	tx := dbs.Conn.WithContext(ctx)
-	if err := tx.Preload("Permissions").Where("role_name = ?", roleName).First(&role).Error; err != nil {
+	if err := tx.Preload("Permissions").Where("role_name = ?", roleRequestBody.RoleName).First(&role).Error; err != nil {
 		return err
 	}
 
