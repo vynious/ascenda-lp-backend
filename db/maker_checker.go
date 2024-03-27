@@ -74,6 +74,7 @@ func (dbs *DBService) UpdateTransaction(ctx context.Context, txnId string, check
 	// Commit the transaction
 
 	if approval == true {
+		// if cannot process the transaction, rollback updates for maker-checker transaction
 		var makerAction types.MakerAction
 		if err := json.Unmarshal(updatedTransaction.Action, &makerAction); err != nil {
 			tx.Rollback()
