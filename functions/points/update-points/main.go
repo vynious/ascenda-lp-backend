@@ -38,15 +38,15 @@ func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (event
 		}, nil
 	}
 
-	if req.ID == nil || req.NewBalance == nil {
+	if req.ID == "" || req.NewBalance == 0 {
 		return events.APIGatewayV2HTTPResponse{
 			StatusCode: 400,
 			Body:       errors.New("bad request. id or new_balance not found").Error(),
 		}, nil
 	}
-	log.Printf("UpdatePoints %s", *req.ID)
+	log.Printf("UpdatePoints %s", req.ID)
 
-	pointsRecord, err := DB.UpdatePoints(ctx, *req.ID, *req.NewBalance)
+	pointsRecord, err := DB.UpdatePoints(ctx, req)
 	if pointsRecord == nil {
 		return events.APIGatewayV2HTTPResponse{
 			StatusCode: 400,

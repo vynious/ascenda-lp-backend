@@ -27,8 +27,10 @@ func main() {
 		log.Fatalf("Error spawn DB service...")
 	}
 
+	clearDatabase(DB)
+
 	// TODO: Add all models to be migrated here
-	models := []interface{}{&types.MakerAction{}, &types.Points{}, &types.User{}}
+	models := []interface{}{&types.Transaction{}, &types.Points{}, &types.User{}}
 	if err := DB.Conn.AutoMigrate(models...); err != nil {
 		log.Fatalf("Failed to auto-migrate models")
 	}
@@ -103,4 +105,15 @@ func seedUsers(records [][]string, DB *db.DBService) {
 	if res.Error != nil {
 		log.Fatalf("Database error %s", res.Error)
 	}
+}
+
+func clearDatabase(DB *db.DBService) {
+	// Specify the order of deletion based on foreign key dependencies
+	models := []interface{}{&types.Points{}, &types.Transaction{}, &types.User{}}
+	for _, model := range models {
+		if result := DB.Conn.Unscoped().Where("1 = 1").Delete(model); result.Error != nil {
+			log.Fatalf("Failed to clear table for model %v: %v", model, result.Error)
+		}
+	}
+	log.Println("Successfully cleared the database")
 }

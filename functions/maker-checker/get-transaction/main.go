@@ -6,15 +6,16 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/vynious/ascenda-lp-backend/db"
-	makerchecker "github.com/vynious/ascenda-lp-backend/types"
+	"github.com/vynious/ascenda-lp-backend/types"
 	"log"
 )
 
 var (
 	DBService    *db.DBService
-	requestBody  makerchecker.UpdateTransactionRequestBody
-	responseBody makerchecker.TransactionResponseBody
-	err          error
+	responseBody types.TransactionResponseBody
+
+	requestBody types.GetTransactionRequestBody
+	err         error
 )
 
 func init() {
@@ -26,11 +27,9 @@ func init() {
 	}
 }
 
-func LambdaHandler(ctx context.Context, req *events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
+func GetTransactionHandler(ctx context.Context, req *events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
 
-	/*
-		check role/user of requested
-	*/
+	defer DBService.CloseConn()
 
 	if err := json.Unmarshal([]byte(req.Body), &requestBody); err != nil {
 		return events.APIGatewayV2HTTPResponse{
@@ -39,16 +38,18 @@ func LambdaHandler(ctx context.Context, req *events.APIGatewayV2HTTPRequest) (ev
 		}, nil
 	}
 
-	updatedTxn, err := DBService.UpdateTransaction(ctx, requestBody.TransactionId, requestBody.CheckerId, requestBody.Approval)
+	txn, err := DBService.GetTransaction(ctx, requestBody.TransactionId)
 	if err != nil {
 		return events.APIGatewayV2HTTPResponse{
 			StatusCode: 500,
 			Body:       "",
 		}, nil
 	}
-	responseBody.Txn = *updatedTxn
+
+	responseBody.Txn = *txn
 
 	bod, err := json.Marshal(responseBody)
+
 	if err != nil {
 		return events.APIGatewayV2HTTPResponse{
 			StatusCode: 201,
@@ -57,11 +58,11 @@ func LambdaHandler(ctx context.Context, req *events.APIGatewayV2HTTPRequest) (ev
 	}
 
 	return events.APIGatewayV2HTTPResponse{
-		StatusCode: 201,
+		StatusCode: 200,
 		Body:       string(bod),
 	}, nil
 }
 
 func main() {
-	lambda.Start(LambdaHandler)
+	lambda.Start(GetTransactionHandler)
 }
