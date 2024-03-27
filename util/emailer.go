@@ -6,50 +6,56 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/ses"
-	"github.com/aws/aws-sdk-go-v2/service/ses/types"
+	aws2 "github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/session"
+	ses2 "github.com/aws/aws-sdk-go/service/ses"
+	"os"
 )
 
-// TODO: Need to check credentials
+// TODO: only aws-v1 can work??
 func EmailCheckers(ctx context.Context, actionType string, checkersEmail []string) error {
 
 	sender := "smucomedy@gmail.com"
 
-	cfg, err := config.LoadDefaultConfig(ctx)
-	if err != nil {
-		return fmt.Errorf("failed to load config for emailer")
-	}
-	sesClient := ses.NewFromConfig(cfg)
+	sess, err := session.NewSession(&aws2.Config{
+		Region:      aws.String("ap-southeast-1"),
+		Credentials: credentials.NewStaticCredentials(os.Getenv("SES_ACCESS_KEY_ID"), os.Getenv("SES_ACCESS_SECRET_KEY"), ""),
+	},
+	)
 
-	body := `
-		"Dear Checker,
-		
-		You have a pending transaction for approval.
+	// Create an SES session.
+	svc := ses2.New(sess)
 
-		Please login to view.
+	body := `Dear Checker,
+	You have a pending transaction for approval.
+	Please login to view.
 		`
 
-	// mock
-	checkersEmail = []string{"shawn.thiah.2022@scis.smu.edu.sg"}
+	// mock data, to re
+	Recipient := "nashwyns.2022@scis.smu.edu.sg"
 
-	input := &ses.SendEmailInput{
-		Destination: &types.Destination{
-			ToAddresses: checkersEmail,
+	input := &ses2.SendEmailInput{
+		Destination: &ses2.Destination{
+			ToAddresses: []*string{ // replace with checkerEmail
+				aws.String(Recipient),
+			},
 		},
-		Message: &types.Message{
-			Body: &types.Body{
-				Text: &types.Content{
+		Message: &ses2.Message{
+			Body: &ses2.Body{
+				Text: &ses2.Content{
 					Charset: aws.String("UTF-8"),
 					Data:    aws.String(body),
 				},
 			},
-			Subject: &types.Content{
+			Subject: &ses2.Content{
 				Charset: aws.String("UTF-8"),
 				Data:    aws.String(fmt.Sprintf("[Action Required] %s Request", actionType)),
 			},
 		},
 		Source: aws.String(sender),
 	}
-	_, err = sesClient.SendEmail(ctx, input)
+	_, err = svc.SendEmail(input)
 	if err != nil {
 		return fmt.Errorf("error sending emails to checkers %v", err)
 	}

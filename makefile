@@ -14,3 +14,7 @@ deploy:
 
 teardown:
 	sam delete --stack-name ${STACK_NAME}
+
+
+db-reset:
+	go run seed/main.go

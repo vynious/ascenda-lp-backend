@@ -21,7 +21,6 @@ var (
 )
 
 func init() {
-
 	// Initialise global variable DBService tied to Aurora
 	DBService, err = db.SpawnDBService()
 	if err != nil {
@@ -85,17 +84,14 @@ func CreateTransactionHandler(ctx context.Context, req *events.APIGatewayV2HTTPR
 	}
 
 	// Send emails seek checker's approval (Async)
-	go func() {
-		checkersEmail, err := DBService.GetCheckers(ctx, role)
-		if err != nil {
-			log.Println(err.Error())
-		}
-		if err = util.EmailCheckers(ctx, requestBody.Action.ActionType,
-			checkersEmail); err != nil {
-			log.Println(err.Error())
-		}
-
-	}()
+	checkersEmail, err := DBService.GetCheckers(ctx, role)
+	if err != nil {
+		log.Println(err.Error())
+	}
+	if err = util.EmailCheckers(ctx, requestBody.Action.ActionType,
+		checkersEmail); err != nil {
+		log.Println(err.Error())
+	}
 
 	respBod, err := json.Marshal(responseBody)
 	if err != nil {

@@ -10,6 +10,8 @@ Globals:
       - x86_64
     Environment:
         Variables:
+          SES_ACCESS_KEY_ID: "AKIAUAWJVJ7I5DLGN6EW"
+          SES_ACCESS_SECRET_KEY: "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"
           dbUser: "postgres"
           dbName: "ascenda"
           dbHost: "database-2.cluster-cyzzcyzcqgrq.ap-southeast-1.rds.amazonaws.com"
@@ -303,6 +305,8 @@ Resources:
       Policies:
         - Statement:
             - Action:
+                - ses:SendEmail
+                - ses:SendRawEmail
                 - ec2:CreateNetworkInterface
                 - ec2:DescribeNetworkInterfaces
                 - ec2:DescribeSubnets
