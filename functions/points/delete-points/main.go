@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
 
 	"github.com/aws/aws-lambda-go/events"
@@ -30,7 +31,7 @@ func main() {
 }
 
 func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
-	req := types.UpdatePointsRequestBody{}
+	req := types.DeletePointsAccountRequestBody{}
 	if err := json.Unmarshal([]byte(request.Body), &req); err != nil {
 		return events.APIGatewayV2HTTPResponse{
 			StatusCode: 400,
@@ -38,25 +39,25 @@ func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (event
 		}, nil
 	}
 
-	if req.ID == "" || req.NewBalance == 0 {
+	if req.ID == nil {
 		return events.APIGatewayV2HTTPResponse{
 			StatusCode: 400,
-			Body:       errors.New("bad request. id or new_balance not found").Error(),
+			Body:       errors.New("bad request. id not found").Error(),
 		}, nil
 	}
-	log.Printf("UpdatePoints %s", req.ID)
+	log.Printf("UpdatePoints %s", *req.ID)
 
-	pointsRecord, err := DB.UpdatePoints(ctx, req)
-	if pointsRecord == nil {
+	deleted, err := DB.DeletePointsAccountByID(ctx, *req.ID)
+	if !deleted {
 		return events.APIGatewayV2HTTPResponse{
 			StatusCode: 400,
 			Body:       err.Error(),
 		}, nil
 	}
 
-	obj, _ := json.Marshal(pointsRecord)
+	resp := fmt.Sprintf("Points account %s successfully deleted", *req.ID)
 	return events.APIGatewayV2HTTPResponse{
 		StatusCode: 200,
-		Body:       string(obj),
+		Body:       resp,
 	}, nil
 }

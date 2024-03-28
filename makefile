@@ -7,7 +7,7 @@ run:
 	DOCKER_HOST=unix://${HOME}/.docker/run/docker.sock sam local start-api
 
 build-run:
-	sam build && DOCKER_HOST=unix://${HOME}/.docker/run/docker.sock sam local start-api
+	sam build && DOCKER_HOST=unix://${HOME}/.docker/run/docker.sock sam local start-api --env-vars env.dev.json
 
 deploy:
 	sam build && sam deploy
