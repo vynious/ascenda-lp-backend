@@ -46,7 +46,7 @@ func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (event
 	}
 	log.Printf("UpdatePoints %s", *req.ID)
 
-	pointsRecord, err := DB.UpdatePoints(ctx, *req.ID, *req.NewBalance)
+	pointsRecord, err := DB.UpdatePoints(ctx, req)
 	if pointsRecord == nil {
 		return events.APIGatewayV2HTTPResponse{
 			StatusCode: 400,

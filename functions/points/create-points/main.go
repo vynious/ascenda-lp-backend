@@ -46,7 +46,7 @@ func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (event
 	}
 	log.Printf("CreatePointsAccount %s", *req.UserID)
 
-	pointsRecord, err := DB.CreatePointsAccount(ctx, *req.UserID, *req.NewBalance)
+	pointsRecord, err := DB.CreatePointsAccount(ctx, req)
 	if pointsRecord == nil {
 		return events.APIGatewayV2HTTPResponse{
 			StatusCode: 500,
