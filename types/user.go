@@ -9,9 +9,32 @@ type User struct {
 	Email     string `gorm:"unique"`
 	FirstName string
 	LastName  string
-	Roles     []Role `gorm:"many2many:user_roles;"`
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	RoleID    *uint
+	Role      *Role
+	CreatedAt time.Time `gorm:"default:now()"`
+	UpdatedAt time.Time `gorm:"default:now()"`
 }
 
 type UserList []User
+
+type CreateUserRequestBody struct {
+	FirstName string
+	LastName  string
+	Email     string
+	RoleName  string
+}
+
+type GetUserRequestBody struct {
+	Email string
+}
+
+type DeleteUserRequestBody struct {
+	Email string
+}
+
+type UpdateUserRequestBody struct {
+	Email        string
+	NewFirstName string
+	NewLastName  string
+	NewEmail     string
+}
