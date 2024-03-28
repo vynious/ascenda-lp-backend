@@ -27,6 +27,8 @@ func main() {
 		log.Fatalf("Error spawn DB service...")
 	}
 
+	clearDatabase(DB)
+
 	// TODO: Add all models to be migrated here
 	models := []interface{}{&types.MakerAction{}, &types.Points{}, &types.User{}, &types.Role{}, &types.RolePermission{}}
 	if err := DB.Conn.AutoMigrate(models...); err != nil {
@@ -71,8 +73,8 @@ func seedPoints(records [][]string, DB *db.DBService) {
 		}
 		balance, _ := strconv.Atoi(record[2]) // convert to int
 		data := types.Points{
-			Id:      record[0],
-			UserId:  record[1],
+			ID:      record[0],
+			UserID:  record[1],
 			Balance: int32(balance),
 		}
 		pointsRecords = append(pointsRecords, data)
@@ -80,7 +82,7 @@ func seedPoints(records [][]string, DB *db.DBService) {
 
 	res := DB.Conn.CreateInBatches(pointsRecords, batchsize)
 	if res.Error != nil {
-		log.Fatalf("Error creating points records: %v", res.Error)
+		log.Fatalf("Database error %s", res.Error)
 	}
 }
 
@@ -91,7 +93,7 @@ func seedUsers(records [][]string, DB *db.DBService) {
 			continue
 		}
 		data := types.User{
-			Id:        record[0],
+			ID:        record[0],
 			Email:     record[1],
 			FirstName: record[2],
 			LastName:  record[3],
@@ -103,8 +105,19 @@ func seedUsers(records [][]string, DB *db.DBService) {
 
 	res := DB.Conn.CreateInBatches(usersRecords, batchsize)
 	if res.Error != nil {
-		log.Fatalf("Error creating users records: %v", res.Error)
+		log.Fatalf("Database error %s", res.Error)
 	}
+}
+
+func clearDatabase(DB *db.DBService) {
+	// Specify the order of deletion based on foreign key dependencies
+	models := []interface{}{&types.Points{}, &types.Transaction{}, &types.User{}}
+	for _, model := range models {
+		if result := DB.Conn.Unscoped().Where("1 = 1").Delete(model); result.Error != nil {
+			log.Fatalf("Failed to clear table for model %v: %v", model, result.Error)
+		}
+	}
+	log.Println("Successfully cleared the database")
 }
 
 func seedRolesAndPermissions(DB *db.DBService) {
