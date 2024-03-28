@@ -5,3 +5,5 @@
 env.*.json
 env.json
 .aws-sam
+*.json
+bootstrap
