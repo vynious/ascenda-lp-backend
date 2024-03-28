@@ -30,7 +30,7 @@ func main() {
 	clearDatabase(DB)
 
 	// TODO: Add all models to be migrated here
-	models := []interface{}{&types.MakerAction{}, &types.Points{}, &types.User{}, &types.Role{}, &types.RolePermission{}}
+	models := []interface{}{&types.Transaction{}, &types.Points{}, &types.User{}, &types.Role{}, &types.RolePermission{}}
 	if err := DB.Conn.AutoMigrate(models...); err != nil {
 		log.Fatalf("Failed to auto-migrate models")
 	}
