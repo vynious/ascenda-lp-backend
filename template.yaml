@@ -3,17 +3,23 @@ Transform: AWS::Serverless-2016-10-31
 Description: SAM Template
 
 Globals:
+  Api:
+    Cors:
+      AllowMethods: "'GET,PUT,POST,DELETE'"
+      AllowHeaders: "'content-type'"
+      AllowOrigin: "'*'"
   Function:
     Timeout: 5
     Runtime: provided.al2023
     Architectures:
       - x86_64
     Environment:
-        Variables:
-          dbUser: "postgres"
-          dbName: "ascenda"
-          dbHost: "database-2.cluster-cyzzcyzcqgrq.ap-southeast-1.rds.amazonaws.com"
-          dbPwd: '{{resolve:secretsmanager:arn:aws:secretsmanager:ap-southeast-1:276374573009:secret:rds-admin-EtkU6T:SecretString:password}}'
+      Variables:
+        dbUser: "postgres"
+        dbName: "ascenda"
+        dbHost: "db-dev.cluster-cyzzcyzcqgrq.ap-southeast-1.rds.amazonaws.com"
+        # dbPwd: '{{resolve:secretsmanager:arn:aws:secretsmanager:ap-southeast-1:276374573009:secret:rds-admin-EtkU6T:SecretString:password}}'
+        dbPwd: '{{resolve:secretsmanager:arn:aws:secretsmanager:ap-southeast-1:276374573009:secret:rds-dev-0YKFuB:SecretString:password}}'
 
 Parameters:
   secretName:
@@ -22,6 +28,48 @@ Parameters:
     Type: String
 
 Resources:
+  SeedDataFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: go1.x
+    Properties:
+      FunctionName: "seed_data"
+      # must refer to the directory containing your main package
+      CodeUri: seed/
+      Handler: bootstrap
+      Policies:
+        - Statement:
+          - Action:
+              # TODO: REMOVE UNNECESSARY PERMISSIONS
+              - ec2:CreateNetworkInterface
+              - ec2:DescribeNetworkInterfaces
+              - ec2:DescribeSubnets
+              - ec2:DeleteNetworkInterface
+              - ec2:AssignPrivateIpAddresses
+              - ec2:UnassignPrivateIpAddresses
+              - logs:CreateLogGroup
+              - logs:CreateLogStream
+              - logs:PutLogEvents
+              - ssm:GetParameter
+              - secretsmanager:GetResourcePolicy
+              - secretsmanager:GetSecretValue
+              - secretsmanager:DescribeSecret
+              - secretsmanager:ListSecretVersionIds
+              - secretsmanager:ListSecrets
+            Effect: Allow
+            Resource: '*'
+      VpcConfig:
+        SecurityGroupIds:
+          - sg-08f58f539a3e92eb4
+        SubnetIds:
+          - subnet-39ee2971
+          - subnet-0e2ff868
+      Events:
+        CatchAll:
+          Type: Api
+          Properties:
+            Path: /seed
+            Method: GET
   GetPointsFunction:
     Type: AWS::Serverless::Function
     Metadata:
