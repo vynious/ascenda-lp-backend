@@ -5,105 +5,90 @@ import (
 	"time"
 
 	"github.com/vynious/ascenda-lp-backend/types"
+	"gorm.io/gorm"
 )
 
 func CreateRoleWithCreateRoleRequestBody(ctx context.Context, dbs *DBService, roleRequestBody types.CreateRoleRequestBody) (string, error) {
 	role := types.Role{
-		RoleName: roleRequestBody.RoleName,
+		RoleName:  roleRequestBody.RoleName,
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
 	}
 	if roleRequestBody.Permissions != nil {
 		role.Permissions = *roleRequestBody.Permissions
-	} else {
-		role.Permissions = types.RolePermissionList{}
 	}
 
-	role.CreatedAt = time.Now()
-	role.UpdatedAt = time.Now()
-
-	tx := dbs.Conn.WithContext(ctx)
+	tx := dbs.Conn.Begin()
 	if err := tx.Create(&role).Error; err != nil {
+		tx.Rollback()
 		return "", err
 	}
-	return role.RoleName, nil
+
+	return role.RoleName, tx.Commit().Error
 }
 
 func RetrieveRoleWithRoleName(ctx context.Context, dbs *DBService, roleName string) (types.Role, error) {
 	var role types.Role
-
-	tx := dbs.Conn.WithContext(ctx)
-	res := tx.Preload("Permissions").Preload("Users").Where("role_name = ?", roleName).First(&role)
-
-	if res.Error != nil {
-		return types.Role{}, res.Error
+	if err := dbs.Conn.Preload("Permissions").Preload("Users").Where("role_name = ?", roleName).First(&role).Error; err != nil {
+		return types.Role{}, err
 	}
 	return role, nil
-
 }
 
 func RetrieveRoleWithRetrieveRoleRequestBody(ctx context.Context, dbs *DBService, roleRequestBody types.GetRoleRequestBody) (types.Role, error) {
 	var role types.Role
-
-	tx := dbs.Conn.WithContext(ctx)
-	res := tx.Preload("Permissions").Preload("Users").Where("role_name = ?", roleRequestBody.RoleName).First(&role)
-
-	if res.Error != nil {
-		return types.Role{}, res.Error
+	if err := dbs.Conn.Preload("Permissions").Preload("Users").Where("role_name = ?", roleRequestBody.RoleName).First(&role).Error; err != nil {
+		return types.Role{}, err
 	}
 	return role, nil
-
 }
 
 func DeleteRoleWithDeleteRoleRequestBody(ctx context.Context, dbs *DBService, roleRequestBody types.DeleteRoleRequestBody) error {
+	tx := dbs.Conn.Begin()
+
 	var role types.Role
-	tx := dbs.Conn.WithContext(ctx)
-	if err := tx.Preload("Permissions").Where("role_name = ?", roleRequestBody.RoleName).First(&role).Error; err != nil {
+	if err := tx.Where("role_name = ?", roleRequestBody.RoleName).First(&role).Error; err != nil {
+		tx.Rollback()
 		return err
 	}
 
-	if err := tx.Delete(&role.Permissions).Error; err != nil {
+	if err := tx.Model(&types.User{}).Where("role_id = ?", role.Id).Update("role_id", gorm.Expr("NULL")).Error; err != nil {
+		tx.Rollback()
 		return err
 	}
 
-	var users []types.UserList
-	tx.Model(&role).Association("Users").Find(&users)
-	for _, user := range users {
-		tx.Model(&user).Association("Roles").Delete(&role)
+	if err := tx.Where("role_id = ?", role.Id).Delete(&types.RolePermission{}).Error; err != nil {
+		tx.Rollback()
+		return err
 	}
 
 	if err := tx.Delete(&role).Error; err != nil {
+		tx.Rollback()
 		return err
 	}
 
-	return nil
+	return tx.Commit().Error
 }
 
 func UpdateRole(ctx context.Context, dbs *DBService, roleRequestBody types.UpdateRoleRequestBody) error {
-	tx := dbs.Conn.WithContext(ctx).Begin()
-	defer func() {
-		if r := recover(); r != nil {
-			tx.Rollback()
-		}
-	}()
+	tx := dbs.Conn.Begin()
 
-	if tx.Error != nil {
-		return tx.Error
+	var role types.Role
+	if err := tx.Where("role_name = ?", roleRequestBody.RoleName).First(&role).Error; err != nil {
+		tx.Rollback()
+		return err
 	}
 
 	if roleRequestBody.NewRoleName != "" {
-		if err := tx.Model(&types.Role{}).Where("role_name = ?", roleRequestBody.RoleName).
-			Update("role_name", roleRequestBody.NewRoleName).Error; err != nil {
+		role.RoleName = roleRequestBody.NewRoleName
+		role.UpdatedAt = time.Now()
+		if err := tx.Save(&role).Error; err != nil {
 			tx.Rollback()
 			return err
 		}
 	}
 
 	if roleRequestBody.Permissions != nil {
-		var role types.Role
-		if err := tx.Where("role_name = ?", roleRequestBody.NewRoleName).Or("role_name = ?", roleRequestBody.RoleName).First(&role).Error; err != nil {
-			tx.Rollback()
-			return err
-		}
-
 		if err := tx.Where("role_id = ?", role.Id).Delete(&types.RolePermission{}).Error; err != nil {
 			tx.Rollback()
 			return err
@@ -118,10 +103,5 @@ func UpdateRole(ctx context.Context, dbs *DBService, roleRequestBody types.Updat
 		}
 	}
 
-	if err := tx.Commit().Error; err != nil {
-		tx.Rollback()
-		return err
-	}
-
-	return nil
+	return tx.Commit().Error
 }

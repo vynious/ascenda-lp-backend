@@ -5,10 +5,10 @@ import (
 )
 
 type Role struct {
-	Id          uint               `gorm:"primaryKey"`
-	RoleName    string             `gorm:"unique"`
+	Id          uint   `gorm:"primaryKey"`
+	RoleName    string `gorm:"unique"`
+	Users       UserList
 	Permissions RolePermissionList `gorm:"foreignKey:RoleID"`
-	Users       UserList           `gorm:"many2many:user_roles;"`
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 }
