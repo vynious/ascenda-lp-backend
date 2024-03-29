@@ -9,7 +9,6 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go-v2/service/rds"
-	"github.com/joho/godotenv"
 	"github.com/vynious/ascenda-lp-backend/db"
 	"github.com/vynious/ascenda-lp-backend/types"
 	"gorm.io/gorm"
@@ -22,10 +21,6 @@ var (
 )
 
 func init() {
-	if err := godotenv.Load(); err != nil {
-		log.Fatalf("error loading .env")
-	}
-
 	DBService, err = db.SpawnDBService()
 	if err != nil {
 		log.Fatalf(err.Error())
@@ -33,7 +28,7 @@ func init() {
 }
 
 func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
-	var roleRequestBody types.UpdateRoleRequestBody
+	var roleRequestBody types.GetRoleRequestBody
 
 	if err := json.Unmarshal([]byte(request.Body), &roleRequestBody); err != nil {
 		log.Printf("JSON unmarshal error: %s", err)
@@ -43,7 +38,7 @@ func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (event
 		}, nil
 	}
 
-	role, err := db.RetrieveRoleWithRoleName(ctx, DBService, roleRequestBody.RoleName)
+	role, err := db.RetrieveRoleWithRetrieveRoleRequestBody(ctx, DBService, roleRequestBody)
 	if err != nil {
 		log.Println(err)
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -59,8 +54,6 @@ func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (event
 			}, nil
 		}
 	}
-
-	db.UpdateRole(ctx, DBService, roleRequestBody)
 
 	responseBody, err := json.Marshal(role)
 	if err != nil {

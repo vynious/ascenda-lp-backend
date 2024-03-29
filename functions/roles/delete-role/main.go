@@ -4,13 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"log"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go-v2/service/rds"
-	"github.com/joho/godotenv"
 	"github.com/vynious/ascenda-lp-backend/db"
 	"github.com/vynious/ascenda-lp-backend/types"
 	"gorm.io/gorm"
@@ -23,10 +21,6 @@ var (
 )
 
 func init() {
-	if err := godotenv.Load(); err != nil {
-		log.Fatalf("error loading .env")
-	}
-
 	DBService, err = db.SpawnDBService()
 	if err != nil {
 		log.Fatalf(err.Error())
@@ -34,9 +28,9 @@ func init() {
 }
 
 func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
-	var roleRequestBody types.CreateRoleRequestBody
+	var deleteRequestBody types.DeleteRoleRequestBody
 
-	if err := json.Unmarshal([]byte(request.Body), &roleRequestBody); err != nil {
+	if err := json.Unmarshal([]byte(request.Body), &deleteRequestBody); err != nil {
 		log.Printf("JSON unmarshal error: %s", err)
 		return events.APIGatewayV2HTTPResponse{
 			StatusCode: 400,
@@ -44,36 +38,24 @@ func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (event
 		}, nil
 	}
 
-	_, err := db.RetrieveRoleWithRoleName(ctx, DBService, roleRequestBody.RoleName)
+	err := db.DeleteRoleWithDeleteRoleRequestBody(ctx, DBService, deleteRequestBody)
 	if err != nil {
-		log.Println(err)
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			roleName, err := db.CreateRoleWithCreateRoleRequestBody(ctx, DBService, roleRequestBody)
-			if err != nil {
-				log.Printf("Database error: %s", err)
-				return events.APIGatewayV2HTTPResponse{
-					StatusCode: 500,
-					Body:       "Internal server error",
-				}, nil
-			}
-
-			responseBody := fmt.Sprintf("{\"role_name\": \"%s\"}", roleName)
 			return events.APIGatewayV2HTTPResponse{
-				StatusCode: 200,
-				Body:       responseBody,
-			}, nil
-		} else {
-			log.Printf("Database error: %s", err)
-			return events.APIGatewayV2HTTPResponse{
-				StatusCode: 500,
-				Body:       "Internal server error",
+				StatusCode: 404,
+				Body:       "Role not found",
 			}, nil
 		}
+		log.Printf("Database error: %s", err)
+		return events.APIGatewayV2HTTPResponse{
+			StatusCode: 500,
+			Body:       "Internal server error",
+		}, nil
 	}
 
 	return events.APIGatewayV2HTTPResponse{
-		StatusCode: 409,
-		Body:       "Role already exist. Please use a different name",
+		StatusCode: 200,
+		Body:       "Role deleted successfully",
 	}, nil
 }
 
