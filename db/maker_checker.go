@@ -73,7 +73,7 @@ func (dbs *DBService) UpdateTransaction(ctx context.Context, txnId string, check
 
 	// Commit the transaction
 
-	if approval == true {
+	if approval {
 		// if cannot process the transaction, rollback updates for maker-checker transaction
 		var makerAction types.MakerAction
 		if err := json.Unmarshal(updatedTransaction.Action, &makerAction); err != nil {
@@ -107,8 +107,10 @@ func (dbs *DBService) GetCheckers(ctx context.Context, makerRole string) ([]stri
 	// find user's email based on maker checker roles mapping
 	tx := dbs.Conn.WithContext(ctx).Begin()
 
-	// SELECT email FROM users WHERE role_id IN (1, 2, 3);
-	if err := tx.Model(&types.User{}).Where("role IN ?", checkerRole).Pluck("Email", &checkersEmail).Error; err != nil {
+
+	if err := tx.Model(&types.User{}).
+				Where("role IN ?", checkerRole).
+				Pluck("Email", &checkersEmail).Error; err != nil {
 		return nil, err
 	}
 	return checkersEmail, nil
