@@ -6,14 +6,12 @@ import (
 	"github.com/google/uuid"
 	"github.com/vynious/ascenda-lp-backend/types"
 	"gorm.io/gorm/clause"
-	"log"
 )
 
 // CreateTransaction creates a maker-checker transaction
 func (dbs *DBService) CreateTransaction(ctx context.Context, action types.MakerAction, makerId string) (*types.Transaction, error) {
 
 	tx := dbs.Conn.WithContext(ctx)
-	log.Printf("receiving %v from %s", action, makerId)
 
 	jsonMsgAction, _ := json.Marshal(action)
 
@@ -44,7 +42,7 @@ func (dbs *DBService) GetTransaction(ctx context.Context, txnId string) (*types.
 
 func (dbs *DBService) UpdateTransaction(ctx context.Context, txnId string, checkerId string, approval bool) (*types.Transaction, error) {
 
-	// Start a transaction
+
 	tx := dbs.Conn.WithContext(ctx).Begin()
 	if tx.Error != nil {
 		return nil, tx.Error
@@ -58,7 +56,11 @@ func (dbs *DBService) UpdateTransaction(ctx context.Context, txnId string, check
 	}
 
 	// Update the transaction and locks the current entry
-	if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).Model(&types.Transaction{}).Where("transaction_id = ?", txnId).Updates(decision).Error; err != nil {
+	if err := tx.
+			Clauses(clause.Locking{Strength: "UPDATE"}).
+			Model(&types.Transaction{}).
+			Where("transaction_id = ?", txnId).
+			Updates(decision).Error; err != nil {
 		tx.Rollback()
 		return nil, err
 	}
@@ -108,9 +110,10 @@ func (dbs *DBService) GetCheckers(ctx context.Context, makerRole string) ([]stri
 	tx := dbs.Conn.WithContext(ctx).Begin()
 
 
-	if err := tx.Model(&types.User{}).
-				Where("role IN ?", checkerRole).
-				Pluck("Email", &checkersEmail).Error; err != nil {
+	if err := tx.
+			Model(&types.User{}).
+			Where("role IN ?", checkerRole).
+			Pluck("Email", &checkersEmail).Error; err != nil {
 		return nil, err
 	}
 	return checkersEmail, nil
