@@ -82,7 +82,7 @@ func (dbs *DBService) UpdateTransaction(ctx context.Context, txnId string, check
 			tx.Rollback()
 			return nil, err
 		}
-		if err := dbs.ProcessTransaction(&makerAction); err != nil {
+		if err := dbs.ProcessTransaction(ctx, &makerAction); err != nil {
 			tx.Rollback()
 			return nil, err
 		}
@@ -119,19 +119,22 @@ func (dbs *DBService) GetCheckers(ctx context.Context, makerRole string) ([]stri
 	return checkersEmail, nil
 }
 
-func (dbs *DBService) ProcessTransaction(action *types.MakerAction) error {
-
+func (dbs *DBService) ProcessTransaction(ctx context.Context, action *types.MakerAction) error {
 	switch action.ActionType {
 	case "UpdatePoints":
 		var updatePointsRequestBody types.UpdatePointsRequestBody
 		if err := json.Unmarshal(action.RequestBody, &updatePointsRequestBody); err != nil {
 			return err
 		}
-		if _, err := dbs.UpdatePoints(context.Background(), updatePointsRequestBody); err != nil {
+		if _, err := dbs.UpdatePoints(ctx, updatePointsRequestBody); err != nil {
 			return err
 		}
 	case "UpdateUser":
-
+		var updateUserRequestBody types.UpdateUserRequestBody
+		if err := json.Unmarshal(action.RequestBody, &updateUserRequestBody); err != nil {
+			return err
+		}
+		// calls update user.
 	}
 	return nil
 }
