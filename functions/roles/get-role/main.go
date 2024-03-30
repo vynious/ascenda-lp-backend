@@ -34,23 +34,37 @@ func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (event
 		log.Printf("JSON unmarshal error: %s", err)
 		return events.APIGatewayV2HTTPResponse{
 			StatusCode: 400,
-			Body:       "Invalid request format",
+			Headers: map[string]string{
+				"Access-Control-Allow-Headers": "Content-Type",
+				"Access-Control-Allow-Origin":  "*",
+				"Access-Control-Allow-Methods": "GET",
+			},
+			Body: "Invalid request format",
 		}, nil
 	}
 
 	role, err := db.RetrieveRoleWithRetrieveRoleRequestBody(ctx, DBService, roleRequestBody)
 	if err != nil {
-		log.Println(err)
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return events.APIGatewayV2HTTPResponse{
 				StatusCode: 404,
-				Body:       "Role not found",
+				Headers: map[string]string{
+					"Access-Control-Allow-Headers": "Content-Type",
+					"Access-Control-Allow-Origin":  "*",
+					"Access-Control-Allow-Methods": "GET",
+				},
+				Body: "Role not found",
 			}, nil
 		} else {
 			log.Printf("Database error: %s", err)
 			return events.APIGatewayV2HTTPResponse{
 				StatusCode: 500,
-				Body:       "Internal server error",
+				Headers: map[string]string{
+					"Access-Control-Allow-Headers": "Content-Type",
+					"Access-Control-Allow-Origin":  "*",
+					"Access-Control-Allow-Methods": "GET",
+				},
+				Body: "Internal server error",
 			}, nil
 		}
 	}
@@ -60,12 +74,22 @@ func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (event
 		log.Printf("JSON marshal error: %s", err)
 		return events.APIGatewayV2HTTPResponse{
 			StatusCode: 500,
-			Body:       "Error marshaling role into JSON",
+			Headers: map[string]string{
+				"Access-Control-Allow-Headers": "Content-Type",
+				"Access-Control-Allow-Origin":  "*",
+				"Access-Control-Allow-Methods": "GET",
+			},
+			Body: "Error marshaling role into JSON",
 		}, nil
 	}
 	return events.APIGatewayV2HTTPResponse{
 		StatusCode: 200,
-		Body:       string(responseBody),
+		Headers: map[string]string{
+			"Access-Control-Allow-Headers": "Content-Type",
+			"Access-Control-Allow-Origin":  "*",
+			"Access-Control-Allow-Methods": "GET",
+		},
+		Body: string(responseBody),
 	}, nil
 }
 func main() {
