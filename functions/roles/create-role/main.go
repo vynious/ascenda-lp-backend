@@ -6,31 +6,38 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go-v2/service/rds"
-	"github.com/joho/godotenv"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/cognitoidentityprovider"
 	"github.com/vynious/ascenda-lp-backend/db"
 	"github.com/vynious/ascenda-lp-backend/types"
 	"gorm.io/gorm"
 )
 
 var (
-	DBService *db.DBService
-	RDSClient *rds.Client
-	err       error
+	DBService     *db.DBService
+	RDSClient     *rds.Client
+	cognitoClient *cognitoidentityprovider.CognitoIdentityProvider
+	err           error
 )
 
 func init() {
-	if err := godotenv.Load(); err != nil {
-		log.Fatalf("error loading .env")
-	}
-
 	DBService, err = db.SpawnDBService()
 	if err != nil {
 		log.Fatalf(err.Error())
 	}
+	region := os.Getenv("AWS_REGION")
+	awsSession, err := session.NewSession(&aws.Config{
+		Region: aws.String(region)})
+	if err != nil {
+		log.Println("error setting up aws session")
+	}
+	cognitoClient = cognitoidentityprovider.New(awsSession)
 }
 
 func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
@@ -53,7 +60,12 @@ func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (event
 				log.Printf("Database error: %s", err)
 				return events.APIGatewayV2HTTPResponse{
 					StatusCode: 500,
-					Body:       "Internal server error",
+					Headers: map[string]string{
+						"Access-Control-Allow-Headers": "Content-Type",
+						"Access-Control-Allow-Origin":  "*",
+						"Access-Control-Allow-Methods": "POST",
+					},
+					Body: "Internal server error",
 				}, nil
 			}
 
@@ -66,14 +78,24 @@ func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (event
 			log.Printf("Database error: %s", err)
 			return events.APIGatewayV2HTTPResponse{
 				StatusCode: 500,
-				Body:       "Internal server error",
+				Headers: map[string]string{
+					"Access-Control-Allow-Headers": "Content-Type",
+					"Access-Control-Allow-Origin":  "*",
+					"Access-Control-Allow-Methods": "POST",
+				},
+				Body: "Internal server error",
 			}, nil
 		}
 	}
 
 	return events.APIGatewayV2HTTPResponse{
 		StatusCode: 409,
-		Body:       "Role already exist. Please use a different name",
+		Headers: map[string]string{
+			"Access-Control-Allow-Headers": "Content-Type",
+			"Access-Control-Allow-Origin":  "*",
+			"Access-Control-Allow-Methods": "POST",
+		},
+		Body: "Role already exist. Please use a different name",
 	}, nil
 }
 

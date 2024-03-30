@@ -10,7 +10,8 @@ type User struct {
 	FirstName string
 	LastName  string
 	RoleID    *uint
-	Role      *Role
+	RoleName  *string
+	Role      *Role     `gorm:"foreignKey:RoleID"`
 	CreatedAt time.Time `gorm:"default:now()"`
 	UpdatedAt time.Time `gorm:"default:now()"`
 }
@@ -37,4 +38,5 @@ type UpdateUserRequestBody struct {
 	NewFirstName string
 	NewLastName  string
 	NewEmail     string
+	NewRoleName  string
 }
