@@ -26,11 +26,11 @@ func init() {
 	}
 }
 
-func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
+func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyResponse, error) {
 	roles, err := db.RetrieveAllRolesWithUsers(ctx, DBService)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return events.APIGatewayV2HTTPResponse{
+			return events.APIGatewayProxyResponse{
 				StatusCode: 404,
 				Headers: map[string]string{
 					"Access-Control-Allow-Headers": "Content-Type",
@@ -41,7 +41,7 @@ func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (event
 			}, nil
 		} else {
 			log.Printf("Database error: %s", err)
-			return events.APIGatewayV2HTTPResponse{
+			return events.APIGatewayProxyResponse{
 				StatusCode: 500,
 				Headers: map[string]string{
 					"Access-Control-Allow-Headers": "Content-Type",
@@ -56,7 +56,7 @@ func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (event
 	responseBody, err := json.Marshal(roles)
 	if err != nil {
 		log.Printf("JSON marshal error: %s", err)
-		return events.APIGatewayV2HTTPResponse{
+		return events.APIGatewayProxyResponse{
 			StatusCode: 500,
 			Headers: map[string]string{
 				"Access-Control-Allow-Headers": "Content-Type",
@@ -67,7 +67,7 @@ func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (event
 		}, nil
 	}
 
-	return events.APIGatewayV2HTTPResponse{
+	return events.APIGatewayProxyResponse{
 		StatusCode: 200,
 		Headers: map[string]string{
 			"Access-Control-Allow-Headers": "Content-Type",

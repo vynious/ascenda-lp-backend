@@ -27,9 +27,9 @@ func init() {
 	}
 }
 
-func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
+func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyResponse, error) {
 	if request.RequestContext.HTTP.Method == "OPTIONS" {
-		return events.APIGatewayV2HTTPResponse{
+		return events.APIGatewayProxyResponse{
 			StatusCode: 200,
 			Headers: map[string]string{
 				"Access-Control-Allow-Origin":  "*",
@@ -44,7 +44,7 @@ func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (event
 
 	if err := json.Unmarshal([]byte(request.Body), &deleteRequestBody); err != nil {
 		log.Printf("JSON unmarshal error: %s", err)
-		return events.APIGatewayV2HTTPResponse{
+		return events.APIGatewayProxyResponse{
 			StatusCode: 400,
 			Headers: map[string]string{
 				"Access-Control-Allow-Headers": "Content-Type",
@@ -58,7 +58,7 @@ func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (event
 	err := db.DeleteRoleWithDeleteRoleRequestBody(ctx, DBService, deleteRequestBody)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return events.APIGatewayV2HTTPResponse{
+			return events.APIGatewayProxyResponse{
 				StatusCode: 404,
 				Headers: map[string]string{
 					"Access-Control-Allow-Headers": "Content-Type",
@@ -69,7 +69,7 @@ func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (event
 			}, nil
 		}
 		log.Printf("Database error: %s", err)
-		return events.APIGatewayV2HTTPResponse{
+		return events.APIGatewayProxyResponse{
 			StatusCode: 500,
 			Headers: map[string]string{
 				"Access-Control-Allow-Headers": "Content-Type",
@@ -80,7 +80,7 @@ func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (event
 		}, nil
 	}
 
-	return events.APIGatewayV2HTTPResponse{
+	return events.APIGatewayProxyResponse{
 		StatusCode: 200,
 		Headers: map[string]string{
 			"Access-Control-Allow-Headers": "Content-Type",

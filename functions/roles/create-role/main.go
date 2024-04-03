@@ -40,12 +40,12 @@ func init() {
 	cognitoClient = cognitoidentityprovider.New(awsSession)
 }
 
-func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
+func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyResponse, error) {
 	var roleRequestBody types.CreateRoleRequestBody
 
 	if err := json.Unmarshal([]byte(request.Body), &roleRequestBody); err != nil {
 		log.Printf("JSON unmarshal error: %s", err)
-		return events.APIGatewayV2HTTPResponse{
+		return events.APIGatewayProxyResponse{
 			StatusCode: 400,
 			Body:       "Invalid request format",
 		}, nil
@@ -58,7 +58,7 @@ func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (event
 			roleName, err := db.CreateRoleWithCreateRoleRequestBody(ctx, DBService, roleRequestBody)
 			if err != nil {
 				log.Printf("Database error: %s", err)
-				return events.APIGatewayV2HTTPResponse{
+				return events.APIGatewayProxyResponse{
 					StatusCode: 500,
 					Headers: map[string]string{
 						"Access-Control-Allow-Headers": "Content-Type",
@@ -70,13 +70,13 @@ func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (event
 			}
 
 			responseBody := fmt.Sprintf("{\"role_name\": \"%s\"}", roleName)
-			return events.APIGatewayV2HTTPResponse{
+			return events.APIGatewayProxyResponse{
 				StatusCode: 200,
 				Body:       responseBody,
 			}, nil
 		} else {
 			log.Printf("Database error: %s", err)
-			return events.APIGatewayV2HTTPResponse{
+			return events.APIGatewayProxyResponse{
 				StatusCode: 500,
 				Headers: map[string]string{
 					"Access-Control-Allow-Headers": "Content-Type",
@@ -88,7 +88,7 @@ func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (event
 		}
 	}
 
-	return events.APIGatewayV2HTTPResponse{
+	return events.APIGatewayProxyResponse{
 		StatusCode: 409,
 		Headers: map[string]string{
 			"Access-Control-Allow-Headers": "Content-Type",

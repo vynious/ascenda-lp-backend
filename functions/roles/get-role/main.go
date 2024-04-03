@@ -27,12 +27,12 @@ func init() {
 	}
 }
 
-func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
+func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyResponse, error) {
 	var roleRequestBody types.GetRoleRequestBody
 
 	if err := json.Unmarshal([]byte(request.Body), &roleRequestBody); err != nil {
 		log.Printf("JSON unmarshal error: %s", err)
-		return events.APIGatewayV2HTTPResponse{
+		return events.APIGatewayProxyResponse{
 			StatusCode: 400,
 			Headers: map[string]string{
 				"Access-Control-Allow-Headers": "Content-Type",
@@ -46,7 +46,7 @@ func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (event
 	role, err := db.RetrieveRoleWithRetrieveRoleRequestBody(ctx, DBService, roleRequestBody)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return events.APIGatewayV2HTTPResponse{
+			return events.APIGatewayProxyResponse{
 				StatusCode: 404,
 				Headers: map[string]string{
 					"Access-Control-Allow-Headers": "Content-Type",
@@ -57,7 +57,7 @@ func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (event
 			}, nil
 		} else {
 			log.Printf("Database error: %s", err)
-			return events.APIGatewayV2HTTPResponse{
+			return events.APIGatewayProxyResponse{
 				StatusCode: 500,
 				Headers: map[string]string{
 					"Access-Control-Allow-Headers": "Content-Type",
@@ -72,7 +72,7 @@ func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (event
 	responseBody, err := json.Marshal(role)
 	if err != nil {
 		log.Printf("JSON marshal error: %s", err)
-		return events.APIGatewayV2HTTPResponse{
+		return events.APIGatewayProxyResponse{
 			StatusCode: 500,
 			Headers: map[string]string{
 				"Access-Control-Allow-Headers": "Content-Type",
@@ -82,7 +82,7 @@ func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (event
 			Body: "Error marshaling role into JSON",
 		}, nil
 	}
-	return events.APIGatewayV2HTTPResponse{
+	return events.APIGatewayProxyResponse{
 		StatusCode: 200,
 		Headers: map[string]string{
 			"Access-Control-Allow-Headers": "Content-Type",
