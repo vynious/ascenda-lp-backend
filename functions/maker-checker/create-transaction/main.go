@@ -51,7 +51,12 @@ func CreateTransactionHandler(ctx context.Context, req *events.APIGatewayV2HTTPR
 			log.Printf("Error unmarshalling UpdatePointsRequestBody: %v", err)
 			return events.APIGatewayV2HTTPResponse{
 				StatusCode: 400,
-				Body:       "Invalid request format for UpdatePoints",
+				Headers: map[string]string{
+					"Access-Control-Allow-Headers": "Content-Type",
+					"Access-Control-Allow-Origin":  "*",
+					"Access-Control-Allow-Methods": "POST",
+				},
+				Body: "Invalid request format for UpdatePoints",
 			}, nil
 		}
 
@@ -70,7 +75,12 @@ func CreateTransactionHandler(ctx context.Context, req *events.APIGatewayV2HTTPR
 		if err != nil {
 			return events.APIGatewayV2HTTPResponse{
 				StatusCode: 500,
-				Body:       "",
+				Headers: map[string]string{
+					"Access-Control-Allow-Headers": "Content-Type",
+					"Access-Control-Allow-Origin":  "*",
+					"Access-Control-Allow-Methods": "POST",
+				},
+				Body: "",
 			}, nil
 		}
 		responseBody.Txn = *txn
@@ -79,7 +89,12 @@ func CreateTransactionHandler(ctx context.Context, req *events.APIGatewayV2HTTPR
 	default:
 		return events.APIGatewayV2HTTPResponse{
 			StatusCode: 404,
-			Body:       "Bad Request",
+			Headers: map[string]string{
+				"Access-Control-Allow-Headers": "Content-Type",
+				"Access-Control-Allow-Origin":  "*",
+				"Access-Control-Allow-Methods": "POST",
+			},
+			Body: "Bad Request",
 		}, nil
 	}
 
@@ -97,13 +112,23 @@ func CreateTransactionHandler(ctx context.Context, req *events.APIGatewayV2HTTPR
 	if err != nil {
 		return events.APIGatewayV2HTTPResponse{
 			StatusCode: 201,
-			Body:       err.Error(),
+			Headers: map[string]string{
+				"Access-Control-Allow-Headers": "Content-Type",
+				"Access-Control-Allow-Origin":  "*",
+				"Access-Control-Allow-Methods": "POST",
+			},
+			Body: err.Error(),
 		}, nil
 	}
 
 	return events.APIGatewayV2HTTPResponse{
 		StatusCode: 201,
-		Body:       string(respBod),
+		Headers: map[string]string{
+			"Access-Control-Allow-Headers": "Content-Type",
+			"Access-Control-Allow-Origin":  "*",
+			"Access-Control-Allow-Methods": "POST",
+		},
+		Body: string(respBod),
 	}, nil
 }
 

@@ -12,9 +12,9 @@ import (
 
 var (
 	DBService    *db.DBService
-	responseBody types.TransactionResponseBody
+	responseBody types.MultipleTransactionsResponseBody
 
-	requestBody types.GetTransactionRequestBody
+	requestBody types.GetAllTransactionsRequestBody
 	err         error
 )
 
@@ -27,7 +27,7 @@ func init() {
 	}
 }
 
-func GetTransactionHandler(ctx context.Context, req *events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
+func GetAllTransactionHandler(ctx context.Context, req *events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
 
 	defer DBService.CloseConn()
 
@@ -43,7 +43,7 @@ func GetTransactionHandler(ctx context.Context, req *events.APIGatewayV2HTTPRequ
 		}, nil
 	}
 
-	txn, err := DBService.GetTransaction(ctx, requestBody.TransactionId)
+	transactions, err := DBService.GetAllTransactions(ctx)
 	if err != nil {
 		return events.APIGatewayV2HTTPResponse{
 			StatusCode: 500,
@@ -52,11 +52,11 @@ func GetTransactionHandler(ctx context.Context, req *events.APIGatewayV2HTTPRequ
 				"Access-Control-Allow-Origin":  "*",
 				"Access-Control-Allow-Methods": "GET",
 			},
-			Body: "",
+			Body: err.Error(),
 		}, nil
 	}
 
-	responseBody.Txn = *txn
+	responseBody.Txns = *transactions
 
 	bod, err := json.Marshal(responseBody)
 
@@ -84,5 +84,5 @@ func GetTransactionHandler(ctx context.Context, req *events.APIGatewayV2HTTPRequ
 }
 
 func main() {
-	lambda.Start(GetTransactionHandler)
+	lambda.Start(GetAllTransactionHandler)
 }
