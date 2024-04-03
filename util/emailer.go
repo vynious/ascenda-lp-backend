@@ -3,69 +3,82 @@ package util
 import (
 	"context"
 	"fmt"
-	"log"
-	"os"
-
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/ses"
-	aws2 "github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/aws/session"
-	ses2 "github.com/aws/aws-sdk-go/service/ses"
+	"github.com/aws/aws-sdk-go-v2/service/ses/types"
+	"log"
+	"os"
 )
 
-// TODO: only aws-v1 can work??
 func EmailCheckers(ctx context.Context, actionType string, checkersEmail []string) error {
 
 	sender := "smucomedy@gmail.com"
-
-	sess, err := session.NewSession(&aws2.Config{
-		Region:      aws.String("ap-southeast-1"),
-		Credentials: credentials.NewStaticCredentials(os.Getenv("SES_ACCESS_KEY_ID"), os.Getenv("SES_ACCESS_SECRET_KEY"), ""),
-	})
-	if err != nil {
-		return fmt.Errorf("failed to start sess: %v", err)
-	}
-
-	svc := ses2.New(sess)
 
 	body := `Dear Checker,
 	You have a pending transaction for approval.
 	Please login to view.
 		`
+	cfg, err := config.LoadDefaultConfig(ctx, config.WithCredentialsProvider(
+		credentials.StaticCredentialsProvider{
+			Value: aws.Credentials{
+				AccessKeyID:     os.Getenv("SES_ACCESS_KEY_ID"),
+				SecretAccessKey: os.Getenv("SES_ACCESS_SECRET_KEY"),
+				SessionToken:    "",
+				Source:          "",
+			},
+		}))
+	if err != nil {
+		return fmt.Errorf("failed loading cfg for ses: %v", err)
+	}
+
+	sesClient := ses.NewFromConfig(cfg)
 
 	for _, email := range checkersEmail {
-		input := &ses2.SendEmailInput{
-			Destination: &ses2.Destination{
-				ToAddresses: []*string{
-					aws.String(email),
-				},
+		input := ses.SendEmailInput{
+			Destination: &types.Destination{
+				ToAddresses: []string{email},
 			},
-			Message: &ses2.Message{
-				Body: &ses2.Body{
-					Text: &ses2.Content{
+			Message: &types.Message{
+				Body: &types.Body{
+					Text: &types.Content{
 						Charset: aws.String("UTF-8"),
 						Data:    aws.String(body),
 					},
 				},
-				Subject: &ses2.Content{
+				Subject: &types.Content{
 					Charset: aws.String("UTF-8"),
 					Data:    aws.String(fmt.Sprintf("[Action Required] %s Request", actionType)),
 				},
 			},
-			Source: aws.String(sender),
+			Source:               aws.String(sender),
+			ConfigurationSetName: nil,
+			ReplyToAddresses:     nil,
+			ReturnPath:           nil,
+			ReturnPathArn:        nil,
+			SourceArn:            nil,
+			Tags:                 nil,
 		}
-		_, err = svc.SendEmail(input)
 
+		verified, err := VerifyEmail(ctx, email)
 		if err != nil {
+			log.Printf("unable to verify email: %v", err)
+			continue
+		}
+		if verified == false {
+			log.Printf("%v is not verified", email)
+			continue
+		}
+
+		if _, err := sesClient.SendEmail(ctx, &input); err != nil {
 			log.Printf("failed send email to %v due to %v", email, err)
 		}
 	}
 	return nil
 }
 
-// SendEmailVerification sends a verification email to the target address to add their verify their identity for receiving emails.
+// SendEmailVerification sends a verification email to the target address to add their verify their identity for receiving emails. Post sign-up process.
 func SendEmailVerification(ctx context.Context, email string) error {
 	cfg, err := config.LoadDefaultConfig(ctx)
 	if err != nil {
@@ -83,6 +96,6 @@ func SendEmailVerification(ctx context.Context, email string) error {
 }
 
 // VerifyEmail verifies the email address before sending it
-func VerifyEmail(ctx context.Context, email string) error {
-	return nil
+func VerifyEmail(ctx context.Context, email string) (bool, error) {
+	return true, nil
 }

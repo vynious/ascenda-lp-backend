@@ -66,39 +66,39 @@ func (dbs *DBService) GetTransactionsByMakerIdByStatus(ctx context.Context, make
 	return &transactions, nil
 }
 
-func (dbs *DBService) GetPendingTransactionsByApprovalChain(ctx context.Context, checkerRole string) (*[]types.Transaction, error) {
-	/*
-			get all pending transaction
-			from each pending transaction get the checkerid
-			from the checkerid get the checkerrole
-			based off the checkerrole, check with mapping if mapping checkerrole: [makerrole1, makerrole2]
-			if makerrole is inside the map
-			return the transactions
-
-		- select * from
-
-
-
-
-
-		- available checker roles
-		select * from makercheckermap
-		where makerrole = <makerrole>
-
-
-		- pending transactions
-		select checkerid from transactions
-		where status = <status>
-
-	*/
-	var transactions []types.Transaction
-
-	tx := dbs.Conn.WithContext(ctx)
-	result := tx.
-		Where("status = pending")
-
-	return nil, nil
-}
+//func (dbs *DBService) GetPendingTransactionsByApprovalChain(ctx context.Context, checkerRole string) (*[]types.Transaction, error) {
+//	/*
+//			get all pending transaction
+//			from each pending transaction get the checkerid
+//			from the checkerid get the checkerrole
+//			based off the checkerrole, check with mapping if mapping checkerrole: [makerrole1, makerrole2]
+//			if makerrole is inside the map
+//			return the transactions
+//
+//		- select * from
+//
+//
+//
+//
+//
+//		- available checker roles
+//		select * from makercheckermap
+//		where makerrole = <makerrole>
+//
+//
+//		- pending transactions
+//		select checkerid from transactions
+//		where status = <status>
+//
+//	*/
+//	var transactions []types.Transaction
+//
+//	tx := dbs.Conn.WithContext(ctx)
+//	result := tx.
+//		Where("status = pending")
+//
+//	return nil, nil
+//}
 
 // GetCompletedTransactionsByCheckerId This function assumes that all transactions with a value checker_id has been completed.
 func (dbs *DBService) GetCompletedTransactionsByCheckerId(ctx context.Context, checkerId string) (*[]types.Transaction, error) {

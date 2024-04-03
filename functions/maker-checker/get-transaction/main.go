@@ -13,9 +13,8 @@ import (
 var (
 	DBService    *db.DBService
 	responseBody types.TransactionResponseBody
-
-	requestBody types.GetTransactionRequestBody
-	err         error
+	requestBody  types.GetTransactionRequestBody
+	err          error
 )
 
 func init() {

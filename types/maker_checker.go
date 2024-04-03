@@ -18,8 +18,8 @@ type Transaction struct {
 }
 
 type ApprovalChainMap struct {
-	MakerRole    string `gorm:"type:string"`
-	CheckerRoles string `gorm:"type:string"` // `owner,manager,..`
+	MakerRole   string `gorm:"type:string"`
+	CheckerRole string `gorm:"type:string"` // `owner,manager,..`
 }
 
 type CreateTransactionBody struct {

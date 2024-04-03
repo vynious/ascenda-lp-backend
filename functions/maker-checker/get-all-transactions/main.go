@@ -13,9 +13,8 @@ import (
 var (
 	DBService    *db.DBService
 	responseBody types.MultipleTransactionsResponseBody
-
-	requestBody types.GetAllTransactionsRequestBody
-	err         error
+	requestBody  types.GetAllTransactionsRequestBody
+	err          error
 )
 
 func init() {
@@ -27,7 +26,7 @@ func init() {
 	}
 }
 
-func GetAllTransactionHandler(ctx context.Context, req *events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
+func GetTransactionsHandler(ctx context.Context, req *events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
 
 	defer DBService.CloseConn()
 
@@ -43,7 +42,7 @@ func GetAllTransactionHandler(ctx context.Context, req *events.APIGatewayV2HTTPR
 		}, nil
 	}
 
-	transactions, err := DBService.GetAllTransactions(ctx)
+	transactions, err := DBService.GetTransactions(ctx)
 	if err != nil {
 		return events.APIGatewayV2HTTPResponse{
 			StatusCode: 500,
@@ -84,5 +83,5 @@ func GetAllTransactionHandler(ctx context.Context, req *events.APIGatewayV2HTTPR
 }
 
 func main() {
-	lambda.Start(GetAllTransactionHandler)
+	lambda.Start(GetTransactionsHandler)
 }

@@ -16,7 +16,6 @@ var (
 	DBService    *db.DBService
 	requestBody  types.CreateTransactionBody
 	responseBody types.TransactionResponseBody
-	action       types.MakerAction
 	err          error
 )
 
