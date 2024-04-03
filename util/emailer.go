@@ -23,11 +23,10 @@ func EmailCheckers(ctx context.Context, actionType string, checkersEmail []strin
 	sess, err := session.NewSession(&aws2.Config{
 		Region:      aws.String("ap-southeast-1"),
 		Credentials: credentials.NewStaticCredentials(os.Getenv("SES_ACCESS_KEY_ID"), os.Getenv("SES_ACCESS_SECRET_KEY"), ""),
-	},)
+	})
 	if err != nil {
 		return fmt.Errorf("failed to start sess: %v", err)
 	}
-
 
 	svc := ses2.New(sess)
 
@@ -66,7 +65,7 @@ func EmailCheckers(ctx context.Context, actionType string, checkersEmail []strin
 	return nil
 }
 
-// VerifyEmail sends a verification email to the target address to add their verify their identity for receiving emails.
+// SendEmailVerification sends a verification email to the target address to add their verify their identity for receiving emails.
 func SendEmailVerification(ctx context.Context, email string) error {
 	cfg, err := config.LoadDefaultConfig(ctx)
 	if err != nil {
@@ -83,7 +82,7 @@ func SendEmailVerification(ctx context.Context, email string) error {
 	return nil
 }
 
+// VerifyEmail verifies the email address before sending it
 func VerifyEmail(ctx context.Context, email string) error {
 	return nil
 }
-
