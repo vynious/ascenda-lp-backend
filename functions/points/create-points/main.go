@@ -13,8 +13,13 @@ import (
 )
 
 var (
-	DB  *db.DBService
-	err error
+	DB      *db.DBService
+	err     error
+	headers = map[string]string{
+		"Access-Control-Allow-Headers": "Content-Type",
+		"Access-Control-Allow-Origin":  "*",
+		"Access-Control-Allow-Methods": "POST",
+	}
 )
 
 func init() {
@@ -29,18 +34,20 @@ func main() {
 	defer DB.CloseConn()
 }
 
-func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
+func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyResponse, error) {
 	req := types.CreatePointsAccountRequestBody{}
 	if err := json.Unmarshal([]byte(request.Body), &req); err != nil {
-		return events.APIGatewayV2HTTPResponse{
+		return events.APIGatewayProxyResponse{
 			StatusCode: 400,
+			Headers:    headers,
 			Body:       errors.New("invalid request. malformed request found").Error(),
 		}, nil
 	}
 
 	if req.UserID == nil || req.NewBalance == nil {
-		return events.APIGatewayV2HTTPResponse{
+		return events.APIGatewayProxyResponse{
 			StatusCode: 400,
+			Headers:    headers,
 			Body:       errors.New("bad request. user_id or new_balance not found").Error(),
 		}, nil
 	}
@@ -48,15 +55,17 @@ func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (event
 
 	pointsRecord, err := DB.CreatePointsAccount(ctx, req)
 	if pointsRecord == nil {
-		return events.APIGatewayV2HTTPResponse{
+		return events.APIGatewayProxyResponse{
 			StatusCode: 500,
+			Headers:    headers,
 			Body:       err.Error(),
 		}, nil
 	}
 
 	obj, _ := json.Marshal(pointsRecord)
-	return events.APIGatewayV2HTTPResponse{
+	return events.APIGatewayProxyResponse{
 		StatusCode: 201,
+		Headers:    headers,
 		Body:       string(obj),
 	}, nil
 }
