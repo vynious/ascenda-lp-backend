@@ -29,6 +29,18 @@ func init() {
 }
 
 func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
+	if request.RequestContext.HTTP.Method == "OPTIONS" {
+		return events.APIGatewayV2HTTPResponse{
+			StatusCode: 200,
+			Headers: map[string]string{
+				"Access-Control-Allow-Origin":  "*",
+				"Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+				"Access-Control-Allow-Headers": "Content-Type",
+			},
+			Body: "{}",
+		}, nil
+	}
+
 	var userRequestBody types.CreateUserRequestBody
 
 	if err := json.Unmarshal([]byte(request.Body), &userRequestBody); err != nil {
