@@ -19,7 +19,7 @@ func (dbs *DBService) GetPoints(ctx context.Context) ([]types.Points, error) {
 	return pointsRecords, nil
 }
 
-func (dbs *DBService) GetPointsByID(ctx context.Context, accId string) ([]types.Points, error) {
+func (dbs *DBService) GetPointsAccountById(ctx context.Context, accId string) ([]types.Points, error) {
 
 	var pointsRecords []types.Points
 	res := dbs.Conn.Where("id = ?", accId).First(&pointsRecords)
@@ -53,7 +53,7 @@ func (dbs *DBService) GetPointsAccountsByUser(ctx context.Context, userId string
 func (dbs *DBService) UpdatePoints(ctx context.Context, req types.UpdatePointsRequestBody) (*types.Points, error) {
 
 	var pointsRecords []types.Points
-	pointsRecords, err := dbs.GetPointsByID(ctx, req.ID)
+	pointsRecords, err := dbs.GetPointsAccountById(ctx, req.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -82,7 +82,6 @@ func (dbs *DBService) CreatePointsAccount(ctx context.Context, req types.CreateP
 }
 
 func (dbs *DBService) DeletePointsAccountByUser(ctx context.Context, userId string) (bool, error) {
-
 	res := dbs.Conn.Where("user_id = ?", &userId).Delete(&types.Points{})
 	if res.RowsAffected == 0 {
 		return false, fmt.Errorf("database error %s", res.Error)
@@ -94,7 +93,7 @@ func (dbs *DBService) DeletePointsAccountByUser(ctx context.Context, userId stri
 func (dbs *DBService) DeletePointsAccountByID(ctx context.Context, accId string) (bool, error) {
 	res := dbs.Conn.Delete(&types.Points{}, &accId)
 	if res.RowsAffected == 0 {
-		return false, fmt.Errorf("database error %s", res.Error)
+		return false, fmt.Errorf("database error %v", res.Error)
 	}
 
 	return true, nil
