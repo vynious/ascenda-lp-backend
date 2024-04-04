@@ -9,7 +9,8 @@ type User struct {
 	Email     string `gorm:"unique"`
 	FirstName string
 	LastName  string
-	RoleID    *uint     `gorm:"index"`
+	RoleID    *uint `gorm:"index"`
+	RoleName  *string
 	Role      *Role     `gorm:"foreignKey:RoleID"`
 	CreatedAt time.Time `gorm:"default:now()"`
 	UpdatedAt time.Time `gorm:"default:now()"`

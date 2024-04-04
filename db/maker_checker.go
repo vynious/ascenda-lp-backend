@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-
 	"github.com/google/uuid"
 	"github.com/vynious/ascenda-lp-backend/types"
 	"gorm.io/gorm/clause"
@@ -13,7 +12,14 @@ import (
 // CreateTransaction creates a maker-checker transaction
 func (dbs *DBService) CreateTransaction(ctx context.Context, action types.MakerAction, makerId string) (*types.Transaction, error) {
 
+	var maker types.User
+
 	tx := dbs.Conn.WithContext(ctx)
+
+	// Ensure the MakerId corresponds to an existing user
+	if err := tx.First(&maker, "id = ?", makerId).Error; err != nil {
+		return nil, fmt.Errorf("maker with ID %s not found: %w", makerId, err)
+	}
 
 	jsonMsgAction, _ := json.Marshal(action)
 
@@ -30,7 +36,7 @@ func (dbs *DBService) CreateTransaction(ctx context.Context, action types.MakerA
 	return txn, nil
 }
 
-func (dbs *DBService) GetTransaction(ctx context.Context, txnId string) (*types.Transaction, error) {
+func (dbs *DBService) GetTransaction(ctx context.Context, txnId string) (*[]types.Transaction, error) {
 	var transaction types.Transaction
 
 	tx := dbs.Conn.WithContext(ctx)
@@ -39,7 +45,7 @@ func (dbs *DBService) GetTransaction(ctx context.Context, txnId string) (*types.
 		return nil, err
 	}
 
-	return &transaction, nil
+	return &[]types.Transaction{transaction}, nil
 }
 
 func (dbs *DBService) GetTransactions(ctx context.Context) (*[]types.Transaction, error) {
@@ -66,39 +72,38 @@ func (dbs *DBService) GetTransactionsByMakerIdByStatus(ctx context.Context, make
 	return &transactions, nil
 }
 
-//func (dbs *DBService) GetPendingTransactionsByApprovalChain(ctx context.Context, checkerRole string) (*[]types.Transaction, error) {
-//	/*
-//			get all pending transaction
-//			from each pending transaction get the checkerid
-//			from the checkerid get the checkerrole
-//			based off the checkerrole, check with mapping if mapping checkerrole: [makerrole1, makerrole2]
-//			if makerrole is inside the map
-//			return the transactions
-//
-//		- select * from
-//
-//
-//
-//
-//
-//		- available checker roles
-//		select * from makercheckermap
-//		where makerrole = <makerrole>
-//
-//
-//		- pending transactions
-//		select checkerid from transactions
-//		where status = <status>
-//
-//	*/
-//	var transactions []types.Transaction
-//
-//	tx := dbs.Conn.WithContext(ctx)
-//	result := tx.
-//		Where("status = pending")
-//
-//	return nil, nil
-//}
+func (dbs *DBService) GetPendingTransactionsForChecker(ctx context.Context, checkerId string) (*[]types.Transaction, error) {
+	var transactions *[]types.Transaction
+	var checkerRoleId uint
+
+	// Start a transaction
+	tx := dbs.Conn.WithContext(ctx)
+
+	// Get the role ID of the checker
+	err := tx.Table("users").
+		Select("roles.id").
+		Joins("JOIN roles ON roles.id = users.role_id").
+		Where("users.id = ?", checkerId).
+		Pluck("roles.id", &checkerRoleId).Error
+	if err != nil {
+		return nil, err
+	}
+
+	// Fetch transactions that are pending and where the maker's role is in the approval chain for the checker's role
+	err = tx.Model(&types.Transaction{}).
+		Joins("JOIN users AS makers ON makers.id = transactions.maker_id").
+		Joins("JOIN roles AS maker_roles ON maker_roles.id = makers.role_id").
+		Joins("JOIN approval_chain_maps ON approval_chain_maps.maker_role_id = maker_roles.id").
+		Where("transactions.status = ?", "pending").
+		Where("approval_chain_maps.checker_role_id = ?", checkerRoleId).
+		Find(&transactions).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return transactions, nil
+}
 
 // GetCompletedTransactionsByCheckerId This function assumes that all transactions with a value checker_id has been completed.
 func (dbs *DBService) GetCompletedTransactionsByCheckerId(ctx context.Context, checkerId string) (*[]types.Transaction, error) {
@@ -167,27 +172,34 @@ func (dbs *DBService) UpdateTransaction(ctx context.Context, txnId string, check
 	return &updatedTransaction, nil
 }
 
-func (dbs *DBService) GetCheckers(ctx context.Context, makerRole string) ([]string, error) {
-	var checkersEmail []string // need to convert to aws.String() ??
+func (dbs *DBService) GetCheckers(ctx context.Context, makerId string) ([]string, error) {
+	var checkersEmails []string
 
-	// mapping
-	roleMap := map[string][]string{
-		"product_owner": {"owner"},
-		"engineer":      {"manager", "owner"},
-	}
-
-	checkerRole := roleMap[makerRole]
-
-	// find user's email based on maker checker roles mapping
-	tx := dbs.Conn.WithContext(ctx).Begin()
-
-	if err := tx.
-		Model(&types.User{}).
-		Where("role IN ?", checkerRole).
-		Pluck("Email", &checkersEmail).Error; err != nil {
+	// First, get the maker's role name using the makerId
+	var makerRoleName string
+	err := dbs.Conn.WithContext(ctx).
+		Table("users").
+		Select("roles.role_name").
+		Joins("JOIN roles ON roles.id = users.role_id").
+		Where("users.id = ?", makerId).
+		Pluck("roles.role_name", &makerRoleName).Error
+	if err != nil {
 		return nil, err
 	}
-	return checkersEmail, nil
+
+	// Now, use the maker's role name to find the corresponding checkers' emails
+	if err := dbs.Conn.WithContext(ctx).
+		Table("users").
+		Select("users.email").
+		Joins("JOIN roles ON roles.id = users.role_id").
+		Joins("JOIN approval_chain_maps ON approval_chain_maps.checker_role_id = roles.id").
+		Joins("JOIN roles as maker_roles ON approval_chain_maps.maker_role_id = maker_roles.id").
+		Where("maker_roles.role_name = ?", makerRoleName).
+		Pluck("users.email", &checkersEmails).
+		Error; err != nil {
+		return nil, err
+	}
+	return checkersEmails, nil
 }
 
 func (dbs *DBService) ProcessTransaction(ctx context.Context, action *types.MakerAction) error {
@@ -206,6 +218,9 @@ func (dbs *DBService) ProcessTransaction(ctx context.Context, action *types.Make
 			return err
 		}
 		// calls update user.
+		if _, err := UpdateUserWithUpdateUserRequestBody(ctx, dbs, updateUserRequestBody); err != nil {
+			return err
+		}
 	case "":
 
 	default:

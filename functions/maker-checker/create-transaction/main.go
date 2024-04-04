@@ -27,13 +27,11 @@ func init() {
 	}
 }
 
-func CreateTransactionHandler(ctx context.Context, req *events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyResponse, error) {
+func CreateTransactionHandler(ctx context.Context, req *events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
 	defer DBService.CloseConn()
 
-	role := "product_owner"
-
 	if err := json.Unmarshal([]byte(req.Body), &requestBody); err != nil {
-		return events.APIGatewayProxyResponse{
+		return events.APIGatewayV2HTTPResponse{
 			StatusCode: 404,
 			Body:       "Bad Request",
 		}, nil
@@ -48,14 +46,14 @@ func CreateTransactionHandler(ctx context.Context, req *events.APIGatewayV2HTTPR
 		var updatePointsRequestBody types.UpdatePointsRequestBody
 		if err := json.Unmarshal(requestBody.Action.RequestBody, &updatePointsRequestBody); err != nil {
 			log.Printf("Error unmarshalling UpdatePointsRequestBody: %v", err)
-			return events.APIGatewayProxyResponse{
+			return events.APIGatewayV2HTTPResponse{
 				StatusCode: 400,
 				Headers: map[string]string{
 					"Access-Control-Allow-Headers": "Content-Type",
 					"Access-Control-Allow-Origin":  "*",
 					"Access-Control-Allow-Methods": "POST",
 				},
-				Body: "Invalid request format for UpdatePoints",
+				Body: `{"message": "Invalid request format for UpdatePoints"}`,
 			}, nil
 		}
 
@@ -66,13 +64,13 @@ func CreateTransactionHandler(ctx context.Context, req *events.APIGatewayV2HTTPR
 
 		// recreate the MakerAction struct to store
 		updatedMakerCheckerAction := types.MakerAction{
-			ActionType:  "UpdatePoints",
+			ActionType:  requestBody.Action.ActionType,
 			RequestBody: rawJsonBody,
 		}
 
 		txn, err := DBService.CreateTransaction(ctx, updatedMakerCheckerAction, makerId)
 		if err != nil {
-			return events.APIGatewayProxyResponse{
+			return events.APIGatewayV2HTTPResponse{
 				StatusCode: 500,
 				Headers: map[string]string{
 					"Access-Control-Allow-Headers": "Content-Type",
@@ -84,21 +82,59 @@ func CreateTransactionHandler(ctx context.Context, req *events.APIGatewayV2HTTPR
 		}
 		responseBody.Txn = *txn
 	case "UpdateUser":
+		var updateUserRequestBody types.UpdateUserRequestBody
+		if err := json.Unmarshal(requestBody.Action.RequestBody, &updateUserRequestBody); err != nil {
+			log.Printf("Error unmarshalling UpdateUserRequestBody: %v", err)
+			return events.APIGatewayV2HTTPResponse{
+				StatusCode: 400,
+				Headers: map[string]string{
+					"Access-Control-Allow-Headers": "Content-Type",
+					"Access-Control-Allow-Origin":  "*",
+					"Access-Control-Allow-Methods": "POST",
+				},
+				Body: `{"message": "Invalid request format for UpdateUser"}`,
+			}, nil
+		}
+
+		log.Printf("UpdatePointsRequestBody: %+v", updateUserRequestBody)
+
+		// convert to json.RawMessage to fit MakerAction struct
+		rawJsonBody, _ := json.Marshal(updateUserRequestBody)
+
+		updatedMakerCheckerAction := types.MakerAction{
+			ActionType:  requestBody.Action.ActionType,
+			RequestBody: rawJsonBody,
+		}
+
+		txn, err := DBService.CreateTransaction(ctx, updatedMakerCheckerAction, makerId)
+		if err != nil {
+			return events.APIGatewayV2HTTPResponse{
+				StatusCode: 500,
+				Headers: map[string]string{
+					"Access-Control-Allow-Headers": "Content-Type",
+					"Access-Control-Allow-Origin":  "*",
+					"Access-Control-Allow-Methods": "POST",
+				},
+				Body: "",
+			}, nil
+		}
+		responseBody.Txn = *txn
 
 	default:
-		return events.APIGatewayProxyResponse{
+		return events.APIGatewayV2HTTPResponse{
 			StatusCode: 404,
 			Headers: map[string]string{
 				"Access-Control-Allow-Headers": "Content-Type",
 				"Access-Control-Allow-Origin":  "*",
 				"Access-Control-Allow-Methods": "POST",
 			},
-			Body: "Bad Request",
+			Body: `{"message": "Bad Request"}`,
 		}, nil
 	}
 
 	// Send emails seek checker's approval (Async)
-	checkersEmail, err := DBService.GetCheckers(ctx, role)
+	log.Printf("starting to send email...")
+	checkersEmail, err := DBService.GetCheckers(ctx, makerId)
 	if err != nil {
 		log.Println(err.Error())
 	}
@@ -109,7 +145,7 @@ func CreateTransactionHandler(ctx context.Context, req *events.APIGatewayV2HTTPR
 
 	respBod, err := json.Marshal(responseBody)
 	if err != nil {
-		return events.APIGatewayProxyResponse{
+		return events.APIGatewayV2HTTPResponse{
 			StatusCode: 201,
 			Headers: map[string]string{
 				"Access-Control-Allow-Headers": "Content-Type",
@@ -120,7 +156,7 @@ func CreateTransactionHandler(ctx context.Context, req *events.APIGatewayV2HTTPR
 		}, nil
 	}
 
-	return events.APIGatewayProxyResponse{
+	return events.APIGatewayV2HTTPResponse{
 		StatusCode: 201,
 		Headers: map[string]string{
 			"Access-Control-Allow-Headers": "Content-Type",

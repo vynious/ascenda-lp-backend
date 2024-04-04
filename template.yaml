@@ -206,14 +206,14 @@ Resources:
             Path: /points
             Method: DELETE
 
-  GetMakerCheckerTransactionFunction:
+  GetMakerCheckerTransactionsFunction:
     Type: AWS::Serverless::Function
     Metadata:
       BuildMethod: go1.x
     Properties:
-      FunctionName: "get_transaction"
+      FunctionName: "get_transactions"
       # must refer to the directory containing your main package
-      CodeUri: functions/maker-checker/get-transaction/
+      CodeUri: functions/maker-checker/get-transactions/
       Handler: bootstrap
       Policies:
         - Statement:

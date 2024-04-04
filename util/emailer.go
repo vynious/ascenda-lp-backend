@@ -14,21 +14,29 @@ import (
 
 func EmailCheckers(ctx context.Context, actionType string, checkersEmail []string) error {
 
+	log.Printf("sending email...")
+	log.Printf("%+v", checkersEmail)
+
 	sender := "smucomedy@gmail.com"
 
 	body := `Dear Checker,
 	You have a pending transaction for approval.
 	Please login to view.
+	
+
+	Generated message do not reply.
 		`
-	cfg, err := config.LoadDefaultConfig(ctx, config.WithCredentialsProvider(
-		credentials.StaticCredentialsProvider{
-			Value: aws.Credentials{
-				AccessKeyID:     os.Getenv("SES_ACCESS_KEY_ID"),
-				SecretAccessKey: os.Getenv("SES_ACCESS_SECRET_KEY"),
-				SessionToken:    "",
-				Source:          "",
-			},
-		}))
+	cfg, err := config.LoadDefaultConfig(ctx,
+		config.WithRegion("ap-southeast-1"),
+		config.WithCredentialsProvider(
+			credentials.StaticCredentialsProvider{
+				Value: aws.Credentials{
+					AccessKeyID:     os.Getenv("SES_ACCESS_KEY_ID"),
+					SecretAccessKey: os.Getenv("SES_ACCESS_SECRET_KEY"),
+					SessionToken:    "",
+					Source:          "",
+				},
+			}))
 	if err != nil {
 		return fmt.Errorf("failed loading cfg for ses: %v", err)
 	}
@@ -74,6 +82,8 @@ func EmailCheckers(ctx context.Context, actionType string, checkersEmail []strin
 		if _, err := sesClient.SendEmail(ctx, &input); err != nil {
 			log.Printf("failed send email to %v due to %v", email, err)
 		}
+
+		log.Printf("completed sending email...")
 	}
 	return nil
 }

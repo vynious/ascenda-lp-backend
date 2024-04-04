@@ -1,0 +1,120 @@
+package main
+
+import (
+	"context"
+	"encoding/json"
+	"github.com/aws/aws-lambda-go/events"
+	"github.com/aws/aws-lambda-go/lambda"
+	"github.com/vynious/ascenda-lp-backend/db"
+	"github.com/vynious/ascenda-lp-backend/types"
+	"log"
+)
+
+var (
+	DBService *db.DBService
+	err       error
+	headers   = map[string]string{
+		"Access-Control-Allow-Headers": "Content-Type",
+		"Access-Control-Allow-Origin":  "*",
+		"Access-Control-Allow-Methods": "GET",
+	}
+)
+
+func init() {
+
+	// Initialise global variable DBService tied to Aurora
+	DBService, err = db.SpawnDBService()
+	if err != nil {
+		log.Fatalf(err.Error())
+	}
+}
+
+func GetTransactionsHandler(ctx context.Context, req *events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
+	var transactions *[]types.Transaction
+
+	defer DBService.CloseConn()
+
+	params := req.QueryStringParameters
+
+	switch {
+	case params["transaction_id"] != "":
+		// get one
+		transactions, err = DBService.GetTransaction(ctx, params["transaction_id"])
+
+	// Checker
+	case params["checker_id"] != "" && params["status"] != "":
+		if params["status"] == "pending" {
+			transactions, err = DBService.GetPendingTransactionsForChecker(ctx, params["checker_id"])
+		} else if params["status"] == "completed" {
+			transactions, err = DBService.GetCompletedTransactionsByCheckerId(ctx, params["checker_id"])
+		} else {
+			return events.APIGatewayV2HTTPResponse{
+				StatusCode: 400,
+				Headers:    headers,
+				Body:       `{"message":"wtf is this"}`,
+			}, nil
+		}
+
+	// Maker
+	case params["maker_id"] != "" && params["status"] != "":
+		if params["status"] == "pending" {
+			transactions, err = DBService.GetTransactionsByMakerIdByStatus(ctx, params["maker_id"], params["status"])
+		} else if params["status"] == "completed" {
+			transactions, err = DBService.GetTransactionsByMakerIdByStatus(ctx, params["maker_id"], params["status"])
+		} else {
+			return events.APIGatewayV2HTTPResponse{
+				StatusCode: 400,
+				Headers:    headers,
+				Body:       `{"message":"wtf is this"}`,
+			}, nil
+		}
+	case len(params) == 0:
+		transactions, err = DBService.GetTransactions(ctx)
+	default:
+		// get all
+		return events.APIGatewayV2HTTPResponse{
+			StatusCode: 400,
+			Headers:    headers,
+			Body:       `{"message":"wtf is this"}`,
+		}, nil
+	}
+
+	if err != nil {
+		return events.APIGatewayV2HTTPResponse{
+			StatusCode: 500,
+			Headers:    headers,
+			Body:       err.Error(),
+		}, nil
+
+	}
+
+	if transactions == nil {
+		// Return 404 response if no points records are found
+		return events.APIGatewayV2HTTPResponse{
+			StatusCode: 404,
+			Headers:    headers,
+			Body:       err.Error(),
+		}, nil
+	}
+
+	obj, err := json.Marshal(transactions)
+	if err != nil {
+		log.Printf("Failed to parse transactions records: %v", err)
+		return events.APIGatewayV2HTTPResponse{
+			StatusCode: 500,
+			Headers:    headers,
+			Body:       `{"message":"internal service error"}`,
+		}, nil
+	}
+
+	return events.APIGatewayV2HTTPResponse{
+		StatusCode: 200,
+		Headers:    headers,
+		Body:       string(obj),
+	}, nil
+
+}
+
+func main() {
+	lambda.Start(GetTransactionsHandler)
+}
