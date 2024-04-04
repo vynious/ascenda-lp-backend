@@ -27,9 +27,9 @@ func init() {
 	}
 }
 
-func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
+func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyResponse, error) {
 	if request.RequestContext.HTTP.Method == "OPTIONS" {
-		return events.APIGatewayV2HTTPResponse{
+		return events.APIGatewayProxyResponse{
 			StatusCode: 200,
 			Headers: map[string]string{
 				"Access-Control-Allow-Origin":  "*",
