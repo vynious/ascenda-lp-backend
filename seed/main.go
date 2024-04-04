@@ -93,7 +93,7 @@ func seedUsers(records [][]string, DB *db.DBService) {
 			continue
 		}
 		data := types.User{
-			ID:        record[0],
+			Id:        record[0],
 			Email:     record[1],
 			FirstName: record[2],
 			LastName:  record[3],

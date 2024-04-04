@@ -4,9 +4,11 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/vynious/ascenda-lp-backend/types"
+	"github.com/vynious/ascenda-lp-backend/util"
 )
 
 func (dbs *DBService) GetPoints(ctx context.Context) ([]types.Points, error) {
@@ -14,6 +16,18 @@ func (dbs *DBService) GetPoints(ctx context.Context) ([]types.Points, error) {
 	res := dbs.Conn.Find(&pointsRecords)
 	if res.Error != nil {
 		return nil, fmt.Errorf("database error %s", res.Error)
+	}
+	logEntry := types.Log{
+		LogId:        "unique_log_id",
+		Type:         "database_operation",
+		Action:       "this is a sample testingmail@gmail.com",
+		UserLocation: "unknown",
+		Timestamp:    time.Now(),
+		TTL:          "",
+	}
+
+	if err := util.CreateLogEntry(logEntry); err != nil {
+		log.Printf("Error creating log entry: %v", err)
 	}
 
 	return pointsRecords, nil
