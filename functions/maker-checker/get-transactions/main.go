@@ -29,7 +29,7 @@ func init() {
 	}
 }
 
-func GetTransactionsHandler(ctx context.Context, req *events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
+func GetTransactionsHandler(ctx context.Context, req *events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyResponse, error) {
 	var transactions *[]types.Transaction
 
 	defer DBService.CloseConn()
@@ -48,7 +48,7 @@ func GetTransactionsHandler(ctx context.Context, req *events.APIGatewayV2HTTPReq
 		} else if params["status"] == "completed" {
 			transactions, err = DBService.GetCompletedTransactionsByCheckerId(ctx, params["checker_id"])
 		} else {
-			return events.APIGatewayV2HTTPResponse{
+			return events.APIGatewayProxyResponse{
 				StatusCode: 400,
 				Headers:    headers,
 				Body:       `{"message":"wtf is this"}`,
@@ -62,7 +62,7 @@ func GetTransactionsHandler(ctx context.Context, req *events.APIGatewayV2HTTPReq
 		} else if params["status"] == "completed" {
 			transactions, err = DBService.GetTransactionsByMakerIdByStatus(ctx, params["maker_id"], params["status"])
 		} else {
-			return events.APIGatewayV2HTTPResponse{
+			return events.APIGatewayProxyResponse{
 				StatusCode: 400,
 				Headers:    headers,
 				Body:       `{"message":"wtf is this"}`,
@@ -72,7 +72,7 @@ func GetTransactionsHandler(ctx context.Context, req *events.APIGatewayV2HTTPReq
 		transactions, err = DBService.GetTransactions(ctx)
 	default:
 		// get all
-		return events.APIGatewayV2HTTPResponse{
+		return events.APIGatewayProxyResponse{
 			StatusCode: 400,
 			Headers:    headers,
 			Body:       `{"message":"wtf is this"}`,
@@ -80,7 +80,7 @@ func GetTransactionsHandler(ctx context.Context, req *events.APIGatewayV2HTTPReq
 	}
 
 	if err != nil {
-		return events.APIGatewayV2HTTPResponse{
+		return events.APIGatewayProxyResponse{
 			StatusCode: 500,
 			Headers:    headers,
 			Body:       err.Error(),
@@ -90,7 +90,7 @@ func GetTransactionsHandler(ctx context.Context, req *events.APIGatewayV2HTTPReq
 
 	if transactions == nil {
 		// Return 404 response if no points records are found
-		return events.APIGatewayV2HTTPResponse{
+		return events.APIGatewayProxyResponse{
 			StatusCode: 404,
 			Headers:    headers,
 			Body:       err.Error(),
@@ -100,14 +100,14 @@ func GetTransactionsHandler(ctx context.Context, req *events.APIGatewayV2HTTPReq
 	obj, err := json.Marshal(transactions)
 	if err != nil {
 		log.Printf("Failed to parse transactions records: %v", err)
-		return events.APIGatewayV2HTTPResponse{
+		return events.APIGatewayProxyResponse{
 			StatusCode: 500,
 			Headers:    headers,
 			Body:       `{"message":"internal service error"}`,
 		}, nil
 	}
 
-	return events.APIGatewayV2HTTPResponse{
+	return events.APIGatewayProxyResponse{
 		StatusCode: 200,
 		Headers:    headers,
 		Body:       string(obj),
