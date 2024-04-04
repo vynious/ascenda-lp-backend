@@ -11,8 +11,8 @@ jobs:
   build-deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: aws-actions/setup-sam@v1
+      - uses: actions/checkout@v3
+      - uses: aws-actions/setup-sam@v2
         with:
           use-installer: true
           token: ${{ secrets.GITHUB_TOKEN }}
