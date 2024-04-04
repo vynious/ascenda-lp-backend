@@ -2,13 +2,13 @@ package db
 
 import (
 	"context"
+	"log"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/vynious/ascenda-lp-backend/types"
 )
 
-func CreateUserWithCreateUserRequestBody(ctx context.Context, dbs *DBService, userRequestBody types.CreateUserRequestBody) (*types.User, error) {
+func CreateUserWithCreateUserRequestBody(ctx context.Context, dbs *DBService, userRequestBody types.CreateUserRequestBody, newUUID string) (*types.User, error) {
 	var roleID *uint = nil
 	var roleNamePtr *string = nil
 
@@ -21,13 +21,8 @@ func CreateUserWithCreateUserRequestBody(ctx context.Context, dbs *DBService, us
 		roleNamePtr = &userRequestBody.RoleName
 	}
 
-	newUUID, err := uuid.NewUUID()
-	if err != nil {
-		return nil, err
-	}
-
 	user := types.User{
-		Id:        newUUID.String(),
+		Id:        newUUID,
 		Email:     userRequestBody.Email,
 		FirstName: userRequestBody.FirstName,
 		LastName:  userRequestBody.LastName,
@@ -89,7 +84,7 @@ func DeleteUserWithDeleteUserRequestBody(ctx context.Context, dbs *DBService, us
 
 func UpdateUserWithUpdateUserRequestBody(ctx context.Context, dbs *DBService, userRequestBody types.UpdateUserRequestBody) (types.User, error) {
 	tx := dbs.Conn.Begin()
-
+	log.Println(userRequestBody)
 	var user types.User
 	if err := tx.Where("email = ?", userRequestBody.Email).First(&user).Error; err != nil {
 		tx.Rollback()
