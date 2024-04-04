@@ -30,7 +30,7 @@ func main() {
 	clearDatabase(DB)
 
 	// TODO: Add all models to be migrated here
-	models := []interface{}{&types.Transaction{}, &types.Points{}, &types.User{}, &types.Role{}, &types.RolePermission{}}
+	models := []interface{}{&types.Transaction{}, &types.Points{}, &types.User{}, &types.Role{}, &types.RolePermission{}, types.ApprovalChainMap{}}
 	if err := DB.Conn.AutoMigrate(models...); err != nil {
 		log.Fatalf("Failed to auto-migrate models")
 	}
@@ -41,6 +41,7 @@ func main() {
 	seedFile("users", DB)
 	seedFile("points", DB)
 	seedRolesAndPermissions(DB)
+	seedApprovalChainMap(DB)
 }
 
 func seedFile(filename string, DB *db.DBService) {
@@ -111,7 +112,7 @@ func seedUsers(records [][]string, DB *db.DBService) {
 
 func clearDatabase(DB *db.DBService) {
 	// Specify the order of deletion based on foreign key dependencies
-	models := []interface{}{&types.Points{}, &types.Transaction{}, &types.User{}}
+	models := []interface{}{&types.RolePermission{}, &types.Transaction{}, &types.Points{}, types.ApprovalChainMap{}, &types.Role{}, &types.User{}}
 	for _, model := range models {
 		if result := DB.Conn.Unscoped().Where("1 = 1").Delete(model); result.Error != nil {
 			log.Fatalf("Failed to clear table for model %v: %v", model, result.Error)
@@ -199,6 +200,42 @@ func seedRolesAndPermissions(DB *db.DBService) {
 		res := DB.Conn.Create(&role)
 		if res.Error != nil {
 			log.Fatalf("Error creating roles/permissions: %v", res.Error)
+		}
+	}
+	log.Printf("Successful roles and perms seed")
+}
+
+func seedApprovalChainMap(DB *db.DBService) {
+	var approvalChainMaps = []struct {
+		MakerRoleName   string
+		CheckerRoleName string
+	}{
+		{"product_manager", "owner"},
+		{"engineer", "manager"},
+		{"engineer", "owner"},
+	}
+
+	for _, acm := range approvalChainMaps {
+		var makerRole, checkerRole types.Role
+
+		// Find MakerRole and CheckerRole based on RoleName
+		if err := DB.Conn.Where("role_name = ?", acm.MakerRoleName).First(&makerRole).Error; err != nil {
+			log.Fatalf("Maker role not found: %s", acm.MakerRoleName)
+		}
+
+		if err := DB.Conn.Where("role_name = ?", acm.CheckerRoleName).First(&checkerRole).Error; err != nil {
+			log.Fatalf("Checker role not found: %s", acm.CheckerRoleName)
+		}
+
+		newACM := types.ApprovalChainMap{
+			MakerRoleID:   makerRole.Id,
+			CheckerRoleID: checkerRole.Id,
+		}
+
+		// Create ApprovalChainMap entry
+		res := DB.Conn.Create(&newACM)
+		if res.Error != nil {
+			log.Fatalf("Error creating approval chain map: %v", res.Error)
 		}
 	}
 }

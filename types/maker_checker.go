@@ -6,11 +6,12 @@ import (
 )
 
 type Transaction struct {
-	TransactionId string          `gorm:"type:string;primary_key;"`
+	TransactionId string          `gorm:"type:uuid;primary_key;"`
 	Action        json.RawMessage `gorm:"type:json"`
 	MakerId       string          `gorm:"type:string;index"`
-	MakerRole     string          `gorm:"type:string"` // new
+	Maker         User            `gorm:"foreignKey:MakerId"`
 	CheckerId     string          `gorm:"type:string;default:null;index"`
+	Checker       User            `gorm:"foreignKey:CheckerId"`
 	Status        string          `gorm:"type:string;default:pending"`
 	Approval      bool            `gorm:"type:boolean;default:false"`
 	CreatedAt     time.Time
@@ -18,8 +19,11 @@ type Transaction struct {
 }
 
 type ApprovalChainMap struct {
-	MakerRole   string `gorm:"type:string"`
-	CheckerRole string `gorm:"type:string"` // `owner,manager,..`
+	ID            uint `gorm:"primaryKey"`
+	MakerRoleID   uint
+	MakerRole     Role `gorm:"foreignKey:MakerRoleID"`
+	CheckerRoleID uint
+	CheckerRole   Role `gorm:"foreignKey:CheckerRoleID"`
 }
 
 type CreateTransactionBody struct {

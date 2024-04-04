@@ -5,12 +5,14 @@ import (
 )
 
 type Role struct {
-	Id          uint   `gorm:"primaryKey"`
-	RoleName    string `gorm:"unique"`
-	Users       UserList
-	Permissions RolePermissionList `gorm:"foreignKey:RoleID"`
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
+	Id           uint               `gorm:"primaryKey"`
+	RoleName     string             `gorm:"unique"`
+	Users        []*User            `gorm:"foreignKey:RoleID"` // new
+	Permissions  RolePermissionList `gorm:"foreignKey:RoleID"`
+	MakerRoles   []ApprovalChainMap `gorm:"foreignKey:MakerRoleID"`   // new
+	CheckerRoles []ApprovalChainMap `gorm:"foreignKey:CheckerRoleID"` // new
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
 }
 
 type RolePermission struct {
