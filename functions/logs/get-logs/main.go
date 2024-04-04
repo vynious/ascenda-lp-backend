@@ -28,9 +28,9 @@ func init() {
 	svc = dynamodb.New(sess)
 }
 
-func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+func handler(request events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyResponse, error) {
 	// Get the log table name from Parameter Store
-	const logsTable = "your-dynamodb-table-name"
+	const logsTable = "logs"
 
 	// Check if ID is provided in query parameters
 	id := request.QueryStringParameters["id"]
@@ -79,16 +79,14 @@ func fetchLogByID(id, tableName string) (events.APIGatewayProxyResponse, error) 
 		Body:       string(body),
 		StatusCode: 200,
 		Headers: map[string]string{
-			"Access-Control-Allow-Headers":     "Content-Type, X-Amz-Date, Authorization, X-Api-Key, X-Amz-Security-Token",
-			"Access-Control-Allow-Origin":      "*",
-			"Access-Control-Allow-Methods":     "GET, POST, PUT, DELETE, OPTIONS",
-			"Access-Control-Allow-Credentials": "true",
-			"Content-Type":                     "application/json",
+			"Access-Control-Allow-Headers": "Content-Type",
+			"Access-Control-Allow-Origin":  "*",
+			"Access-Control-Allow-Methods": "GET",
 		},
 	}, nil
 }
 
-func fetchLogs(request events.APIGatewayProxyRequest, tableName string) (events.APIGatewayProxyResponse, error) {
+func fetchLogs(request events.APIGatewayV2HTTPRequest, tableName string) (events.APIGatewayProxyResponse, error) {
 	// Fetch all logs with pagination (limit 100)
 	key := request.QueryStringParameters["key"]
 	lastEvaluatedKey := make(map[string]*dynamodb.AttributeValue)
@@ -135,12 +133,10 @@ func fetchLogs(request events.APIGatewayProxyRequest, tableName string) (events.
 		Body:       string(responseBody),
 		StatusCode: 200,
 		Headers: map[string]string{
-			"Access-Control-Allow-Headers":     "Content-Type, X-Amz-Date, Authorization, X-Api-Key, X-Amz-Security-Token",
-			"Access-Control-Allow-Origin":      "*",
-			"Access-Control-Allow-Methods":     "GET, POST, PUT, DELETE, OPTIONS",
-			"Access-Control-Allow-Credentials": "true",
-			"Content-Type":                     "application/json",
-			"Last-Evaluated-Key":               lastEvaluatedKeyString,
+			"Access-Control-Allow-Headers": "Content-Type",
+			"Access-Control-Allow-Origin":  "*",
+			"Access-Control-Allow-Methods": "GET",
+			"Last-Evaluated-Key":           lastEvaluatedKeyString,
 		},
 	}, nil
 }

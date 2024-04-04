@@ -757,6 +757,57 @@ Resources:
           Properties:
             Path: /user
             Method: PUT
+
+  GetLogsFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: go1.x
+    Properties:
+      FunctionName: "get_logs"
+      # must refer to the directory containing your main package
+      CodeUri: functions/logs/get-logs/
+      Handler: bootstrap
+      Policies:
+        - Statement:
+            - Action:
+                # TODO: REMOVE UNNECESSARY PERMISSIONS
+                - dynamodb:GetItem
+                - dynamodb:PutItem
+                - dynamodb:UpdateItem
+                - dynamodb:DeleteItem
+                - dynamodb:Query
+                - dynamodb:Scan
+                - dynamodb:BatchWriteItem
+                - ec2:CreateNetworkInterface
+                - ec2:DescribeNetworkInterfaces
+                - ec2:DescribeSubnets
+                - ec2:DeleteNetworkInterface
+                - ec2:AssignPrivateIpAddresses
+                - ec2:UnassignPrivateIpAddresses
+                - logs:CreateLogGroup
+                - logs:CreateLogStream
+                - logs:PutLogEvents
+                - ssm:GetParameter
+                - secretsmanager:GetResourcePolicy
+                - secretsmanager:GetSecretValue
+                - secretsmanager:DescribeSecret
+                - secretsmanager:ListSecretVersionIds
+                - secretsmanager:ListSecrets
+              Effect: Allow
+              Resource: "*"
+      VpcConfig:
+        SecurityGroupIds:
+          - sg-08f58f539a3e92eb4
+        SubnetIds:
+          - subnet-39ee2971
+          - subnet-0e2ff868
+      Events:
+        CatchAll:
+          Type: Api
+          Properties:
+            Path: /logs
+            Method: GET
+
 Outputs:
   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
   # Find out more about other implicit resources you can reference within SAM
