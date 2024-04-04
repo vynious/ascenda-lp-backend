@@ -3,6 +3,8 @@ package util
 import (
 	"context"
 	"fmt"
+	"regexp"
+
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/ses"
@@ -71,4 +73,14 @@ func VerifyEmail(ctx context.Context, email string) error {
 		return fmt.Errorf("failed to send verification email: %v", err)
 	}
 	return nil
+}
+
+func CheckEmailValidity(email string) bool {
+	var emailRegex = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]{1,64}@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
+
+	if len(email) < 3 || len(email) > 254 || !emailRegex.MatchString(email) {
+		return false
+	}
+
+	return true
 }
