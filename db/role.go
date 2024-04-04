@@ -35,6 +35,14 @@ func RetrieveRoleWithRoleName(ctx context.Context, dbs *DBService, roleName stri
 	return role, nil
 }
 
+func RetrieveAllRolesWithUsers(ctx context.Context, dbs *DBService) ([]types.Role, error) {
+	var roles []types.Role
+	if result := dbs.Conn.WithContext(ctx).Preload("Permissions").Preload("Users").Find(&roles); result.Error != nil {
+		return nil, result.Error
+	}
+	return roles, nil
+}
+
 func RetrieveRoleWithRetrieveRoleRequestBody(ctx context.Context, dbs *DBService, roleRequestBody types.GetRoleRequestBody) (types.Role, error) {
 	var role types.Role
 	if err := dbs.Conn.Preload("Permissions").Preload("Users").Where("role_name = ?", roleRequestBody.RoleName).First(&role).Error; err != nil {
@@ -70,13 +78,13 @@ func DeleteRoleWithDeleteRoleRequestBody(ctx context.Context, dbs *DBService, ro
 	return tx.Commit().Error
 }
 
-func UpdateRole(ctx context.Context, dbs *DBService, roleRequestBody types.UpdateRoleRequestBody) error {
+func UpdateRole(ctx context.Context, dbs *DBService, roleRequestBody types.UpdateRoleRequestBody) (types.Role, error) {
 	tx := dbs.Conn.Begin()
 
 	var role types.Role
 	if err := tx.Where("role_name = ?", roleRequestBody.RoleName).First(&role).Error; err != nil {
 		tx.Rollback()
-		return err
+		return types.Role{}, err
 	}
 
 	if roleRequestBody.NewRoleName != "" {
@@ -84,24 +92,31 @@ func UpdateRole(ctx context.Context, dbs *DBService, roleRequestBody types.Updat
 		role.UpdatedAt = time.Now()
 		if err := tx.Save(&role).Error; err != nil {
 			tx.Rollback()
-			return err
+			return types.Role{}, err
 		}
 	}
 
 	if roleRequestBody.Permissions != nil {
 		if err := tx.Where("role_id = ?", role.Id).Delete(&types.RolePermission{}).Error; err != nil {
 			tx.Rollback()
-			return err
+			return types.Role{}, err
 		}
 
 		for _, perm := range *roleRequestBody.Permissions {
 			perm.RoleID = role.Id
 			if err := tx.Create(&perm).Error; err != nil {
 				tx.Rollback()
-				return err
+				return types.Role{}, err
 			}
 		}
 	}
 
-	return tx.Commit().Error
+	if err := tx.Commit().Error; err != nil {
+		return types.Role{}, err
+	}
+	if err := dbs.Conn.Preload("Permissions").Preload("Users").Where("id = ?", role.Id).First(&role).Error; err != nil {
+		return types.Role{}, err
+	}
+
+	return role, nil
 }

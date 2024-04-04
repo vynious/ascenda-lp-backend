@@ -201,4 +201,5 @@ func seedRolesAndPermissions(DB *db.DBService) {
 			log.Fatalf("Error creating roles/permissions: %v", res.Error)
 		}
 	}
+	log.Printf("Successful roles and perms seed")
 }

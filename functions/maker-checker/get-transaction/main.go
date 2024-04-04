@@ -3,11 +3,12 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"log"
+
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/vynious/ascenda-lp-backend/db"
 	"github.com/vynious/ascenda-lp-backend/types"
-	"log"
 )
 
 var (
@@ -27,12 +28,12 @@ func init() {
 	}
 }
 
-func GetTransactionHandler(ctx context.Context, req *events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
+func GetTransactionHandler(ctx context.Context, req *events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyResponse, error) {
 
 	defer DBService.CloseConn()
 
 	if err := json.Unmarshal([]byte(req.Body), &requestBody); err != nil {
-		return events.APIGatewayV2HTTPResponse{
+		return events.APIGatewayProxyResponse{
 			StatusCode: 404,
 			Body:       "Bad Request",
 		}, nil
@@ -40,7 +41,7 @@ func GetTransactionHandler(ctx context.Context, req *events.APIGatewayV2HTTPRequ
 
 	txn, err := DBService.GetTransaction(ctx, requestBody.TransactionId)
 	if err != nil {
-		return events.APIGatewayV2HTTPResponse{
+		return events.APIGatewayProxyResponse{
 			StatusCode: 500,
 			Body:       "",
 		}, nil
@@ -51,13 +52,13 @@ func GetTransactionHandler(ctx context.Context, req *events.APIGatewayV2HTTPRequ
 	bod, err := json.Marshal(responseBody)
 
 	if err != nil {
-		return events.APIGatewayV2HTTPResponse{
+		return events.APIGatewayProxyResponse{
 			StatusCode: 201,
 			Body:       err.Error(),
 		}, nil
 	}
 
-	return events.APIGatewayV2HTTPResponse{
+	return events.APIGatewayProxyResponse{
 		StatusCode: 200,
 		Body:       string(bod),
 	}, nil

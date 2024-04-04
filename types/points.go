@@ -10,12 +10,6 @@ type Points struct {
 	Balance int32
 }
 
-type GetPointsRequestBody struct{}
-
-type GetPointsAccountsByUserRequestBody struct {
-	UserID *string `json:"user_id,omitempty"`
-}
-
 type UpdatePointsRequestBody struct {
 	ID         string `json:"id,omitempty"`
 	NewBalance int32  `json:"new_balance,omitempty"`
