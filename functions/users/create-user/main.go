@@ -14,7 +14,7 @@ import (
 	cognito_types "github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider/types"
 	"github.com/aws/aws-sdk-go-v2/service/rds"
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/cognitoidentityprovider"
+	"github.com/aws/smithy-go"
 	"github.com/google/uuid"
 	"github.com/vynious/ascenda-lp-backend/db"
 	aws_helpers "github.com/vynious/ascenda-lp-backend/functions/users/aws-helpers"
@@ -61,10 +61,17 @@ func cognitoCreateUser(userRequestBody types.CreateUserRequestBody, newUUID stri
 			},
 		},
 	}
-	_, err := cognitoClient.AdminCreateUser(context.Background(), cognitoInput)
+	_, err := cognitoClient.AdminCreateUser(context.TODO(), cognitoInput)
 	if err != nil {
+		var apiErr smithy.APIError
+		if errors.As(err, &apiErr) {
+			fmt.Println("API Error Code:", apiErr.ErrorCode())
+			fmt.Println("API Error Message:", apiErr.ErrorMessage())
+		} else {
+			fmt.Println("Unknown error:", err)
+		}
 		log.Println(err)
-		return errors.New(cognitoidentityprovider.ErrCodeCodeDeliveryFailureException)
+		return err
 	}
 	return nil
 }
@@ -124,7 +131,7 @@ func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (event
 						"Access-Control-Allow-Origin":  "*",
 						"Access-Control-Allow-Methods": "POST",
 					},
-					Body: "Error creating role",
+					Body: "Error creating user",
 				}, nil
 			}
 			user, err := db.CreateUserWithCreateUserRequestBody(ctx, DBService, userRequestBody, newUUID)
