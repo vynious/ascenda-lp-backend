@@ -5,28 +5,27 @@ import (
 	"time"
 )
 
-// Transaction => Database Model
 type Transaction struct {
-	TransactionId string          `gorm:"type:string;primary_key;"`
+	TransactionId string          `gorm:"type:uuid;primary_key;"`
 	Action        json.RawMessage `gorm:"type:json"`
 	MakerId       string          `gorm:"type:string;index"`
+	Maker         User            `gorm:"foreignKey:MakerId"`
 	CheckerId     string          `gorm:"type:string;default:null;index"`
+	Checker       User            `gorm:"foreignKey:CheckerId"`
 	Status        string          `gorm:"type:string;default:pending"`
 	Approval      bool            `gorm:"type:boolean;default:false"`
 	CreatedAt     time.Time
 	UpdatedAt     time.Time
 }
 
-// MakerChecker => Database Model (mock)
-//type MakerChecker struct {
-//	gorm.Model
-//	MakerRoleId    string   `gorm:"type:string;"`
-//	MakerRole      Role     `gorm:"foreignKey:MakerRoleId"`
-//	CheckerRoleIds []string `gorm:"type:string[];"` // If using a relational DB, consider a join table
-//	CheckerRoles   []Role   `gorm:"many2many:makerchecker_checker_roles;"`
-//}
+type ApprovalChainMap struct {
+	ID            uint `gorm:"primaryKey"`
+	MakerRoleID   uint
+	MakerRole     Role `gorm:"foreignKey:MakerRoleID"`
+	CheckerRoleID uint
+	CheckerRole   Role `gorm:"foreignKey:CheckerRoleID"`
+}
 
-// Others
 type CreateTransactionBody struct {
 	MakerId string      `json:"maker_id"`
 	Action  MakerAction `json:"action"`
@@ -46,6 +45,19 @@ type UpdateTransactionRequestBody struct {
 type TransactionResponseBody struct {
 	Txn Transaction
 }
+
+type MultipleTransactionsResponseBody struct {
+	Txns []Transaction
+}
+
+type GetFilteredTransactionRequestBody struct {
+	MakerId   string `json:"maker_id,omitempty"`
+	Status    string `json:"status,omitempty"`
+	Approval  bool   `json:"approval,omitempty"`
+	CheckerId string `json:"checkerId,omitempty"`
+}
+
+type GetAllTransactionsRequestBody struct{}
 
 type GetTransactionRequestBody struct {
 	TransactionId string `json:"transaction_id"`

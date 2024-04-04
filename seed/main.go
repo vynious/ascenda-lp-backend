@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/joho/godotenv"
 	"github.com/vynious/ascenda-lp-backend/db"
@@ -30,7 +31,7 @@ func main() {
 	clearDatabase(DB)
 
 	// TODO: Add all models to be migrated here
-	models := []interface{}{&types.Transaction{}, &types.Points{}, &types.User{}, &types.Role{}, &types.RolePermission{}}
+	models := []interface{}{&types.Transaction{}, &types.Points{}, &types.User{}, &types.Role{}, &types.RolePermission{}, types.ApprovalChainMap{}}
 	if err := DB.Conn.AutoMigrate(models...); err != nil {
 		log.Fatalf("Failed to auto-migrate models")
 	}
@@ -38,9 +39,12 @@ func main() {
 
 	defer DB.CloseConn()
 
+	seedRolesAndPermissions(DB)
+	seedApprovalChainMap(DB)
 	seedFile("users", DB)
 	seedFile("points", DB)
-	seedRolesAndPermissions(DB)
+	seedCustomUsers(DB)
+
 }
 
 func seedFile(filename string, DB *db.DBService) {
@@ -92,13 +96,22 @@ func seedUsers(records [][]string, DB *db.DBService) {
 		if i == 0 {
 			continue
 		}
+
+		var uintRoleIdPtr *uint = nil
+
+		if record[4] != "" {
+			roleId, _ := strconv.Atoi(record[4])
+			uintRoleId := uint(roleId)
+			uintRoleIdPtr = &uintRoleId
+		}
+
 		data := types.User{
 			Id:        record[0],
 			Email:     record[1],
 			FirstName: record[2],
 			LastName:  record[3],
 			// if no role specified, customer role (no admin access)
-			// Role:      record[4],
+			RoleID: uintRoleIdPtr,
 		}
 		usersRecords = append(usersRecords, data)
 	}
@@ -111,7 +124,7 @@ func seedUsers(records [][]string, DB *db.DBService) {
 
 func clearDatabase(DB *db.DBService) {
 	// Specify the order of deletion based on foreign key dependencies
-	models := []interface{}{&types.Points{}, &types.Transaction{}, &types.User{}}
+	models := []interface{}{&types.RolePermission{}, &types.Transaction{}, &types.Points{}, types.ApprovalChainMap{}, &types.User{}, &types.Role{}, types.MakerAction{}}
 	for _, model := range models {
 		if result := DB.Conn.Unscoped().Where("1 = 1").Delete(model); result.Error != nil {
 			log.Fatalf("Failed to clear table for model %v: %v", model, result.Error)
@@ -202,4 +215,80 @@ func seedRolesAndPermissions(DB *db.DBService) {
 		}
 	}
 	log.Printf("Successful roles and perms seed")
+}
+
+func seedApprovalChainMap(DB *db.DBService) {
+	var approvalChainMaps = []struct {
+		MakerRoleName   string
+		CheckerRoleName string
+	}{
+		{"product_manager", "owner"},
+		{"engineer", "manager"},
+		{"engineer", "owner"},
+	}
+
+	for _, acm := range approvalChainMaps {
+		var makerRole, checkerRole types.Role
+
+		// Find MakerRole and CheckerRole based on RoleName
+		if err := DB.Conn.Where("role_name = ?", acm.MakerRoleName).First(&makerRole).Error; err != nil {
+			log.Fatalf("Maker role not found: %s", acm.MakerRoleName)
+		}
+
+		if err := DB.Conn.Where("role_name = ?", acm.CheckerRoleName).First(&checkerRole).Error; err != nil {
+			log.Fatalf("Checker role not found: %s", acm.CheckerRoleName)
+		}
+
+		newACM := types.ApprovalChainMap{
+			MakerRoleID:   makerRole.Id,
+			CheckerRoleID: checkerRole.Id,
+		}
+
+		// Create ApprovalChainMap entry
+		res := DB.Conn.Create(&newACM)
+		if res.Error != nil {
+			log.Fatalf("Error creating approval chain map: %v", res.Error)
+		}
+	}
+}
+
+// SeedCustomUser creates a user with a specified role
+func seedCustomUsers(DB *db.DBService) {
+	// Define users
+	users := []types.User{
+		{
+			Id:        "123-456-789",
+			Email:     "shawn.thiah.2022@scis.smu.edu.sg",
+			FirstName: "shawn",
+			LastName:  "thiah",
+			RoleID:    getRoleID(DB, "product_manager"),
+			CreatedAt: time.Time{},
+			UpdatedAt: time.Time{},
+		},
+		{
+			Id:        "234-567-890",
+			Email:     "jingjie.lim.2022@scis.smu.edu.sg",
+			FirstName: "jingjie",
+			LastName:  "lim",
+			RoleID:    getRoleID(DB, "owner"),
+			CreatedAt: time.Time{},
+			UpdatedAt: time.Time{},
+		},
+	}
+
+	for _, user := range users {
+		log.Printf("added users")
+		if err := DB.Conn.Create(&user).Error; err != nil {
+			log.Fatalf("Failed to create user: %v", err)
+		}
+	}
+}
+
+func getRoleID(DB *db.DBService, roleName string) *uint {
+	var role types.Role
+	if err := DB.Conn.Where("role_name = ?", roleName).First(&role).Error; err != nil {
+		log.Fatalf("Role not found: %v", err)
+		return nil
+	}
+	return &role.Id
 }

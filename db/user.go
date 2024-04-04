@@ -10,7 +10,6 @@ import (
 
 func CreateUserWithCreateUserRequestBody(ctx context.Context, dbs *DBService, userRequestBody types.CreateUserRequestBody) (*types.User, error) {
 	var roleID *uint = nil
-	var roleNamePtr *string = nil
 
 	if userRequestBody.RoleName != "" {
 		role, err := RetrieveRoleWithRoleName(ctx, dbs, userRequestBody.RoleName)
@@ -18,7 +17,6 @@ func CreateUserWithCreateUserRequestBody(ctx context.Context, dbs *DBService, us
 			return nil, err
 		}
 		roleID = &role.Id
-		roleNamePtr = &userRequestBody.RoleName
 	}
 
 	newUUID, err := uuid.NewUUID()
@@ -32,7 +30,6 @@ func CreateUserWithCreateUserRequestBody(ctx context.Context, dbs *DBService, us
 		FirstName: userRequestBody.FirstName,
 		LastName:  userRequestBody.LastName,
 		RoleID:    roleID,
-		RoleName:  roleNamePtr,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 	}
@@ -115,7 +112,6 @@ func UpdateUserWithUpdateUserRequestBody(ctx context.Context, dbs *DBService, us
 			return types.User{}, err
 		}
 		user.RoleID = &newRole.Id
-		user.RoleName = &userRequestBody.NewRoleName
 	}
 
 	user.UpdatedAt = time.Now()

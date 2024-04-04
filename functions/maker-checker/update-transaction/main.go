@@ -36,7 +36,12 @@ func LambdaHandler(ctx context.Context, req *events.APIGatewayV2HTTPRequest) (ev
 	if err := json.Unmarshal([]byte(req.Body), &requestBody); err != nil {
 		return events.APIGatewayProxyResponse{
 			StatusCode: 404,
-			Body:       "Bad Request",
+			Headers: map[string]string{
+				"Access-Control-Allow-Headers": "Content-Type",
+				"Access-Control-Allow-Origin":  "*",
+				"Access-Control-Allow-Methods": "PATCH",
+			},
+			Body: "Bad Request",
 		}, nil
 	}
 
@@ -44,7 +49,12 @@ func LambdaHandler(ctx context.Context, req *events.APIGatewayV2HTTPRequest) (ev
 	if err != nil {
 		return events.APIGatewayProxyResponse{
 			StatusCode: 500,
-			Body:       "",
+			Headers: map[string]string{
+				"Access-Control-Allow-Headers": "Content-Type",
+				"Access-Control-Allow-Origin":  "*",
+				"Access-Control-Allow-Methods": "PATCH",
+			},
+			Body: "",
 		}, nil
 	}
 	responseBody.Txn = *updatedTxn
@@ -53,13 +63,23 @@ func LambdaHandler(ctx context.Context, req *events.APIGatewayV2HTTPRequest) (ev
 	if err != nil {
 		return events.APIGatewayProxyResponse{
 			StatusCode: 201,
-			Body:       err.Error(),
+			Headers: map[string]string{
+				"Access-Control-Allow-Headers": "Content-Type",
+				"Access-Control-Allow-Origin":  "*",
+				"Access-Control-Allow-Methods": "PATCH",
+			},
+			Body: err.Error(),
 		}, nil
 	}
 
 	return events.APIGatewayProxyResponse{
 		StatusCode: 201,
-		Body:       string(bod),
+		Headers: map[string]string{
+			"Access-Control-Allow-Headers": "Content-Type",
+			"Access-Control-Allow-Origin":  "*",
+			"Access-Control-Allow-Methods": "PATCH",
+		},
+		Body: string(bod),
 	}, nil
 }
 

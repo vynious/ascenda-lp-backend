@@ -5,59 +5,91 @@ import (
 	"fmt"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/ses"
 	"github.com/aws/aws-sdk-go-v2/service/ses/types"
+	"log"
+	"os"
 )
 
-// TODO: Need to check credentials
 func EmailCheckers(ctx context.Context, actionType string, checkersEmail []string) error {
+
+	log.Printf("sending email...")
+	log.Printf("%+v", checkersEmail)
 
 	sender := "smucomedy@gmail.com"
 
-	cfg, err := config.LoadDefaultConfig(ctx)
+	body := `Dear Checker,
+	You have a pending transaction for approval.
+	Please login to view.
+	
+
+	Generated message do not reply.
+		`
+	cfg, err := config.LoadDefaultConfig(ctx,
+		config.WithRegion("ap-southeast-1"),
+		config.WithCredentialsProvider(
+			credentials.StaticCredentialsProvider{
+				Value: aws.Credentials{
+					AccessKeyID:     os.Getenv("SES_ACCESS_KEY_ID"),
+					SecretAccessKey: os.Getenv("SES_ACCESS_SECRET_KEY"),
+					SessionToken:    "",
+					Source:          "",
+				},
+			}))
 	if err != nil {
-		return fmt.Errorf("failed to load config for emailer")
+		return fmt.Errorf("failed loading cfg for ses: %v", err)
 	}
+
 	sesClient := ses.NewFromConfig(cfg)
 
-	body := `
-		"Dear Checker,
-		
-		You have a pending transaction for approval.
-
-		Please login to view.
-		`
-
-	// mock
-	checkersEmail = []string{"shawn.thiah.2022@scis.smu.edu.sg"}
-
-	input := &ses.SendEmailInput{
-		Destination: &types.Destination{
-			ToAddresses: checkersEmail,
-		},
-		Message: &types.Message{
-			Body: &types.Body{
-				Text: &types.Content{
+	for _, email := range checkersEmail {
+		input := ses.SendEmailInput{
+			Destination: &types.Destination{
+				ToAddresses: []string{email},
+			},
+			Message: &types.Message{
+				Body: &types.Body{
+					Text: &types.Content{
+						Charset: aws.String("UTF-8"),
+						Data:    aws.String(body),
+					},
+				},
+				Subject: &types.Content{
 					Charset: aws.String("UTF-8"),
-					Data:    aws.String(body),
+					Data:    aws.String(fmt.Sprintf("[Action Required] %s Request", actionType)),
 				},
 			},
-			Subject: &types.Content{
-				Charset: aws.String("UTF-8"),
-				Data:    aws.String(fmt.Sprintf("[Action Required] %s Request", actionType)),
-			},
-		},
-		Source: aws.String(sender),
-	}
-	_, err = sesClient.SendEmail(ctx, input)
-	if err != nil {
-		return fmt.Errorf("error sending emails to checkers %v", err)
+			Source:               aws.String(sender),
+			ConfigurationSetName: nil,
+			ReplyToAddresses:     nil,
+			ReturnPath:           nil,
+			ReturnPathArn:        nil,
+			SourceArn:            nil,
+			Tags:                 nil,
+		}
+
+		verified, err := VerifyEmail(ctx, email)
+		if err != nil {
+			log.Printf("unable to verify email: %v", err)
+			continue
+		}
+		if verified == false {
+			log.Printf("%v is not verified", email)
+			continue
+		}
+
+		if _, err := sesClient.SendEmail(ctx, &input); err != nil {
+			log.Printf("failed send email to %v due to %v", email, err)
+		}
+
+		log.Printf("completed sending email...")
 	}
 	return nil
 }
 
-// VerifyEmail sends a verification email to the target address to add their verify their identity for receiving emails.
-func VerifyEmail(ctx context.Context, email string) error {
+// SendEmailVerification sends a verification email to the target address to add their verify their identity for receiving emails. Post sign-up process.
+func SendEmailVerification(ctx context.Context, email string) error {
 	cfg, err := config.LoadDefaultConfig(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to load config for emailer")
@@ -71,4 +103,9 @@ func VerifyEmail(ctx context.Context, email string) error {
 		return fmt.Errorf("failed to send verification email: %v", err)
 	}
 	return nil
+}
+
+// VerifyEmail verifies the email address before sending it
+func VerifyEmail(ctx context.Context, email string) (bool, error) {
+	return true, nil
 }
