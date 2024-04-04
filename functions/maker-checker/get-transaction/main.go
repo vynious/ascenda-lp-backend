@@ -3,11 +3,12 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"log"
+
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/vynious/ascenda-lp-backend/db"
 	"github.com/vynious/ascenda-lp-backend/types"
-	"log"
 )
 
 var (

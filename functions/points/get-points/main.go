@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"log"
 
 	"github.com/vynious/ascenda-lp-backend/types"
@@ -14,8 +13,13 @@ import (
 )
 
 var (
-	DB  *db.DBService
-	err error
+	DB      *db.DBService
+	err     error
+	headers = map[string]string{
+		"Access-Control-Allow-Headers": "Content-Type",
+		"Access-Control-Allow-Origin":  "*",
+		"Access-Control-Allow-Methods": "GET",
+	}
 )
 
 func init() {
@@ -30,37 +34,35 @@ func main() {
 	defer DB.CloseConn()
 }
 
-func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
+func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyResponse, error) {
 	var pointsRecords []types.Points
 
-	if request.Body == "" {
+	params := request.QueryStringParameters
+
+	if params["user_id"] != "" {
+		log.Printf("GetPointsAccountsByUser %s", params["user_id"])
+		pointsRecords, err = DB.GetPointsAccountsByUser(ctx, params["user_id"])
+	} else if params["id"] != "" {
+		log.Printf("GetPointsAccountById %s", params["id"])
+		pointsRecords, err = DB.GetPointsAccountById(ctx, params["id"])
+	} else {
 		log.Printf("GetPoints")
 		pointsRecords, err = DB.GetPoints(ctx)
-	} else {
-		log.Printf("GetPointsByUser")
-		req := types.GetPointsAccountsByUserRequestBody{}
-		if err := json.Unmarshal([]byte(request.Body), &req); err != nil {
-			return events.APIGatewayV2HTTPResponse{
-				StatusCode: 400,
-				Body:       errors.New("invalid request. malformed request found").Error(),
-			}, nil
-		}
-
-		log.Printf("GetPointsAccountsByUser %s", *req.UserID)
-		pointsRecords, err = DB.GetPointsAccountsByUser(ctx, *req.UserID)
 	}
 
 	if err != nil {
-		return events.APIGatewayV2HTTPResponse{
+		return events.APIGatewayProxyResponse{
 			StatusCode: 500,
+			Headers:    headers,
 			Body:       err.Error(),
 		}, nil
 	}
 
 	if pointsRecords == nil {
 		// Return 404 response if no points records are found
-		return events.APIGatewayV2HTTPResponse{
+		return events.APIGatewayProxyResponse{
 			StatusCode: 404,
+			Headers:    headers,
 			Body:       err.Error(),
 		}, nil
 	}
@@ -68,14 +70,16 @@ func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (event
 	obj, err := json.Marshal(pointsRecords)
 	if err != nil {
 		log.Printf("Failed to parse points records: %v", err)
-		return events.APIGatewayV2HTTPResponse{
+		return events.APIGatewayProxyResponse{
 			StatusCode: 500,
+			Headers:    headers,
 			Body:       "Internal server error",
 		}, nil
 	}
 
-	return events.APIGatewayV2HTTPResponse{
+	return events.APIGatewayProxyResponse{
 		StatusCode: 200,
+		Headers:    headers,
 		Body:       string(obj),
 	}, nil
 }

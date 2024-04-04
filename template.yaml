@@ -1,4 +1,4 @@
-AWSTemplateFormatVersion: '2010-09-09'
+AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 Description: SAM Template
 
@@ -12,7 +12,7 @@ Globals:
     Timeout: 5
     Runtime: provided.al2023
     Architectures:
-      - x86_64
+      - arm64
     Environment:
       Variables:
         SES_ACCESS_KEY_ID: "AKIAUAWJVJ7I5DLGN6EW"
@@ -21,7 +21,7 @@ Globals:
         dbName: "ascenda"
         dbHost: "db-dev.cluster-cyzzcyzcqgrq.ap-southeast-1.rds.amazonaws.com"
         # dbPwd: '{{resolve:secretsmanager:arn:aws:secretsmanager:ap-southeast-1:276374573009:secret:rds-admin-EtkU6T:SecretString:password}}'
-        dbPwd: '{{resolve:secretsmanager:arn:aws:secretsmanager:ap-southeast-1:276374573009:secret:rds-dev-0YKFuB:SecretString:password}}'
+        dbPwd: "{{resolve:secretsmanager:arn:aws:secretsmanager:ap-southeast-1:276374573009:secret:rds-dev-0YKFuB:SecretString:password}}"
 
 Parameters:
   secretName:
@@ -30,48 +30,6 @@ Parameters:
     Type: String
 
 Resources:
-  SeedDataFunction:
-    Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: go1.x
-    Properties:
-      FunctionName: "seed_data"
-      # must refer to the directory containing your main package
-      CodeUri: seed/
-      Handler: bootstrap
-      Policies:
-        - Statement:
-          - Action:
-              # TODO: REMOVE UNNECESSARY PERMISSIONS
-              - ec2:CreateNetworkInterface
-              - ec2:DescribeNetworkInterfaces
-              - ec2:DescribeSubnets
-              - ec2:DeleteNetworkInterface
-              - ec2:AssignPrivateIpAddresses
-              - ec2:UnassignPrivateIpAddresses
-              - logs:CreateLogGroup
-              - logs:CreateLogStream
-              - logs:PutLogEvents
-              - ssm:GetParameter
-              - secretsmanager:GetResourcePolicy
-              - secretsmanager:GetSecretValue
-              - secretsmanager:DescribeSecret
-              - secretsmanager:ListSecretVersionIds
-              - secretsmanager:ListSecrets
-            Effect: Allow
-            Resource: '*'
-      VpcConfig:
-        SecurityGroupIds:
-          - sg-08f58f539a3e92eb4
-        SubnetIds:
-          - subnet-39ee2971
-          - subnet-0e2ff868
-      Events:
-        CatchAll:
-          Type: Api
-          Properties:
-            Path: /seed
-            Method: GET
   GetPointsFunction:
     Type: AWS::Serverless::Function
     Metadata:
@@ -83,32 +41,32 @@ Resources:
       Handler: bootstrap
       Policies:
         - Statement:
-          - Action:
-              # TODO: REMOVE UNNECESSARY PERMISSIONS
-              - dynamodb:GetItem
-              - dynamodb:PutItem
-              - dynamodb:UpdateItem
-              - dynamodb:DeleteItem
-              - dynamodb:Query
-              - dynamodb:Scan
-              - dynamodb:BatchWriteItem
-              - ec2:CreateNetworkInterface
-              - ec2:DescribeNetworkInterfaces
-              - ec2:DescribeSubnets
-              - ec2:DeleteNetworkInterface
-              - ec2:AssignPrivateIpAddresses
-              - ec2:UnassignPrivateIpAddresses
-              - logs:CreateLogGroup
-              - logs:CreateLogStream
-              - logs:PutLogEvents
-              - ssm:GetParameter
-              - secretsmanager:GetResourcePolicy
-              - secretsmanager:GetSecretValue
-              - secretsmanager:DescribeSecret
-              - secretsmanager:ListSecretVersionIds
-              - secretsmanager:ListSecrets
-            Effect: Allow
-            Resource: '*'
+            - Action:
+                # TODO: REMOVE UNNECESSARY PERMISSIONS
+                - dynamodb:GetItem
+                - dynamodb:PutItem
+                - dynamodb:UpdateItem
+                - dynamodb:DeleteItem
+                - dynamodb:Query
+                - dynamodb:Scan
+                - dynamodb:BatchWriteItem
+                - ec2:CreateNetworkInterface
+                - ec2:DescribeNetworkInterfaces
+                - ec2:DescribeSubnets
+                - ec2:DeleteNetworkInterface
+                - ec2:AssignPrivateIpAddresses
+                - ec2:UnassignPrivateIpAddresses
+                - logs:CreateLogGroup
+                - logs:CreateLogStream
+                - logs:PutLogEvents
+                - ssm:GetParameter
+                - secretsmanager:GetResourcePolicy
+                - secretsmanager:GetSecretValue
+                - secretsmanager:DescribeSecret
+                - secretsmanager:ListSecretVersionIds
+                - secretsmanager:ListSecrets
+              Effect: Allow
+              Resource: "*"
       VpcConfig:
         SecurityGroupIds:
           - sg-08f58f539a3e92eb4
@@ -121,7 +79,7 @@ Resources:
           Properties:
             Path: /points
             Method: GET
-    
+
   UpdatePointsFunction:
     Type: AWS::Serverless::Function
     Metadata:
@@ -133,24 +91,24 @@ Resources:
       Handler: bootstrap
       Policies:
         - Statement:
-          - Action:
-              - ec2:CreateNetworkInterface
-              - ec2:DescribeNetworkInterfaces
-              - ec2:DescribeSubnets
-              - ec2:DeleteNetworkInterface
-              - ec2:AssignPrivateIpAddresses
-              - ec2:UnassignPrivateIpAddresses
-              - logs:CreateLogGroup
-              - logs:CreateLogStream
-              - logs:PutLogEvents
-              - ssm:GetParameter
-              - secretsmanager:GetResourcePolicy
-              - secretsmanager:GetSecretValue
-              - secretsmanager:DescribeSecret
-              - secretsmanager:ListSecretVersionIds
-              - secretsmanager:ListSecrets
-            Effect: Allow
-            Resource: '*'
+            - Action:
+                - ec2:CreateNetworkInterface
+                - ec2:DescribeNetworkInterfaces
+                - ec2:DescribeSubnets
+                - ec2:DeleteNetworkInterface
+                - ec2:AssignPrivateIpAddresses
+                - ec2:UnassignPrivateIpAddresses
+                - logs:CreateLogGroup
+                - logs:CreateLogStream
+                - logs:PutLogEvents
+                - ssm:GetParameter
+                - secretsmanager:GetResourcePolicy
+                - secretsmanager:GetSecretValue
+                - secretsmanager:DescribeSecret
+                - secretsmanager:ListSecretVersionIds
+                - secretsmanager:ListSecrets
+              Effect: Allow
+              Resource: "*"
       VpcConfig:
         SecurityGroupIds:
           - sg-08f58f539a3e92eb4
@@ -163,7 +121,7 @@ Resources:
           Properties:
             Path: /points
             Method: PUT
-  
+
   CreatePointsFunction:
     Type: AWS::Serverless::Function
     Metadata:
@@ -175,24 +133,24 @@ Resources:
       Handler: bootstrap
       Policies:
         - Statement:
-          - Action:
-              - ec2:CreateNetworkInterface
-              - ec2:DescribeNetworkInterfaces
-              - ec2:DescribeSubnets
-              - ec2:DeleteNetworkInterface
-              - ec2:AssignPrivateIpAddresses
-              - ec2:UnassignPrivateIpAddresses
-              - logs:CreateLogGroup
-              - logs:CreateLogStream
-              - logs:PutLogEvents
-              - ssm:GetParameter
-              - secretsmanager:GetResourcePolicy
-              - secretsmanager:GetSecretValue
-              - secretsmanager:DescribeSecret
-              - secretsmanager:ListSecretVersionIds
-              - secretsmanager:ListSecrets
-            Effect: Allow
-            Resource: '*'
+            - Action:
+                - ec2:CreateNetworkInterface
+                - ec2:DescribeNetworkInterfaces
+                - ec2:DescribeSubnets
+                - ec2:DeleteNetworkInterface
+                - ec2:AssignPrivateIpAddresses
+                - ec2:UnassignPrivateIpAddresses
+                - logs:CreateLogGroup
+                - logs:CreateLogStream
+                - logs:PutLogEvents
+                - ssm:GetParameter
+                - secretsmanager:GetResourcePolicy
+                - secretsmanager:GetSecretValue
+                - secretsmanager:DescribeSecret
+                - secretsmanager:ListSecretVersionIds
+                - secretsmanager:ListSecrets
+              Effect: Allow
+              Resource: "*"
       VpcConfig:
         SecurityGroupIds:
           - sg-08f58f539a3e92eb4
@@ -205,7 +163,7 @@ Resources:
           Properties:
             Path: /points
             Method: POST
-  
+
   DeletePointsFunction:
     Type: AWS::Serverless::Function
     Metadata:
@@ -217,24 +175,24 @@ Resources:
       Handler: bootstrap
       Policies:
         - Statement:
-          - Action:
-              - ec2:CreateNetworkInterface
-              - ec2:DescribeNetworkInterfaces
-              - ec2:DescribeSubnets
-              - ec2:DeleteNetworkInterface
-              - ec2:AssignPrivateIpAddresses
-              - ec2:UnassignPrivateIpAddresses
-              - logs:CreateLogGroup
-              - logs:CreateLogStream
-              - logs:PutLogEvents
-              - ssm:GetParameter
-              - secretsmanager:GetResourcePolicy
-              - secretsmanager:GetSecretValue
-              - secretsmanager:DescribeSecret
-              - secretsmanager:ListSecretVersionIds
-              - secretsmanager:ListSecrets
-            Effect: Allow
-            Resource: '*'
+            - Action:
+                - ec2:CreateNetworkInterface
+                - ec2:DescribeNetworkInterfaces
+                - ec2:DescribeSubnets
+                - ec2:DeleteNetworkInterface
+                - ec2:AssignPrivateIpAddresses
+                - ec2:UnassignPrivateIpAddresses
+                - logs:CreateLogGroup
+                - logs:CreateLogStream
+                - logs:PutLogEvents
+                - ssm:GetParameter
+                - secretsmanager:GetResourcePolicy
+                - secretsmanager:GetSecretValue
+                - secretsmanager:DescribeSecret
+                - secretsmanager:ListSecretVersionIds
+                - secretsmanager:ListSecrets
+              Effect: Allow
+              Resource: "*"
       VpcConfig:
         SecurityGroupIds:
           - sg-08f58f539a3e92eb4
@@ -247,7 +205,6 @@ Resources:
           Properties:
             Path: /points
             Method: DELETE
-
 
   GetMakerCheckerTransactionFunction:
     Type: AWS::Serverless::Function
@@ -285,7 +242,7 @@ Resources:
                 - secretsmanager:ListSecretVersionIds
                 - secretsmanager:ListSecrets
               Effect: Allow
-              Resource: '*'
+              Resource: "*"
       VpcConfig:
         SecurityGroupIds:
           - sg-08f58f539a3e92eb4
@@ -327,7 +284,7 @@ Resources:
                 - secretsmanager:ListSecretVersionIds
                 - secretsmanager:ListSecrets
               Effect: Allow
-              Resource: '*'
+              Resource: "*"
       VpcConfig:
         SecurityGroupIds:
           - sg-08f58f539a3e92eb4
@@ -371,7 +328,7 @@ Resources:
                 - secretsmanager:ListSecretVersionIds
                 - secretsmanager:ListSecrets
               Effect: Allow
-              Resource: '*'
+              Resource: "*"
       VpcConfig:
         SecurityGroupIds:
           - sg-08f58f539a3e92eb4
@@ -385,6 +342,425 @@ Resources:
             Path: /maker-checker
             Method: POST
 
+  CreateRoleFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: go1.x
+    Properties:
+      FunctionName: "create_role"
+      # must refer to the directory containing your main package
+      CodeUri: functions/roles/create-role/
+      Handler: bootstrap
+      Policies:
+        - Statement:
+            - Action:
+                - ec2:CreateNetworkInterface
+                - ec2:DescribeNetworkInterfaces
+                - ec2:DescribeSubnets
+                - ec2:DeleteNetworkInterface
+                - ec2:AssignPrivateIpAddresses
+                - ec2:UnassignPrivateIpAddresses
+                - logs:CreateLogGroup
+                - logs:CreateLogStream
+                - logs:PutLogEvents
+                - ssm:GetParameter
+                - secretsmanager:GetResourcePolicy
+                - secretsmanager:GetSecretValue
+                - secretsmanager:DescribeSecret
+                - secretsmanager:ListSecretVersionIds
+                - secretsmanager:ListSecrets
+              Effect: Allow
+              Resource: "*"
+      VpcConfig:
+        SecurityGroupIds:
+          - sg-08f58f539a3e92eb4
+        SubnetIds:
+          - subnet-39ee2971
+          - subnet-0e2ff868
+      Events:
+        CatchAll:
+          Type: Api
+          Properties:
+            Path: /role
+            Method: POST
+
+  DeleteRoleFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: go1.x
+    Properties:
+      FunctionName: "delete_role"
+      # must refer to the directory containing your main package
+      CodeUri: functions/roles/delete-role/
+      Handler: bootstrap
+      Policies:
+        - Statement:
+            - Action:
+                - ec2:CreateNetworkInterface
+                - ec2:DescribeNetworkInterfaces
+                - ec2:DescribeSubnets
+                - ec2:DeleteNetworkInterface
+                - ec2:AssignPrivateIpAddresses
+                - ec2:UnassignPrivateIpAddresses
+                - logs:CreateLogGroup
+                - logs:CreateLogStream
+                - logs:PutLogEvents
+                - ssm:GetParameter
+                - secretsmanager:GetResourcePolicy
+                - secretsmanager:GetSecretValue
+                - secretsmanager:DescribeSecret
+                - secretsmanager:ListSecretVersionIds
+                - secretsmanager:ListSecrets
+              Effect: Allow
+              Resource: "*"
+      VpcConfig:
+        SecurityGroupIds:
+          - sg-08f58f539a3e92eb4
+        SubnetIds:
+          - subnet-39ee2971
+          - subnet-0e2ff868
+      Events:
+        CatchAll:
+          Type: Api
+          Properties:
+            Path: /role
+            Method: DELETE
+
+  GetRoleFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: go1.x
+    Properties:
+      FunctionName: "get_role"
+      # must refer to the directory containing your main package
+      CodeUri: functions/roles/get-role/
+      Handler: bootstrap
+      Policies:
+        - Statement:
+            - Action:
+                - ec2:CreateNetworkInterface
+                - ec2:DescribeNetworkInterfaces
+                - ec2:DescribeSubnets
+                - ec2:DeleteNetworkInterface
+                - ec2:AssignPrivateIpAddresses
+                - ec2:UnassignPrivateIpAddresses
+                - logs:CreateLogGroup
+                - logs:CreateLogStream
+                - logs:PutLogEvents
+                - ssm:GetParameter
+                - secretsmanager:GetResourcePolicy
+                - secretsmanager:GetSecretValue
+                - secretsmanager:DescribeSecret
+                - secretsmanager:ListSecretVersionIds
+                - secretsmanager:ListSecrets
+              Effect: Allow
+              Resource: "*"
+      VpcConfig:
+        SecurityGroupIds:
+          - sg-08f58f539a3e92eb4
+        SubnetIds:
+          - subnet-39ee2971
+          - subnet-0e2ff868
+      Events:
+        CatchAll:
+          Type: Api
+          Properties:
+            Path: /role
+            Method: GET
+
+  GetRolesFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: go1.x
+    Properties:
+      FunctionName: "get_roles"
+      # must refer to the directory containing your main package
+      CodeUri: functions/roles/get-roles/
+      Handler: bootstrap
+      Policies:
+        - Statement:
+            - Action:
+                - ec2:CreateNetworkInterface
+                - ec2:DescribeNetworkInterfaces
+                - ec2:DescribeSubnets
+                - ec2:DeleteNetworkInterface
+                - ec2:AssignPrivateIpAddresses
+                - ec2:UnassignPrivateIpAddresses
+                - logs:CreateLogGroup
+                - logs:CreateLogStream
+                - logs:PutLogEvents
+                - ssm:GetParameter
+                - secretsmanager:GetResourcePolicy
+                - secretsmanager:GetSecretValue
+                - secretsmanager:DescribeSecret
+                - secretsmanager:ListSecretVersionIds
+                - secretsmanager:ListSecrets
+              Effect: Allow
+              Resource: "*"
+      VpcConfig:
+        SecurityGroupIds:
+          - sg-08f58f539a3e92eb4
+        SubnetIds:
+          - subnet-39ee2971
+          - subnet-0e2ff868
+      Events:
+        CatchAll:
+          Type: Api
+          Properties:
+            Path: /roles
+            Method: GET
+
+  UpdateRoleFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: go1.x
+    Properties:
+      FunctionName: "update_role"
+      # must refer to the directory containing your main package
+      CodeUri: functions/roles/update-role/
+      Handler: bootstrap
+      Policies:
+        - Statement:
+            - Action:
+                - ec2:CreateNetworkInterface
+                - ec2:DescribeNetworkInterfaces
+                - ec2:DescribeSubnets
+                - ec2:DeleteNetworkInterface
+                - ec2:AssignPrivateIpAddresses
+                - ec2:UnassignPrivateIpAddresses
+                - logs:CreateLogGroup
+                - logs:CreateLogStream
+                - logs:PutLogEvents
+                - ssm:GetParameter
+                - secretsmanager:GetResourcePolicy
+                - secretsmanager:GetSecretValue
+                - secretsmanager:DescribeSecret
+                - secretsmanager:ListSecretVersionIds
+                - secretsmanager:ListSecrets
+              Effect: Allow
+              Resource: "*"
+      VpcConfig:
+        SecurityGroupIds:
+          - sg-08f58f539a3e92eb4
+        SubnetIds:
+          - subnet-39ee2971
+          - subnet-0e2ff868
+      Events:
+        CatchAll:
+          Type: Api
+          Properties:
+            Path: /role
+            Method: PUT
+
+  CreateUserFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: go1.x
+    Properties:
+      FunctionName: "create_user"
+      # must refer to the directory containing your main package
+      CodeUri: functions/users/create-user/
+      Handler: bootstrap
+      Policies:
+        - Statement:
+            - Action:
+                - ec2:CreateNetworkInterface
+                - ec2:DescribeNetworkInterfaces
+                - ec2:DescribeSubnets
+                - ec2:DeleteNetworkInterface
+                - ec2:AssignPrivateIpAddresses
+                - ec2:UnassignPrivateIpAddresses
+                - logs:CreateLogGroup
+                - logs:CreateLogStream
+                - logs:PutLogEvents
+                - ssm:GetParameter
+                - secretsmanager:GetResourcePolicy
+                - secretsmanager:GetSecretValue
+                - secretsmanager:DescribeSecret
+                - secretsmanager:ListSecretVersionIds
+                - secretsmanager:ListSecrets
+              Effect: Allow
+              Resource: "*"
+      VpcConfig:
+        SecurityGroupIds:
+          - sg-08f58f539a3e92eb4
+        SubnetIds:
+          - subnet-39ee2971
+          - subnet-0e2ff868
+      Events:
+        CatchAll:
+          Type: Api
+          Properties:
+            Path: /user
+            Method: POST
+
+  DeleteUserFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: go1.x
+    Properties:
+      FunctionName: "delete_user"
+      # must refer to the directory containing your main package
+      CodeUri: functions/users/delete-user/
+      Handler: bootstrap
+      Policies:
+        - Statement:
+            - Action:
+                - ec2:CreateNetworkInterface
+                - ec2:DescribeNetworkInterfaces
+                - ec2:DescribeSubnets
+                - ec2:DeleteNetworkInterface
+                - ec2:AssignPrivateIpAddresses
+                - ec2:UnassignPrivateIpAddresses
+                - logs:CreateLogGroup
+                - logs:CreateLogStream
+                - logs:PutLogEvents
+                - ssm:GetParameter
+                - secretsmanager:GetResourcePolicy
+                - secretsmanager:GetSecretValue
+                - secretsmanager:DescribeSecret
+                - secretsmanager:ListSecretVersionIds
+                - secretsmanager:ListSecrets
+              Effect: Allow
+              Resource: "*"
+      VpcConfig:
+        SecurityGroupIds:
+          - sg-08f58f539a3e92eb4
+        SubnetIds:
+          - subnet-39ee2971
+          - subnet-0e2ff868
+      Events:
+        CatchAll:
+          Type: Api
+          Properties:
+            Path: /user
+            Method: DELETE
+
+  GetUserFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: go1.x
+    Properties:
+      FunctionName: "get_user"
+      # must refer to the directory containing your main package
+      CodeUri: functions/users/get-user/
+      Handler: bootstrap
+      Policies:
+        - Statement:
+            - Action:
+                - ec2:CreateNetworkInterface
+                - ec2:DescribeNetworkInterfaces
+                - ec2:DescribeSubnets
+                - ec2:DeleteNetworkInterface
+                - ec2:AssignPrivateIpAddresses
+                - ec2:UnassignPrivateIpAddresses
+                - logs:CreateLogGroup
+                - logs:CreateLogStream
+                - logs:PutLogEvents
+                - ssm:GetParameter
+                - secretsmanager:GetResourcePolicy
+                - secretsmanager:GetSecretValue
+                - secretsmanager:DescribeSecret
+                - secretsmanager:ListSecretVersionIds
+                - secretsmanager:ListSecrets
+              Effect: Allow
+              Resource: "*"
+      VpcConfig:
+        SecurityGroupIds:
+          - sg-08f58f539a3e92eb4
+        SubnetIds:
+          - subnet-39ee2971
+          - subnet-0e2ff868
+      Events:
+        CatchAll:
+          Type: Api
+          Properties:
+            Path: /user
+            Method: GET
+
+  GetUsersFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: go1.x
+    Properties:
+      FunctionName: "get_users"
+      # must refer to the directory containing your main package
+      CodeUri: functions/users/get-users/
+      Handler: bootstrap
+      Policies:
+        - Statement:
+            - Action:
+                - ec2:CreateNetworkInterface
+                - ec2:DescribeNetworkInterfaces
+                - ec2:DescribeSubnets
+                - ec2:DeleteNetworkInterface
+                - ec2:AssignPrivateIpAddresses
+                - ec2:UnassignPrivateIpAddresses
+                - logs:CreateLogGroup
+                - logs:CreateLogStream
+                - logs:PutLogEvents
+                - ssm:GetParameter
+                - secretsmanager:GetResourcePolicy
+                - secretsmanager:GetSecretValue
+                - secretsmanager:DescribeSecret
+                - secretsmanager:ListSecretVersionIds
+                - secretsmanager:ListSecrets
+              Effect: Allow
+              Resource: "*"
+      VpcConfig:
+        SecurityGroupIds:
+          - sg-08f58f539a3e92eb4
+        SubnetIds:
+          - subnet-39ee2971
+          - subnet-0e2ff868
+      Events:
+        CatchAll:
+          Type: Api
+          Properties:
+            Path: /users
+            Method: GET
+
+  UpdateUserFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: go1.x
+    Properties:
+      FunctionName: "update_user"
+      # must refer to the directory containing your main package
+      CodeUri: functions/users/update-user/
+      Handler: bootstrap
+      Policies:
+        - Statement:
+            - Action:
+                - ec2:CreateNetworkInterface
+                - ec2:DescribeNetworkInterfaces
+                - ec2:DescribeSubnets
+                - ec2:DeleteNetworkInterface
+                - ec2:AssignPrivateIpAddresses
+                - ec2:UnassignPrivateIpAddresses
+                - logs:CreateLogGroup
+                - logs:CreateLogStream
+                - logs:PutLogEvents
+                - ssm:GetParameter
+                - secretsmanager:GetResourcePolicy
+                - secretsmanager:GetSecretValue
+                - secretsmanager:DescribeSecret
+                - secretsmanager:ListSecretVersionIds
+                - secretsmanager:ListSecrets
+              Effect: Allow
+              Resource: "*"
+      VpcConfig:
+        SecurityGroupIds:
+          - sg-08f58f539a3e92eb4
+        SubnetIds:
+          - subnet-39ee2971
+          - subnet-0e2ff868
+      Events:
+        CatchAll:
+          Type: Api
+          Properties:
+            Path: /user
+            Method: PUT
 Outputs:
   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
   # Find out more about other implicit resources you can reference within SAM

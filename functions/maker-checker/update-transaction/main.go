@@ -3,11 +3,12 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"log"
+
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/vynious/ascenda-lp-backend/db"
 	makerchecker "github.com/vynious/ascenda-lp-backend/types"
-	"log"
 )
 
 var (
@@ -26,14 +27,14 @@ func init() {
 	}
 }
 
-func LambdaHandler(ctx context.Context, req *events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
+func LambdaHandler(ctx context.Context, req *events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyResponse, error) {
 
 	/*
 		check role/user of requested
 	*/
 
 	if err := json.Unmarshal([]byte(req.Body), &requestBody); err != nil {
-		return events.APIGatewayV2HTTPResponse{
+		return events.APIGatewayProxyResponse{
 			StatusCode: 404,
 			Headers: map[string]string{
 				"Access-Control-Allow-Headers": "Content-Type",
@@ -46,7 +47,7 @@ func LambdaHandler(ctx context.Context, req *events.APIGatewayV2HTTPRequest) (ev
 
 	updatedTxn, err := DBService.UpdateTransaction(ctx, requestBody.TransactionId, requestBody.CheckerId, requestBody.Approval)
 	if err != nil {
-		return events.APIGatewayV2HTTPResponse{
+		return events.APIGatewayProxyResponse{
 			StatusCode: 500,
 			Headers: map[string]string{
 				"Access-Control-Allow-Headers": "Content-Type",
@@ -60,7 +61,7 @@ func LambdaHandler(ctx context.Context, req *events.APIGatewayV2HTTPRequest) (ev
 
 	bod, err := json.Marshal(responseBody)
 	if err != nil {
-		return events.APIGatewayV2HTTPResponse{
+		return events.APIGatewayProxyResponse{
 			StatusCode: 201,
 			Headers: map[string]string{
 				"Access-Control-Allow-Headers": "Content-Type",
@@ -71,7 +72,7 @@ func LambdaHandler(ctx context.Context, req *events.APIGatewayV2HTTPRequest) (ev
 		}, nil
 	}
 
-	return events.APIGatewayV2HTTPResponse{
+	return events.APIGatewayProxyResponse{
 		StatusCode: 201,
 		Headers: map[string]string{
 			"Access-Control-Allow-Headers": "Content-Type",

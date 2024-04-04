@@ -37,4 +37,5 @@ type UpdateUserRequestBody struct {
 	NewFirstName string
 	NewLastName  string
 	NewEmail     string
+	NewRoleName  string
 }

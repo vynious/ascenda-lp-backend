@@ -27,13 +27,13 @@ func init() {
 	}
 }
 
-func CreateTransactionHandler(ctx context.Context, req *events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
+func CreateTransactionHandler(ctx context.Context, req *events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyResponse, error) {
 	defer DBService.CloseConn()
 
 	role := "product_owner"
 
 	if err := json.Unmarshal([]byte(req.Body), &requestBody); err != nil {
-		return events.APIGatewayV2HTTPResponse{
+		return events.APIGatewayProxyResponse{
 			StatusCode: 404,
 			Body:       "Bad Request",
 		}, nil
@@ -48,7 +48,7 @@ func CreateTransactionHandler(ctx context.Context, req *events.APIGatewayV2HTTPR
 		var updatePointsRequestBody types.UpdatePointsRequestBody
 		if err := json.Unmarshal(requestBody.Action.RequestBody, &updatePointsRequestBody); err != nil {
 			log.Printf("Error unmarshalling UpdatePointsRequestBody: %v", err)
-			return events.APIGatewayV2HTTPResponse{
+			return events.APIGatewayProxyResponse{
 				StatusCode: 400,
 				Headers: map[string]string{
 					"Access-Control-Allow-Headers": "Content-Type",
@@ -72,7 +72,7 @@ func CreateTransactionHandler(ctx context.Context, req *events.APIGatewayV2HTTPR
 
 		txn, err := DBService.CreateTransaction(ctx, updatedMakerCheckerAction, makerId)
 		if err != nil {
-			return events.APIGatewayV2HTTPResponse{
+			return events.APIGatewayProxyResponse{
 				StatusCode: 500,
 				Headers: map[string]string{
 					"Access-Control-Allow-Headers": "Content-Type",
@@ -86,7 +86,7 @@ func CreateTransactionHandler(ctx context.Context, req *events.APIGatewayV2HTTPR
 	case "UpdateUser":
 
 	default:
-		return events.APIGatewayV2HTTPResponse{
+		return events.APIGatewayProxyResponse{
 			StatusCode: 404,
 			Headers: map[string]string{
 				"Access-Control-Allow-Headers": "Content-Type",
@@ -109,7 +109,7 @@ func CreateTransactionHandler(ctx context.Context, req *events.APIGatewayV2HTTPR
 
 	respBod, err := json.Marshal(responseBody)
 	if err != nil {
-		return events.APIGatewayV2HTTPResponse{
+		return events.APIGatewayProxyResponse{
 			StatusCode: 201,
 			Headers: map[string]string{
 				"Access-Control-Allow-Headers": "Content-Type",
@@ -120,7 +120,7 @@ func CreateTransactionHandler(ctx context.Context, req *events.APIGatewayV2HTTPR
 		}, nil
 	}
 
-	return events.APIGatewayV2HTTPResponse{
+	return events.APIGatewayProxyResponse{
 		StatusCode: 201,
 		Headers: map[string]string{
 			"Access-Control-Allow-Headers": "Content-Type",

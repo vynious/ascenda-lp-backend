@@ -14,8 +14,13 @@ import (
 )
 
 var (
-	DB  *db.DBService
-	err error
+	DB      *db.DBService
+	err     error
+	headers = map[string]string{
+		"Access-Control-Allow-Headers": "Content-Type",
+		"Access-Control-Allow-Origin":  "*",
+		"Access-Control-Allow-Methods": "DELETE",
+	}
 )
 
 func init() {
@@ -30,18 +35,20 @@ func main() {
 	defer DB.CloseConn()
 }
 
-func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
+func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyResponse, error) {
 	req := types.DeletePointsAccountRequestBody{}
 	if err := json.Unmarshal([]byte(request.Body), &req); err != nil {
-		return events.APIGatewayV2HTTPResponse{
+		return events.APIGatewayProxyResponse{
 			StatusCode: 400,
+			Headers:    headers,
 			Body:       errors.New("invalid request. malformed request found").Error(),
 		}, nil
 	}
 
 	if req.ID == nil {
-		return events.APIGatewayV2HTTPResponse{
+		return events.APIGatewayProxyResponse{
 			StatusCode: 400,
+			Headers:    headers,
 			Body:       errors.New("bad request. id not found").Error(),
 		}, nil
 	}
@@ -49,15 +56,17 @@ func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (event
 
 	deleted, err := DB.DeletePointsAccountByID(ctx, *req.ID)
 	if !deleted {
-		return events.APIGatewayV2HTTPResponse{
+		return events.APIGatewayProxyResponse{
 			StatusCode: 400,
+			Headers:    headers,
 			Body:       err.Error(),
 		}, nil
 	}
 
 	resp := fmt.Sprintf("Points account %s successfully deleted", *req.ID)
-	return events.APIGatewayV2HTTPResponse{
+	return events.APIGatewayProxyResponse{
 		StatusCode: 200,
+		Headers:    headers,
 		Body:       resp,
 	}, nil
 }
