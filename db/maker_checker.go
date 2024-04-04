@@ -13,12 +13,19 @@ import (
 func (dbs *DBService) CreateTransaction(ctx context.Context, action types.MakerAction, makerId string) (*types.Transaction, error) {
 
 	var maker types.User
+	var approvalMap types.ApprovalChainMap
 
-	tx := dbs.Conn.WithContext(ctx)
+	tx := dbs.Conn.WithContext(ctx).Begin()
 
 	// Ensure the MakerId corresponds to an existing user
 	if err := tx.First(&maker, "id = ?", makerId).Error; err != nil {
 		return nil, fmt.Errorf("maker with ID %s not found: %w", makerId, err)
+	}
+
+	// check if the maker-role-id is inside the approvalchain
+	result := tx.Where("maker_role_id = ?", maker.RoleID).First(&approvalMap)
+	if result.Error != nil {
+		return nil, fmt.Errorf("user is not allowed to create a transaction: %v", result.Error.Error())
 	}
 
 	jsonMsgAction, _ := json.Marshal(action)

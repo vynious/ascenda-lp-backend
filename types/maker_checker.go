@@ -50,13 +50,6 @@ type MultipleTransactionsResponseBody struct {
 	Txns []Transaction
 }
 
-type GetFilteredTransactionRequestBody struct {
-	MakerId   string `json:"maker_id,omitempty"`
-	Status    string `json:"status,omitempty"`
-	Approval  bool   `json:"approval,omitempty"`
-	CheckerId string `json:"checkerId,omitempty"`
-}
-
 type GetAllTransactionsRequestBody struct{}
 
 type GetTransactionRequestBody struct {
