@@ -593,6 +593,9 @@ Resources:
           Properties:
             Path: /user
             Method: POST
+      Environment:
+        Variables:
+          COGNITO_USER_POOL_ID: "ap-southeast-1_3XL1JVvXg"
 
   DeleteUserFunction:
     Type: AWS::Serverless::Function
@@ -635,6 +638,9 @@ Resources:
           Properties:
             Path: /user
             Method: DELETE
+      Environment:
+        Variables:
+          COGNITO_USER_POOL_ID: "ap-southeast-1_3XL1JVvXg"
 
   GetUserFunction:
     Type: AWS::Serverless::Function
@@ -761,6 +767,9 @@ Resources:
           Properties:
             Path: /user
             Method: PUT
+      Environment:
+        Variables:
+          COGNITO_USER_POOL_ID: "ap-southeast-1_3XL1JVvXg"
 Outputs:
   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
   # Find out more about other implicit resources you can reference within SAM

@@ -5,6 +5,7 @@ import (
 	"time"
 )
 
+// Transaction => Database Model
 type Transaction struct {
 	TransactionId string          `gorm:"type:uuid;primary_key;"`
 	Action        json.RawMessage `gorm:"type:json"`
@@ -26,6 +27,7 @@ type ApprovalChainMap struct {
 	CheckerRole   Role `gorm:"foreignKey:CheckerRoleID"`
 }
 
+// Others
 type CreateTransactionBody struct {
 	MakerId string      `json:"maker_id"`
 	Action  MakerAction `json:"action"`
