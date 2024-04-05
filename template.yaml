@@ -770,6 +770,23 @@ Resources:
       Environment:
         Variables:
           COGNITO_USER_POOL_ID: "ap-southeast-1_3XL1JVvXg"
+
+  CustomAuthorizer:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: go1.x
+    Properties:
+      FunctionName: "custom_authorizer"
+      CodeUri: functions/admin/authorizer/
+      Handler: bootstrap
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - Statement:
+            - Action:
+                - cognito-idp:*
+              Effect: Allow
+              Resource: "*"
+
 Outputs:
   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
   # Find out more about other implicit resources you can reference within SAM

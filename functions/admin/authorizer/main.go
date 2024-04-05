@@ -72,39 +72,44 @@ func GeneratePolicy(permissions []types.RolePermission, principalId, route, meth
 	} else if route == "logs" || route == "log" {
 		resource = "logs"
 	} else if route == "maker-checker" {
-		// no resource but need custom checker
-
+		resource = "maker_checker"
 	}
 
-	for _, permission := range permissions {
-		if permission.Resource == resource {
-			switch method {
-			case "GET":
-				if permission.CanRead {
-					effect = "allow"
+	if resource == "maker_checker" {
+		statement := generateStatement("execute-api:Invoke", "allow", arn)
+		authResponse.PolicyDocument.Statement = append(authResponse.PolicyDocument.Statement, statement)
+	} else {
+		for _, permission := range permissions {
+			if permission.Resource == resource {
+				switch method {
+				case "GET":
+					if permission.CanRead {
+						effect = "allow"
+					}
+				case "PUT":
+					if permission.CanUpdate {
+						effect = "allow"
+					}
+				case "DELETE":
+					if permission.CanDelete {
+						effect = "allow"
+					}
+				case "POST":
+					if permission.CanCreate {
+						effect = "allow"
+					}
+				case "OPTIONS":
+					log.Printf("options method going through")
+				default:
+					log.Printf("unchecked method made")
 				}
-			case "PUT":
-				if permission.CanUpdate {
-					effect = "allow"
-				}
-			case "DELETE":
-				if permission.CanDelete {
-					effect = "allow"
-				}
-			case "POST":
-				if permission.CanCreate {
-					effect = "allow"
-				}
-			case "OPTIONS":
-				log.Printf("options method going through")
-			default:
-				log.Printf("unchecked method made")
-			}
 
-			statement := generateStatement("execute-api:Invoke", effect, arn)
-			authResponse.PolicyDocument.Statement = append(authResponse.PolicyDocument.Statement, statement)
+				statement := generateStatement("execute-api:Invoke", effect, arn)
+				authResponse.PolicyDocument.Statement = append(authResponse.PolicyDocument.Statement, statement)
+			}
 		}
 	}
+
 	return authResponse
 }
 
