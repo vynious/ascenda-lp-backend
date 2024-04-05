@@ -813,6 +813,7 @@ Resources:
       VpcConfig:
         SecurityGroupIds:
           - sg-08f58f539a3e92eb4
+          - sg-0926d9e015281d694
         SubnetIds:
           - subnet-39ee2971
           - subnet-0e2ff868
