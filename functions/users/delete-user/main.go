@@ -37,11 +37,11 @@ func init() {
 
 func cognitoDeleteUser(userRequestBody types.DeleteUserRequestBody) error {
 	cognitoInput := &cognito.AdminDeleteUserInput{
-		Username:   aws.String(userRequestBody.Id),
+		Username:   aws.String(userRequestBody.Email),
 		UserPoolId: aws.String(os.Getenv("COGNITO_USER_POOL_ID")),
 	}
 
-	_, err := cognitoClient.AdminDeleteUser(context.TODO(), cognitoInput)
+	_, err = cognitoClient.AdminDeleteUser(context.TODO(), cognitoInput)
 	if err != nil {
 		var apiErr smithy.APIError
 		if errors.As(err, &apiErr) {
@@ -93,7 +93,7 @@ func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (event
 				"Access-Control-Allow-Origin":  "*",
 				"Access-Control-Allow-Methods": "POST",
 			},
-			Body: "Error deleting user",
+			Body: "Error deleting user. Please check that the user exist/id is correct",
 		}, nil
 	}
 

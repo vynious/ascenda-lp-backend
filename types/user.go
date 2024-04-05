@@ -30,7 +30,8 @@ type GetUserRequestBody struct {
 }
 
 type DeleteUserRequestBody struct {
-	Id string
+	Id    string
+	Email string
 }
 
 type UpdateUserRequestBody struct {
