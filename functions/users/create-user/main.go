@@ -14,7 +14,6 @@ import (
 	cognito_types "github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider/types"
 	"github.com/aws/aws-sdk-go-v2/service/rds"
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/smithy-go"
 	"github.com/google/uuid"
 	"github.com/vynious/ascenda-lp-backend/db"
 	aws_helpers "github.com/vynious/ascenda-lp-backend/functions/users/aws-helpers"
@@ -67,16 +66,10 @@ func cognitoCreateUser(userRequestBody types.CreateUserRequestBody, newUUID stri
 	}
 	_, err := cognitoClient.AdminCreateUser(context.TODO(), cognitoInput)
 	if err != nil {
-		var apiErr smithy.APIError
-		if errors.As(err, &apiErr) {
-			fmt.Println("API Error Code:", apiErr.ErrorCode())
-			fmt.Println("API Error Message:", apiErr.ErrorMessage())
-		} else {
-			fmt.Println("Unknown error:", err)
-		}
 		log.Println(err)
 		return err
 	}
+	log.Println("User created in user pool")
 	return nil
 }
 

@@ -25,6 +25,7 @@ func CreateUserWithCreateUserRequestBody(ctx context.Context, dbs *DBService, us
 		FirstName: userRequestBody.FirstName,
 		LastName:  userRequestBody.LastName,
 		RoleID:    roleID,
+		RoleName:  &userRequestBody.RoleName,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 	}

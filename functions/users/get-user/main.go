@@ -28,10 +28,8 @@ func init() {
 }
 
 func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyResponse, error) {
-	var userRequestBody types.GetUserRequestBody
-
-	if err := json.Unmarshal([]byte(request.Body), &userRequestBody); err != nil {
-		log.Printf("JSON unmarshal error: %s", err)
+	email, exists := request.QueryStringParameters["email"]
+	if !exists || email == "" {
 		return events.APIGatewayProxyResponse{
 			StatusCode: 400,
 			Headers: map[string]string{
@@ -39,10 +37,11 @@ func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (event
 				"Access-Control-Allow-Origin":  "*",
 				"Access-Control-Allow-Methods": "GET",
 			},
-			Body: "Invalid request format",
+			Body: "Missing or empty user query parameter",
 		}, nil
 	}
 
+	userRequestBody := types.GetUserRequestBody{Email: email}
 	user, err := db.RetrieveUserWithGetUserRequestBody(ctx, DBService, userRequestBody)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
