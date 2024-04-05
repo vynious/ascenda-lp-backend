@@ -19,11 +19,6 @@ func CreateUserWithCreateUserRequestBody(ctx context.Context, dbs *DBService, us
 		roleID = &role.Id
 	}
 
-	newUUID, err := uuid.NewUUID()
-	if err != nil {
-		return nil, err
-	}
-
 	user := types.User{
 		Id:        newUUID,
 		Email:     userRequestBody.Email,

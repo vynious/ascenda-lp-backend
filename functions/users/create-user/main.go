@@ -59,6 +59,10 @@ func cognitoCreateUser(userRequestBody types.CreateUserRequestBody, newUUID stri
 				Name:  aws.String("custom:userID"),
 				Value: aws.String(newUUID),
 			},
+			{
+				Name:  aws.String("custom:role"),
+				Value: aws.String(userRequestBody.RoleName),
+			},
 		},
 	}
 	_, err := cognitoClient.AdminCreateUser(context.TODO(), cognitoInput)
