@@ -49,6 +49,10 @@ clean:
 deploy:
 	@sam deploy --stack-name ${STACK_NAME};
 
+
+deploy-shawn:
+	@sam build && sam deploy --stack-name ${STACK_NAME};
+
 deploy-auto:
 	@sam deploy --stack-name ${STACK_NAME} --no-confirm-changeset --no-fail-on-empty-changeset;
 
