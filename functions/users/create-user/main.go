@@ -59,6 +59,10 @@ func cognitoCreateUser(userRequestBody types.CreateUserRequestBody, newUUID stri
 				Name:  aws.String("custom:userID"),
 				Value: aws.String(newUUID),
 			},
+			{
+				Name:  aws.String("custom:role"),
+				Value: aws.String(userRequestBody.RoleName),
+			},
 		},
 	}
 	_, err := cognitoClient.AdminCreateUser(context.TODO(), cognitoInput)
@@ -157,6 +161,11 @@ func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (event
 					},
 					Body: "Internal server error",
 				}, nil
+			}
+
+			// Send email to new users to verify their email to receive notifications.
+			if err := util.SendEmailVerification(ctx, user.Email); err != nil {
+				log.Printf("failed to send email: %v", err)
 			}
 
 			responseBody := fmt.Sprintf("{\"email\": \"%s\", \"id\": \"%s\"}", user.Email, user.Id)

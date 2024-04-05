@@ -93,9 +93,19 @@ func EmailCheckers(ctx context.Context, actionType string, checkersEmail []strin
 
 // SendEmailVerification sends a verification email to the target address to add their verify their identity for receiving emails. Post sign-up process.
 func SendEmailVerification(ctx context.Context, email string) error {
-	cfg, err := config.LoadDefaultConfig(ctx)
+	cfg, err := config.LoadDefaultConfig(ctx,
+		config.WithRegion("ap-southeast-1"),
+		config.WithCredentialsProvider(
+			credentials.StaticCredentialsProvider{
+				Value: aws.Credentials{
+					AccessKeyID:     os.Getenv("SES_ACCESS_KEY_ID"),
+					SecretAccessKey: os.Getenv("SES_ACCESS_SECRET_KEY"),
+					SessionToken:    "",
+					Source:          "",
+				},
+			}))
 	if err != nil {
-		return fmt.Errorf("failed to load config for emailer")
+		return fmt.Errorf("failed loading cfg for ses: %v", err)
 	}
 
 	sesClient := ses.NewFromConfig(cfg)
@@ -108,10 +118,23 @@ func SendEmailVerification(ctx context.Context, email string) error {
 	return nil
 }
 
-// VerifyEmail verifies the email address before sending it
+// VerifyEmail sends a verification email to the target address to add their verify their identity for receiving emails.
 func VerifyEmail(ctx context.Context, email string) (bool, error) {
+	cfg, err := config.LoadDefaultConfig(ctx)
+	if err != nil {
+		return false, fmt.Errorf("failed loading cfg for ses: %v", err)
+	}
+
+	sesClient := ses.NewFromConfig(cfg)
+
+	if _, err := sesClient.VerifyEmailIdentity(ctx, &ses.VerifyEmailIdentityInput{
+		EmailAddress: aws.String(email),
+	}); err != nil {
+		return false, fmt.Errorf("failed to send verification email: %v", err)
+	}
 	return true, nil
 }
+
 func CheckEmailValidity(email string) bool {
 	var emailRegex = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]{1,64}@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
 

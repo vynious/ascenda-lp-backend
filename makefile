@@ -42,14 +42,14 @@ build: build-user build-point build-maker build-role #TODO build-administrative
 clean:
 	@rm $(foreach function,${USER_FUNCTIONS}, functions/users/${function}/bootstrap)
 	@rm $(foreach function,${POINT_FUNCTIONS}, functions/points/${function}/bootstrap)
-	@rm $(foreach function,${MAKER_FUNCTIONS}, functions/makers/${function}/bootstrap)
+	@rm $(foreach function,${MAKER_FUNCTIONS}, functions/maker-checker/${function}/bootstrap)
 	@rm $(foreach function,${ROLE_FUNCTIONS}, functions/roles/${function}/bootstrap)
-	@rm $(foreach function,${ADMINISTRATIVE_FUNCTIONS}, functions/administrative/${function}/bootstrap)
+	@rm $(foreach function,${ADMINISTRATIVE_FUNCTIONS}, functions/admin/${function}/bootstrap)
 
 deploy:
 	@sam deploy --stack-name ${STACK_NAME};
 
-deploy-auto: 
+deploy-auto:
 	@sam deploy --stack-name ${STACK_NAME} --no-confirm-changeset --no-fail-on-empty-changeset;
 
 deploy-full-auto: build-user build-point build-maker build-role build-administrative
@@ -63,6 +63,7 @@ build-run:
 
 teardown:
 	sam delete --stack-name ${STACK_NAME}
+
 
 db-reset:
 	go run seed/main.go
