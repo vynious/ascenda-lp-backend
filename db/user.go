@@ -2,13 +2,13 @@ package db
 
 import (
 	"context"
+	"log"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/vynious/ascenda-lp-backend/types"
 )
 
-func CreateUserWithCreateUserRequestBody(ctx context.Context, dbs *DBService, userRequestBody types.CreateUserRequestBody) (*types.User, error) {
+func CreateUserWithCreateUserRequestBody(ctx context.Context, dbs *DBService, userRequestBody types.CreateUserRequestBody, newUUID string) (*types.User, error) {
 	var roleID *uint = nil
 
 	if userRequestBody.RoleName != "" {
@@ -19,13 +19,8 @@ func CreateUserWithCreateUserRequestBody(ctx context.Context, dbs *DBService, us
 		roleID = &role.Id
 	}
 
-	newUUID, err := uuid.NewUUID()
-	if err != nil {
-		return nil, err
-	}
-
 	user := types.User{
-		Id:        newUUID.String(),
+		Id:        newUUID,
 		Email:     userRequestBody.Email,
 		FirstName: userRequestBody.FirstName,
 		LastName:  userRequestBody.LastName,
@@ -72,7 +67,7 @@ func RetrieveAllUsers(ctx context.Context, dbs *DBService) ([]types.User, error)
 
 func DeleteUserWithDeleteUserRequestBody(ctx context.Context, dbs *DBService, userRequestBody types.DeleteUserRequestBody) error {
 	var user types.User
-	res := dbs.Conn.WithContext(ctx).Where("email = ?", userRequestBody.Email).First(&user)
+	res := dbs.Conn.WithContext(ctx).Where("id = ?", userRequestBody.Id).First(&user)
 	if res.Error != nil {
 		return res.Error
 	}
@@ -86,9 +81,9 @@ func DeleteUserWithDeleteUserRequestBody(ctx context.Context, dbs *DBService, us
 
 func UpdateUserWithUpdateUserRequestBody(ctx context.Context, dbs *DBService, userRequestBody types.UpdateUserRequestBody) (types.User, error) {
 	tx := dbs.Conn.Begin()
-
+	log.Println(userRequestBody)
 	var user types.User
-	if err := tx.Where("email = ?", userRequestBody.Email).First(&user).Error; err != nil {
+	if err := tx.Where("id = ?", userRequestBody.Id).First(&user).Error; err != nil {
 		tx.Rollback()
 		return types.User{}, err
 	}

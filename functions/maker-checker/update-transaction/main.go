@@ -19,8 +19,6 @@ var (
 )
 
 func init() {
-
-	// Initialise global variable DBService tied to Aurora
 	DBService, err = db.SpawnDBService()
 	if err != nil {
 		log.Fatalf(err.Error())

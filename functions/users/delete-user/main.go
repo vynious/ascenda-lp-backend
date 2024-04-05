@@ -4,20 +4,27 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
+	"os"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	cognito "github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider"
 	"github.com/aws/aws-sdk-go-v2/service/rds"
+	"github.com/aws/smithy-go"
 	"github.com/vynious/ascenda-lp-backend/db"
+	aws_helpers "github.com/vynious/ascenda-lp-backend/functions/users/aws-helpers"
 	"github.com/vynious/ascenda-lp-backend/types"
 	"gorm.io/gorm"
 )
 
 var (
-	DBService *db.DBService
-	RDSClient *rds.Client
-	err       error
+	DBService     *db.DBService
+	RDSClient     *rds.Client
+	cognitoClient *cognito.Client
+	err           error
 )
 
 func init() {
@@ -25,6 +32,28 @@ func init() {
 	if err != nil {
 		log.Fatalf(err.Error())
 	}
+	cognitoClient = aws_helpers.InitCognitoClient()
+}
+
+func cognitoDeleteUser(userRequestBody types.DeleteUserRequestBody) error {
+	cognitoInput := &cognito.AdminDeleteUserInput{
+		Username:   aws.String(userRequestBody.Id),
+		UserPoolId: aws.String(os.Getenv("COGNITO_USER_POOL_ID")),
+	}
+
+	_, err := cognitoClient.AdminDeleteUser(context.TODO(), cognitoInput)
+	if err != nil {
+		var apiErr smithy.APIError
+		if errors.As(err, &apiErr) {
+			fmt.Println("API Error Code:", apiErr.ErrorCode())
+			fmt.Println("API Error Message:", apiErr.ErrorMessage())
+		} else {
+			fmt.Println("Unknown error:", err)
+		}
+		log.Println(err)
+		return err
+	}
+	return nil
 }
 
 func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyResponse, error) {
@@ -55,7 +84,20 @@ func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (event
 		}, nil
 	}
 
-	err := db.DeleteUserWithDeleteUserRequestBody(ctx, DBService, userRequestBody)
+	err := cognitoDeleteUser(userRequestBody)
+	if err != nil {
+		return events.APIGatewayProxyResponse{
+			StatusCode: 404,
+			Headers: map[string]string{
+				"Access-Control-Allow-Headers": "Content-Type",
+				"Access-Control-Allow-Origin":  "*",
+				"Access-Control-Allow-Methods": "POST",
+			},
+			Body: "Error deleting user",
+		}, nil
+	}
+
+	err = db.DeleteUserWithDeleteUserRequestBody(ctx, DBService, userRequestBody)
 	if err != nil {
 		log.Println(err)
 		if errors.Is(err, gorm.ErrRecordNotFound) {

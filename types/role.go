@@ -16,13 +16,13 @@ type Role struct {
 }
 
 type RolePermission struct {
-	Id        uint `gorm:"primaryKey"`
-	RoleID    uint `gorm:"index"`
-	CanCreate bool `gorm:"default:false"`
-	CanRead   bool `gorm:"default:false"`
-	CanUpdate bool `gorm:"default:false"`
-	CanDelete bool `gorm:"default:false"`
-	Resource  string
+	Id        uint   `gorm:"primaryKey"`
+	RoleID    uint   `gorm:"index"`
+	CanCreate bool   `gorm:"default:false"`
+	CanRead   bool   `gorm:"default:false"`
+	CanUpdate bool   `gorm:"default:false"`
+	CanDelete bool   `gorm:"default:false"`
+	Resource  string `json:"resource"`
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }

@@ -28,6 +28,18 @@ func init() {
 }
 
 func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyResponse, error) {
+	if request.RequestContext.HTTP.Method == "OPTIONS" {
+		return events.APIGatewayProxyResponse{
+			StatusCode: 200,
+			Headers: map[string]string{
+				"Access-Control-Allow-Origin":  "*",
+				"Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+				"Access-Control-Allow-Headers": "Content-Type",
+			},
+			Body: "{}",
+		}, nil
+	}
+
 	var roleRequestBody types.UpdateRoleRequestBody
 
 	if err := json.Unmarshal([]byte(request.Body), &roleRequestBody); err != nil {

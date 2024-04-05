@@ -13,12 +13,19 @@ import (
 func (dbs *DBService) CreateTransaction(ctx context.Context, action types.MakerAction, makerId string) (*types.Transaction, error) {
 
 	var maker types.User
+	var approvalMap types.ApprovalChainMap
 
-	tx := dbs.Conn.WithContext(ctx)
+	tx := dbs.Conn.WithContext(ctx).Begin()
 
 	// Ensure the MakerId corresponds to an existing user
 	if err := tx.First(&maker, "id = ?", makerId).Error; err != nil {
 		return nil, fmt.Errorf("maker with ID %s not found: %w", makerId, err)
+	}
+
+	// check if the maker-role-id is inside the approvalchain
+	result := tx.Where("maker_role_id = ?", maker.RoleID).First(&approvalMap)
+	if result.Error != nil {
+		return nil, fmt.Errorf("user is not allowed to create a transaction: %v", result.Error.Error())
 	}
 
 	jsonMsgAction, _ := json.Marshal(action)
@@ -41,7 +48,7 @@ func (dbs *DBService) GetTransaction(ctx context.Context, txnId string) (*[]type
 
 	tx := dbs.Conn.WithContext(ctx)
 
-	if err := tx.Where("transaction_id = ?", txnId).First(&transaction).Error; err != nil {
+	if err := tx.Preload("Maker").Where("transaction_id = ?", txnId).First(&transaction).Error; err != nil {
 		return nil, err
 	}
 
@@ -52,7 +59,7 @@ func (dbs *DBService) GetTransactions(ctx context.Context) (*[]types.Transaction
 	var transactions []types.Transaction
 
 	tx := dbs.Conn.WithContext(ctx)
-	if result := tx.Find(&transactions); result.Error != nil {
+	if result := tx.Preload("Maker").Find(&transactions); result.Error != nil {
 		return nil, fmt.Errorf("failed to get all transactions: %v", result.Error.Error())
 	}
 	return &transactions, nil
@@ -64,6 +71,7 @@ func (dbs *DBService) GetTransactionsByMakerIdByStatus(ctx context.Context, make
 
 	tx := dbs.Conn.WithContext(ctx)
 	if result := tx.
+		Preload("Maker").
 		Where("maker_id = ?", makerId).
 		Where("status = ?", status).
 		Find(&transactions); result.Error != nil {
@@ -91,6 +99,7 @@ func (dbs *DBService) GetPendingTransactionsForChecker(ctx context.Context, chec
 
 	// Fetch transactions that are pending and where the maker's role is in the approval chain for the checker's role
 	err = tx.Model(&types.Transaction{}).
+		Preload("Maker").
 		Joins("JOIN users AS makers ON makers.id = transactions.maker_id").
 		Joins("JOIN roles AS maker_roles ON maker_roles.id = makers.role_id").
 		Joins("JOIN approval_chain_maps ON approval_chain_maps.maker_role_id = maker_roles.id").
@@ -111,7 +120,11 @@ func (dbs *DBService) GetCompletedTransactionsByCheckerId(ctx context.Context, c
 
 	tx := dbs.Conn.WithContext(ctx)
 
-	if result := tx.Where("checker_id = ?", checkerId).Find(&transactions); result.Error != nil {
+	if result := tx.
+		Preload("Maker").
+		Preload("Checker").
+		Where("checker_id = ?", checkerId).
+		Find(&transactions); result.Error != nil {
 		return nil, fmt.Errorf("failed to get completed transactions by checkerid: %v", result.Error.Error())
 	}
 
