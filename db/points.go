@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/vynious/ascenda-lp-backend/types"
+	"github.com/vynious/ascenda-lp-backend/util"
 )
 
 func (dbs *DBService) GetPoints(ctx context.Context) ([]types.Points, error) {
@@ -14,6 +15,15 @@ func (dbs *DBService) GetPoints(ctx context.Context) ([]types.Points, error) {
 	res := dbs.Conn.Find(&pointsRecords)
 	if res.Error != nil {
 		return nil, fmt.Errorf("database error %s", res.Error)
+	}
+	logEntry := types.Log{
+		Type:         "Points",
+		Action:       "Queried all points",
+		UserLocation: "unknown",
+	}
+
+	if err := util.CreateLogEntry(logEntry); err != nil {
+		log.Printf("Error creating log entry: %v", err)
 	}
 
 	return pointsRecords, nil
