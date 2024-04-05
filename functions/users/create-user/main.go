@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/vynious/ascenda-lp-backend/util"
 	"log"
 
 	"github.com/aws/aws-lambda-go/events"
@@ -71,6 +72,11 @@ func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (event
 					},
 					Body: "Internal server error",
 				}, nil
+			}
+
+			// Send email to new users to verify their email to receive notifications.
+			if err := util.SendEmailVerification(ctx, user.Email); err != nil {
+				log.Printf("failed to send email: %v", err)
 			}
 
 			responseBody := fmt.Sprintf("{\"email\": \"%s\", \"id\": \"%s\"}", user.Email, user.Id)
