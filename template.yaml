@@ -823,6 +823,23 @@ Resources:
             Path: /logs
             Method: GET
 
+
+  CustomAuthorizer:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: go1.x
+    Properties:
+      FunctionName: "custom_authorizer"
+      CodeUri: functions/admin/authorizer/
+      Handler: bootstrap
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - Statement:
+            - Action:
+                - cognito-idp:*
+              Effect: Allow
+              Resource: "*"
+
 Outputs:
   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
   # Find out more about other implicit resources you can reference within SAM
