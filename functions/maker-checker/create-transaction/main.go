@@ -16,12 +16,10 @@ var (
 	DBService    *db.DBService
 	requestBody  types.CreateTransactionBody
 	responseBody types.TransactionResponseBody
-	action       types.MakerAction
 	err          error
 )
 
 func init() {
-
 	// Initialise global variable DBService tied to Aurora
 	DBService, err = db.SpawnDBService()
 	if err != nil {
@@ -32,12 +30,15 @@ func init() {
 func CreateTransactionHandler(ctx context.Context, req *events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyResponse, error) {
 	defer DBService.CloseConn()
 
-	role := "product_owner"
-
 	if err := json.Unmarshal([]byte(req.Body), &requestBody); err != nil {
 		return events.APIGatewayProxyResponse{
 			StatusCode: 404,
-			Body:       "Bad Request",
+			Headers: map[string]string{
+				"Access-Control-Allow-Headers": "Content-Type",
+				"Access-Control-Allow-Origin":  "*",
+				"Access-Control-Allow-Methods": "POST",
+			},
+			Body: "Bad Request",
 		}, nil
 	}
 
@@ -52,7 +53,12 @@ func CreateTransactionHandler(ctx context.Context, req *events.APIGatewayV2HTTPR
 			log.Printf("Error unmarshalling UpdatePointsRequestBody: %v", err)
 			return events.APIGatewayProxyResponse{
 				StatusCode: 400,
-				Body:       "Invalid request format for UpdatePoints",
+				Headers: map[string]string{
+					"Access-Control-Allow-Headers": "Content-Type",
+					"Access-Control-Allow-Origin":  "*",
+					"Access-Control-Allow-Methods": "POST",
+				},
+				Body: `{"message": "Invalid request format for UpdatePoints"}`,
 			}, nil
 		}
 
@@ -63,7 +69,7 @@ func CreateTransactionHandler(ctx context.Context, req *events.APIGatewayV2HTTPR
 
 		// recreate the MakerAction struct to store
 		updatedMakerCheckerAction := types.MakerAction{
-			ActionType:  "UpdatePoints",
+			ActionType:  requestBody.Action.ActionType,
 			RequestBody: rawJsonBody,
 		}
 
@@ -71,43 +77,98 @@ func CreateTransactionHandler(ctx context.Context, req *events.APIGatewayV2HTTPR
 		if err != nil {
 			return events.APIGatewayProxyResponse{
 				StatusCode: 500,
-				Body:       "",
+				Headers: map[string]string{
+					"Access-Control-Allow-Headers": "Content-Type",
+					"Access-Control-Allow-Origin":  "*",
+					"Access-Control-Allow-Methods": "POST",
+				},
+				Body: "",
 			}, nil
 		}
 		responseBody.Txn = *txn
 	case "UpdateUser":
+		var updateUserRequestBody types.UpdateUserRequestBody
+		if err := json.Unmarshal(requestBody.Action.RequestBody, &updateUserRequestBody); err != nil {
+			log.Printf("Error unmarshalling UpdateUserRequestBody: %v", err)
+			return events.APIGatewayProxyResponse{
+				StatusCode: 400,
+				Headers: map[string]string{
+					"Access-Control-Allow-Headers": "Content-Type",
+					"Access-Control-Allow-Origin":  "*",
+					"Access-Control-Allow-Methods": "POST",
+				},
+				Body: `{"message": "Invalid request format for UpdateUser"}`,
+			}, nil
+		}
+
+		log.Printf("UpdatePointsRequestBody: %+v", updateUserRequestBody)
+
+		// convert to json.RawMessage to fit MakerAction struct
+		rawJsonBody, _ := json.Marshal(updateUserRequestBody)
+
+		updatedMakerCheckerAction := types.MakerAction{
+			ActionType:  requestBody.Action.ActionType,
+			RequestBody: rawJsonBody,
+		}
+
+		txn, err := DBService.CreateTransaction(ctx, updatedMakerCheckerAction, makerId)
+		if err != nil {
+			return events.APIGatewayProxyResponse{
+				StatusCode: 500,
+				Headers: map[string]string{
+					"Access-Control-Allow-Headers": "Content-Type",
+					"Access-Control-Allow-Origin":  "*",
+					"Access-Control-Allow-Methods": "POST",
+				},
+				Body: "",
+			}, nil
+		}
+		responseBody.Txn = *txn
 
 	default:
 		return events.APIGatewayProxyResponse{
 			StatusCode: 404,
-			Body:       "Bad Request",
+			Headers: map[string]string{
+				"Access-Control-Allow-Headers": "Content-Type",
+				"Access-Control-Allow-Origin":  "*",
+				"Access-Control-Allow-Methods": "POST",
+			},
+			Body: `{"message": "Bad Request"}`,
 		}, nil
 	}
 
 	// Send emails seek checker's approval (Async)
-	go func() {
-		checkersEmail, err := DBService.GetCheckers(ctx, role)
-		if err != nil {
-			log.Println(err.Error())
-		}
-		if err = util.EmailCheckers(ctx, requestBody.Action.ActionType,
-			checkersEmail); err != nil {
-			log.Println(err.Error())
-		}
-
-	}()
+	log.Printf("starting to send email...")
+	checkersEmail, err := DBService.GetCheckers(ctx, makerId)
+	if err != nil {
+		log.Println(err.Error())
+	}
+	if err = util.EmailCheckers(ctx, requestBody.Action.ActionType,
+		checkersEmail); err != nil {
+		log.Println(err.Error())
+	}
 
 	respBod, err := json.Marshal(responseBody)
 	if err != nil {
 		return events.APIGatewayProxyResponse{
 			StatusCode: 201,
-			Body:       err.Error(),
+			Headers: map[string]string{
+				"Access-Control-Allow-Headers": "Content-Type",
+				"Access-Control-Allow-Origin":  "*",
+				"Access-Control-Allow-Methods": "POST",
+			},
+			Body: err.Error(),
 		}, nil
 	}
 
 	return events.APIGatewayProxyResponse{
 		StatusCode: 201,
-		Body:       string(respBod),
+		Headers: map[string]string{
+			"Access-Control-Allow-Headers": "Content-Type",
+			"Access-Control-Allow-Origin":  "*",
+			"Access-Control-Allow-Methods": "POST",
+		},
+		Body: string(respBod),
 	}, nil
 }
 
