@@ -101,30 +101,16 @@ func handler(request events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyResp
 
 func fetchLogs(request events.APIGatewayV2HTTPRequest, tableName string) (events.APIGatewayProxyResponse, error) {
 	log.Printf("fetching logs")
-	// Fetch all logs with pagination (limit 100)
-	// key := request.QueryStringParameters["key"]
-	// lastEvaluatedKey := make(map[string]*dynamodb.AttributeValue)
-
 	input := &dynamodb.ScanInput{
 		TableName: aws.String(tableName),
-		// Limit:     aws.Int64(int64(100)),
 	}
 
-	// if len(key) != 0 {
-	// 	lastEvaluatedKey["log_id"] = &dynamodb.AttributeValue{
-	// 		S: aws.String(key),
-	// 	}
-	// 	input.ExclusiveStartKey = lastEvaluatedKey
-	// }
-	log.Printf("made it to line 108")
 	result, err := svc.Scan(input)
-	log.Printf("made it to line 110")
 	if err != nil {
 		log.Printf("failed to fetch logs: " + err.Error())
 		return events.APIGatewayProxyResponse{}, errors.New("failed to fetch record")
 	}
-	log.Printf("made it to line 114")
-	// Unmarshal fetched logs
+
 	var logs []types.Log
 	for _, i := range result.Items {
 		logItem := new(types.Log)
@@ -133,14 +119,13 @@ func fetchLogs(request events.APIGatewayV2HTTPRequest, tableName string) (events
 			log.Printf("failed to unmarshal logs: " + err.Error())
 			return events.APIGatewayProxyResponse{}, err
 		}
+		logItem.LogId = *i["log_id"].S // Assuming log_id is the attribute name in DynamoDB
 		logs = append(logs, *logItem)
 	}
-	log.Printf("made it to line 126")
-	// Construct response body
+
 	responseBody, err := json.Marshal(logs)
-	log.Printf("made it to line 129")
 	if err != nil {
-		log.Printf("Failed to parse points records: %v", err)
+		log.Printf("Failed to parse logs: %v", err)
 		return events.APIGatewayProxyResponse{
 			StatusCode: 400,
 			Headers: map[string]string{
@@ -151,14 +136,7 @@ func fetchLogs(request events.APIGatewayV2HTTPRequest, tableName string) (events
 			Body: "Internal server error, failed to execute",
 		}, nil
 	}
-	log.Printf("made it until here")
-	// Check if there's more data available
-	// var lastEvaluatedKeyString string
-	// if len(result.LastEvaluatedKey) != 0 {
-	// 	lastEvaluatedKeyString = *result.LastEvaluatedKey["log_id"].S
-	// }
 
-	// Return JSON response with pagination key if applicable
 	return events.APIGatewayProxyResponse{
 		Body:       string(responseBody),
 		StatusCode: 200,
@@ -166,7 +144,6 @@ func fetchLogs(request events.APIGatewayV2HTTPRequest, tableName string) (events
 			"Access-Control-Allow-Headers": "Content-Type",
 			"Access-Control-Allow-Origin":  "*",
 			"Access-Control-Allow-Methods": "GET",
-			// "Last-Evaluated-Key":           lastEvaluatedKeyString,
 		},
 	}, nil
 }
