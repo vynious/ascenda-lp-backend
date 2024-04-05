@@ -37,6 +37,8 @@ func AuthorizerHandler(ctx context.Context, req events.APIGatewayCustomAuthorize
 	method := req.HTTPMethod
 	route := req.Path[1:]
 
+	log.Printf("Authorizer %s %s", method, route)
+
 	roleName, err := util.GetRoleWithCognito(token)
 	if err != nil {
 
@@ -110,6 +112,7 @@ func GeneratePolicy(permissions []types.RolePermission, principalId, route, meth
 		}
 	}
 
+	log.Printf("statement: %v", authResponse.PolicyDocument.Statement)
 	return authResponse
 }
 

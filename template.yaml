@@ -30,6 +30,56 @@ Parameters:
     Type: String
 
 Resources:
+  AscendaGateway:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: Prod
+      Cors:
+        AllowMethods: "'GET, POST, PUT, DELETE, OPTIONS'"
+        AllowHeaders: "'Content-Type, X-Amz-Date, Authorization, X-Api-Key, X-Amz-Security-Token'"
+        AllowOrigin: "'*'"
+      Auth:
+        DefaultAuthorizer: CustomAuthorizer
+        AddDefaultAuthorizerToCorsPreflight: False
+        Authorizers:
+          CustomAuthorizer:
+            FunctionPayloadType: REQUEST
+            FunctionArn: !GetAtt CustomAuthFunction.Arn
+            Identity:
+              Headers:
+                - Authorization
+
+
+
+  CustomAuthorizer:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: go1.x
+    Properties:
+      FunctionName: "custom_authorizer"
+      CodeUri: functions/admin/authorizer/
+      Handler: bootstrap
+      Policies:
+        - Statement:
+            - Action:
+                - ec2:CreateNetworkInterface
+                - ec2:DescribeNetworkInterfaces
+                - ec2:DescribeSubnets
+                - ec2:DeleteNetworkInterface
+                - ec2:AssignPrivateIpAddresses
+                - ec2:UnassignPrivateIpAddresses
+                - logs:CreateLogGroup
+                - logs:CreateLogStream
+                - logs:PutLogEvents
+                - ssm:GetParameter
+                - secretsmanager:GetResourcePolicy
+                - secretsmanager:GetSecretValue
+                - secretsmanager:DescribeSecret
+                - secretsmanager:ListSecretVersionIds
+                - secretsmanager:ListSecrets
+              Effect: Allow
+              Resource: "*"
+
   GetPointsFunction:
     Type: AWS::Serverless::Function
     Metadata:
@@ -80,6 +130,8 @@ Resources:
           Properties:
             Path: /points
             Method: GET
+            Auth:
+              Authorizer: CustomAuthorizer
 
   UpdatePointsFunction:
     Type: AWS::Serverless::Function
@@ -122,6 +174,8 @@ Resources:
           Properties:
             Path: /points
             Method: PUT
+            Auth:
+              Authorizer: CustomAuthorizer
 
   CreatePointsFunction:
     Type: AWS::Serverless::Function
@@ -164,6 +218,8 @@ Resources:
           Properties:
             Path: /points
             Method: POST
+            Auth:
+              Authorizer: CustomAuthorizer
 
   DeletePointsFunction:
     Type: AWS::Serverless::Function
@@ -206,6 +262,8 @@ Resources:
           Properties:
             Path: /points
             Method: DELETE
+            Auth:
+              Authorizer: CustomAuthorizer
 
   GetMakerCheckerTransactionsFunction:
     Type: AWS::Serverless::Function
@@ -256,6 +314,8 @@ Resources:
           Properties:
             Path: /maker-checker
             Method: GET
+            Auth:
+              Authorizer: CustomAuthorizer
 
   UpdateMakerCheckerTransactionFunction:
     Type: AWS::Serverless::Function
@@ -298,6 +358,8 @@ Resources:
           Properties:
             Path: /maker-checker
             Method: PUT
+            Auth:
+              Authorizer: CustomAuthorizer
 
   CreateMakerCheckerTransactionFunction:
     Type: AWS::Serverless::Function
@@ -342,6 +404,8 @@ Resources:
           Properties:
             Path: /maker-checker
             Method: POST
+            Auth:
+              Authorizer: CustomAuthorizer
 
   CreateRoleFunction:
     Type: AWS::Serverless::Function
@@ -384,6 +448,8 @@ Resources:
           Properties:
             Path: /role
             Method: POST
+            Auth:
+              Authorizer: CustomAuthorizer
 
   DeleteRoleFunction:
     Type: AWS::Serverless::Function
@@ -426,6 +492,8 @@ Resources:
           Properties:
             Path: /role
             Method: DELETE
+            Auth:
+              Authorizer: CustomAuthorizer
 
   GetRoleFunction:
     Type: AWS::Serverless::Function
@@ -468,6 +536,8 @@ Resources:
           Properties:
             Path: /role
             Method: GET
+            Auth:
+              Authorizer: CustomAuthorizer
 
   GetRolesFunction:
     Type: AWS::Serverless::Function
@@ -510,6 +580,8 @@ Resources:
           Properties:
             Path: /roles
             Method: GET
+            Auth:
+              Authorizer: CustomAuthorizer
 
   UpdateRoleFunction:
     Type: AWS::Serverless::Function
@@ -552,6 +624,8 @@ Resources:
           Properties:
             Path: /role
             Method: PUT
+            Auth:
+              Authorizer: CustomAuthorizer
 
   CreateUserFunction:
     Type: AWS::Serverless::Function
@@ -594,6 +668,8 @@ Resources:
           Properties:
             Path: /user
             Method: POST
+            Auth:
+              Authorizer: CustomAuthorizer
       Environment:
         Variables:
           COGNITO_USER_POOL_ID: "ap-southeast-1_3XL1JVvXg"
@@ -639,6 +715,8 @@ Resources:
           Properties:
             Path: /user
             Method: DELETE
+            Auth:
+              Authorizer: CustomAuthorizer
       Environment:
         Variables:
           COGNITO_USER_POOL_ID: "ap-southeast-1_3XL1JVvXg"
@@ -684,6 +762,9 @@ Resources:
           Properties:
             Path: /user
             Method: GET
+            Auth:
+              Authorizer: CustomAuthorizer
+
 
   GetUsersFunction:
     Type: AWS::Serverless::Function
@@ -726,6 +807,8 @@ Resources:
           Properties:
             Path: /users
             Method: GET
+            Auth:
+              Authorizer: CustomAuthorizer
 
   UpdateUserFunction:
     Type: AWS::Serverless::Function
@@ -768,6 +851,8 @@ Resources:
           Properties:
             Path: /user
             Method: PUT
+            Auth:
+              Authorizer: CustomAuthorizer
       Environment:
         Variables:
           COGNITO_USER_POOL_ID: "ap-southeast-1_3XL1JVvXg"
@@ -823,36 +908,10 @@ Resources:
           Properties:
             Path: /logs
             Method: GET
+            Auth:
+              Authorizer: CustomAuthorizer
 
 
-  CustomAuthorizer:
-    Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: go1.x
-    Properties:
-      FunctionName: "custom_authorizer"
-      CodeUri: functions/admin/authorizer/
-      Handler: bootstrap
-      Policies:
-        - Statement:
-            - Action:
-                - ec2:CreateNetworkInterface
-                - ec2:DescribeNetworkInterfaces
-                - ec2:DescribeSubnets
-                - ec2:DeleteNetworkInterface
-                - ec2:AssignPrivateIpAddresses
-                - ec2:UnassignPrivateIpAddresses
-                - logs:CreateLogGroup
-                - logs:CreateLogStream
-                - logs:PutLogEvents
-                - ssm:GetParameter
-                - secretsmanager:GetResourcePolicy
-                - secretsmanager:GetSecretValue
-                - secretsmanager:DescribeSecret
-                - secretsmanager:ListSecretVersionIds
-                - secretsmanager:ListSecrets
-              Effect: Allow
-              Resource: "*"
 
 Outputs:
   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
