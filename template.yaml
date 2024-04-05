@@ -833,10 +833,23 @@ Resources:
       CodeUri: functions/admin/authorizer/
       Handler: bootstrap
       Policies:
-        - AWSLambdaBasicExecutionRole
         - Statement:
             - Action:
-                - cognito-idp:*
+                - ec2:CreateNetworkInterface
+                - ec2:DescribeNetworkInterfaces
+                - ec2:DescribeSubnets
+                - ec2:DeleteNetworkInterface
+                - ec2:AssignPrivateIpAddresses
+                - ec2:UnassignPrivateIpAddresses
+                - logs:CreateLogGroup
+                - logs:CreateLogStream
+                - logs:PutLogEvents
+                - ssm:GetParameter
+                - secretsmanager:GetResourcePolicy
+                - secretsmanager:GetSecretValue
+                - secretsmanager:DescribeSecret
+                - secretsmanager:ListSecretVersionIds
+                - secretsmanager:ListSecrets
               Effect: Allow
               Resource: "*"
 
