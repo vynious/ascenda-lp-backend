@@ -28,10 +28,8 @@ func init() {
 }
 
 func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyResponse, error) {
-	var roleRequestBody types.GetRoleRequestBody
-
-	if err := json.Unmarshal([]byte(request.Body), &roleRequestBody); err != nil {
-		log.Printf("JSON unmarshal error: %s", err)
+	roleName, exists := request.QueryStringParameters["roleName"]
+	if !exists || roleName == "" {
 		return events.APIGatewayProxyResponse{
 			StatusCode: 400,
 			Headers: map[string]string{
@@ -39,10 +37,11 @@ func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (event
 				"Access-Control-Allow-Origin":  "*",
 				"Access-Control-Allow-Methods": "GET",
 			},
-			Body: "Invalid request format",
+			Body: "Missing or empty RoleName query parameter",
 		}, nil
 	}
 
+	roleRequestBody := types.GetRoleRequestBody{RoleName: roleName}
 	role, err := db.RetrieveRoleWithRetrieveRoleRequestBody(ctx, DBService, roleRequestBody)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {

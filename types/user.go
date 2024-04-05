@@ -36,6 +36,7 @@ type DeleteUserRequestBody struct {
 
 type UpdateUserRequestBody struct {
 	Id           string
+	Email        string
 	NewFirstName string
 	NewLastName  string
 	NewEmail     string
