@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"time"
 
 	"github.com/google/uuid"
 	"github.com/vynious/ascenda-lp-backend/types"
@@ -18,12 +17,9 @@ func (dbs *DBService) GetPoints(ctx context.Context) ([]types.Points, error) {
 		return nil, fmt.Errorf("database error %s", res.Error)
 	}
 	logEntry := types.Log{
-		LogId:        "unique_log_id",
-		Type:         "database_operation",
-		Action:       "this is a sample testingmail@gmail.com",
+		Type:         "Points",
+		Action:       "Queried all points",
 		UserLocation: "unknown",
-		Timestamp:    time.Now(),
-		TTL:          "",
 	}
 
 	if err := util.CreateLogEntry(logEntry); err != nil {

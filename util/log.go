@@ -13,6 +13,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
+	"github.com/google/uuid"
 	"github.com/vynious/ascenda-lp-backend/types"
 )
 
@@ -32,11 +33,17 @@ func CreateLogEntry(log types.Log) error {
 	// Filter PII in the action field
 	filteredAction := filterPII(log.Action)
 
+	// Generate a UUID for the log ID
+	logID := uuid.New().String()
+
+	// Set the Timestamp field to the current time
+	log.Timestamp = time.Now().UTC()
+
 	input := &dynamodb.PutItemInput{
 		TableName: aws.String("logs"),
 		Item: map[string]*dynamodb.AttributeValue{
 			"log_id": {
-				S: aws.String(log.LogId),
+				S: aws.String(logID),
 			},
 			"UserID": {
 				S: aws.String(log.UserId),
@@ -61,6 +68,7 @@ func CreateLogEntry(log types.Log) error {
 
 	_, err = svc.PutItem(input)
 	if err != nil {
+		// log.Printf("Error creating log entry: %v", err)
 		return err
 	}
 
@@ -100,7 +108,7 @@ func HandleRequest(request events.APIGatewayProxyRequest) (events.APIGatewayProx
 	// 	return events.APIGatewayProxyResponse{}, err
 	// }
 	// Create a log entry
-	log := types.Log{
+	logs := types.Log{
 		LogId:  "unique_log_id",
 		UserId: userID,
 		Action: actionType,
@@ -111,7 +119,7 @@ func HandleRequest(request events.APIGatewayProxyRequest) (events.APIGatewayProx
 		TTL:          "",
 	}
 	// Store the log entry in DynamoDB
-	err := CreateLogEntry(log)
+	err := CreateLogEntry(logs)
 	if err != nil {
 		return events.APIGatewayProxyResponse{}, err
 	}

@@ -70,6 +70,7 @@ Resources:
       VpcConfig:
         SecurityGroupIds:
           - sg-08f58f539a3e92eb4
+          - sg-0926d9e015281d694
         SubnetIds:
           - subnet-39ee2971
           - subnet-0e2ff868
@@ -767,6 +768,7 @@ Resources:
     Metadata:
       BuildMethod: go1.x
     Properties:
+      Role: !Sub arn:aws:iam::${AWS::AccountId}:role/AscendaLambdaRole
       FunctionName: "get_logs"
       # must refer to the directory containing your main package
       CodeUri: functions/logs/get-logs/
