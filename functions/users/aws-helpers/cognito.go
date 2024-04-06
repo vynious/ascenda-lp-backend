@@ -4,12 +4,18 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/cognitoidentityprovider"
-	cognito "github.com/aws/aws-sdk-go/service/cognitoidentityprovider"
 )
 
-func InitCognitoClient() *cognito.CognitoIdentityProvider {
-	sess := session.Must(session.NewSession())
-	cogClient := cognitoidentityprovider.New(sess, aws.NewConfig().WithRegion("ap-southeast-1"))
+func InitCognitoClient() *cognitoidentityprovider.CognitoIdentityProvider {
+	sess, err := session.NewSession(&aws.Config{
+		Region:   aws.String("ap-southeast-1"),
+		LogLevel: aws.LogLevel(aws.LogDebugWithHTTPBody),
+	})
 
+	if err != nil {
+		panic(err)
+	}
+
+	cogClient := cognitoidentityprovider.New(sess)
 	return cogClient
 }
