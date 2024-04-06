@@ -565,6 +565,7 @@ Resources:
       Policies:
         - Statement:
             - Action:
+                - cognito-idp:AdminCreateUser
                 - ec2:CreateNetworkInterface
                 - ec2:DescribeNetworkInterfaces
                 - ec2:DescribeSubnets
