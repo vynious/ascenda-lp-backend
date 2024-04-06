@@ -11,8 +11,8 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go-v2/aws"
-	cognito "github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider"
 	"github.com/aws/aws-sdk-go-v2/service/rds"
+	cognito "github.com/aws/aws-sdk-go/service/cognitoidentityprovider"
 	"github.com/aws/smithy-go"
 	"github.com/vynious/ascenda-lp-backend/db"
 	aws_helpers "github.com/vynious/ascenda-lp-backend/functions/users/aws-helpers"
@@ -23,7 +23,7 @@ import (
 var (
 	DBService     *db.DBService
 	RDSClient     *rds.Client
-	cognitoClient *cognito.Client
+	cognitoClient *cognito.CognitoIdentityProvider
 	err           error
 )
 
@@ -34,14 +34,13 @@ func init() {
 	}
 	cognitoClient = aws_helpers.InitCognitoClient()
 }
-
 func cognitoDeleteUser(userRequestBody types.DeleteUserRequestBody) error {
 	cognitoInput := &cognito.AdminDeleteUserInput{
 		Username:   aws.String(userRequestBody.Email),
 		UserPoolId: aws.String(os.Getenv("COGNITO_USER_POOL_ID")),
 	}
 
-	_, err = cognitoClient.AdminDeleteUser(context.TODO(), cognitoInput)
+	_, err = cognitoClient.AdminDeleteUser(cognitoInput)
 	if err != nil {
 		var apiErr smithy.APIError
 		if errors.As(err, &apiErr) {

@@ -9,10 +9,9 @@ import (
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
-	cognito "github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider"
-	cognito_types "github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider/types"
 	"github.com/aws/aws-sdk-go-v2/service/rds"
 	"github.com/aws/aws-sdk-go/aws"
+	cognito "github.com/aws/aws-sdk-go/service/cognitoidentityprovider"
 	"github.com/vynious/ascenda-lp-backend/db"
 	aws_helpers "github.com/vynious/ascenda-lp-backend/functions/users/aws-helpers"
 	"github.com/vynious/ascenda-lp-backend/types"
@@ -22,7 +21,7 @@ import (
 var (
 	DBService     *db.DBService
 	RDSClient     *rds.Client
-	cognitoClient *cognito.Client
+	cognitoClient *cognito.CognitoIdentityProvider
 	err           error
 )
 
@@ -35,16 +34,16 @@ func init() {
 }
 
 func cognitoUpdateUser(userRequestBody types.UpdateUserRequestBody) error {
-	var userAttributes []cognito_types.AttributeType
+	var userAttributes []*cognito.AttributeType
 
 	if userRequestBody.NewFirstName != "" {
-		userAttributes = append(userAttributes, cognito_types.AttributeType{Name: aws.String("given_name"), Value: aws.String(userRequestBody.NewFirstName)})
+		userAttributes = append(userAttributes, &cognito.AttributeType{Name: aws.String("given_name"), Value: aws.String(userRequestBody.NewFirstName)})
 	}
 	if userRequestBody.NewLastName != "" {
-		userAttributes = append(userAttributes, cognito_types.AttributeType{Name: aws.String("family_name"), Value: aws.String(userRequestBody.NewLastName)})
+		userAttributes = append(userAttributes, &cognito.AttributeType{Name: aws.String("family_name"), Value: aws.String(userRequestBody.NewLastName)})
 	}
 	if userRequestBody.NewRoleName != "" {
-		userAttributes = append(userAttributes, cognito_types.AttributeType{Name: aws.String("custom:role"), Value: aws.String(userRequestBody.NewRoleName)})
+		userAttributes = append(userAttributes, &cognito.AttributeType{Name: aws.String("custom:role"), Value: aws.String(userRequestBody.NewRoleName)})
 	}
 
 	cognitoInput := &cognito.AdminUpdateUserAttributesInput{
@@ -53,7 +52,7 @@ func cognitoUpdateUser(userRequestBody types.UpdateUserRequestBody) error {
 		UserAttributes: userAttributes,
 	}
 
-	_, err = cognitoClient.AdminUpdateUserAttributes(context.TODO(), cognitoInput)
+	_, err = cognitoClient.AdminUpdateUserAttributes(cognitoInput)
 	if err != nil {
 		log.Println(err)
 		return err
