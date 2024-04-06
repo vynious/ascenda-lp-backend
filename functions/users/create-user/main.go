@@ -10,11 +10,9 @@ import (
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
-	cognito "github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider"
-	cognito_types "github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider/types"
 	"github.com/aws/aws-sdk-go-v2/service/rds"
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/smithy-go"
+	"github.com/aws/aws-sdk-go/service/cognitoidentityprovider"
 	"github.com/google/uuid"
 	"github.com/vynious/ascenda-lp-backend/db"
 	aws_helpers "github.com/vynious/ascenda-lp-backend/functions/users/aws-helpers"
@@ -26,7 +24,7 @@ import (
 var (
 	DBService     *db.DBService
 	RDSClient     *rds.Client
-	cognitoClient *cognito.Client
+	cognitoClient *cognitoidentityprovider.CognitoIdentityProvider
 	err           error
 )
 
@@ -39,14 +37,14 @@ func init() {
 }
 
 func cognitoCreateUser(userRequestBody types.CreateUserRequestBody, newUUID string) error {
-	cognitoInput := &cognito.AdminCreateUserInput{
-		ForceAliasCreation: true,
-		UserPoolId:         aws.String(os.Getenv("COGNITO_USER_POOL_ID")),
-		Username:           aws.String(userRequestBody.Email),
-		DesiredDeliveryMediums: []cognito_types.DeliveryMediumType{
-			cognito_types.DeliveryMediumTypeEmail, // Use the DeliveryMediumType constant
+	userPoolID := os.Getenv("COGNITO_USER_POOL_ID")
+	log.Println(userPoolID)
+	cognitoInput := &cognitoidentityprovider.AdminCreateUserInput{
+		ForceAliasCreation: aws.Bool(true),
+		DesiredDeliveryMediums: []*string{
+			aws.String("EMAIL"),
 		},
-		UserAttributes: []cognito_types.AttributeType{
+		UserAttributes: []*cognitoidentityprovider.AttributeType{
 			{
 				Name:  aws.String("email"),
 				Value: aws.String(userRequestBody.Email),
@@ -64,19 +62,18 @@ func cognitoCreateUser(userRequestBody types.CreateUserRequestBody, newUUID stri
 				Value: aws.String(userRequestBody.RoleName),
 			},
 		},
+		UserPoolId: aws.String(userPoolID),
+		Username:   aws.String(userRequestBody.Email),
 	}
-	_, err := cognitoClient.AdminCreateUser(context.TODO(), cognitoInput)
+	log.Println("try create user in user pool")
+	_, err := cognitoClient.AdminCreateUser(cognitoInput)
+	log.Println("tried")
 	if err != nil {
-		var apiErr smithy.APIError
-		if errors.As(err, &apiErr) {
-			fmt.Println("API Error Code:", apiErr.ErrorCode())
-			fmt.Println("API Error Message:", apiErr.ErrorMessage())
-		} else {
-			fmt.Println("Unknown error:", err)
-		}
 		log.Println(err)
 		return err
 	}
+
+	log.Println("User created in user pool")
 	return nil
 }
 

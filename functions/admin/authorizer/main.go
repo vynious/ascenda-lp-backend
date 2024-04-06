@@ -2,115 +2,111 @@ package main
 
 import (
 	"context"
+	"log"
+
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/google/uuid"
 	"github.com/vynious/ascenda-lp-backend/db"
 	"github.com/vynious/ascenda-lp-backend/types"
 	"github.com/vynious/ascenda-lp-backend/util"
-	"log"
 )
 
-var (
-	DBService *db.DBService
-	err       error
-)
+var DBService *db.DBService
 
 func init() {
+	var err error
 	DBService, err = db.SpawnDBService()
 	if err != nil {
-		log.Fatalf(err.Error())
+		log.Fatalf("Failed to initialize database service: %v", err)
 	}
-
 }
 
 func AuthorizerHandler(ctx context.Context, req events.APIGatewayCustomAuthorizerRequestTypeRequest) (events.APIGatewayCustomAuthorizerResponse, error) {
-
-	/*
-		Get the req.Arn, basically `arn:aws:execute-api:us-east-1:123456789012:a1b2c3d4e5/Prod/GET/points`.
-		Check what kind of functionality user is accessing based of their RolePermissionList.
-		So example if user has CanRead == true for resource == "points_ledger".
-		Allow access to the resource.
-	*/
-
 	token := req.Headers["Authorization"]
 	method := req.HTTPMethod
 	route := req.Path[1:]
 
+	log.Printf("Authorizer %s %s", method, route)
+
 	roleName, err := util.GetRoleWithCognito(token)
-	if err != nil {
-
+	if err != nil || roleName == "" {
+		return GenerateDenyPolicy(uuid.NewString(), req.MethodArn), nil
 	}
-	var role types.Role
-	role, err = db.RetrieveRoleWithRoleName(ctx, DBService, roleName)
-	if err != nil {
 
-	}
-	var permissions types.RolePermissionList
-	permissions = role.Permissions
-
-	return GeneratePolicy(permissions, uuid.NewString(), route, method, req.MethodArn), nil
+	return GeneratePolicyBasedOnRole(ctx, roleName, uuid.NewString(), route, method, req.MethodArn), nil
 }
 
-func GeneratePolicy(permissions []types.RolePermission, principalId, route, method, arn string) events.APIGatewayCustomAuthorizerResponse {
-	authResponse := events.APIGatewayCustomAuthorizerResponse{
-		PrincipalID: principalId,
-	}
-	authResponse.PolicyDocument = events.APIGatewayCustomAuthorizerPolicy{
-		Version:   "2012-10-17",
-		Statement: []events.IAMPolicyStatement{},
+func GeneratePolicyBasedOnRole(ctx context.Context, roleName, principalId, route, method, arn string) events.APIGatewayCustomAuthorizerResponse {
+	log.Printf("GeneratePolicyBasedOnRole %s, %s", roleName, principalId)
+	role, err := db.RetrieveRoleWithRoleName(ctx, DBService, roleName)
+	if err != nil {
+		log.Printf("GenerateDenyPolicy %s", roleName)
+		return GenerateDenyPolicy(principalId, arn)
 	}
 
-	var resource string
+	permissions := role.Permissions
+	authResponse := events.APIGatewayCustomAuthorizerResponse{PrincipalID: principalId}
+	authResponse.PolicyDocument = events.APIGatewayCustomAuthorizerPolicy{Version: "2012-10-17", Statement: []events.IAMPolicyStatement{}}
 
+	resource := determineResource(route)
 	effect := "deny"
-
-	if route == "user" || route == "users" {
-		resource = "user_storage"
-	} else if route == "points" {
-		resource = "points_ledger"
-	} else if route == "logs" || route == "log" {
-		resource = "logs"
-	} else if route == "maker-checker" {
-		resource = "maker_checker"
-	}
+	log.Printf("resource: %v", resource)
 
 	if resource == "maker_checker" {
-		statement := generateStatement("execute-api:Invoke", "allow", arn)
+		log.Printf("generating policy for maker-checker")
+		effect := "allow"
+		statement := generateStatement("execute-api:Invoke", effect, arn)
 		authResponse.PolicyDocument.Statement = append(authResponse.PolicyDocument.Statement, statement)
 	} else {
 		for _, permission := range permissions {
-			if permission.Resource == resource {
-				switch method {
-				case "GET":
-					if permission.CanRead {
-						effect = "allow"
-					}
-				case "PUT":
-					if permission.CanUpdate {
-						effect = "allow"
-					}
-				case "DELETE":
-					if permission.CanDelete {
-						effect = "allow"
-					}
-				case "POST":
-					if permission.CanCreate {
-						effect = "allow"
-					}
-				case "OPTIONS":
-					log.Printf("options method going through")
-				default:
-					log.Printf("unchecked method made")
-				}
-
+			if permission.Resource == resource && checkPermission(permission, method) {
+				log.Println("found resource and matching permissions")
+				effect = "allow"
 				statement := generateStatement("execute-api:Invoke", effect, arn)
 				authResponse.PolicyDocument.Statement = append(authResponse.PolicyDocument.Statement, statement)
 			}
 		}
+		// If no access permissions found, return deny policy
+		if effect == "deny" {
+			log.Println("resource not found or permission not allowed")
+			return GenerateDenyPolicy(principalId, arn)
+		}
 	}
 
+
+	log.Printf("%+v", authResponse)
 	return authResponse
+}
+
+func determineResource(route string) string {
+	switch route {
+	case "user", "users":
+		return "user_storage"
+	case "points":
+		return "points_ledger"
+	case "logs", "log":
+		return "logs"
+	case "maker-checker":
+		return "maker_checker"
+	default:
+		return ""
+	}
+}
+
+func checkPermission(permission types.RolePermission, method string) bool {
+	switch method {
+	case "GET":
+		return permission.CanRead
+	case "PUT":
+		return permission.CanUpdate
+	case "POST":
+		return permission.CanCreate
+	case "DELETE":
+		return permission.CanDelete
+	default:
+		return false
+	}
 }
 
 func generateStatement(action, effect, resource string) events.IAMPolicyStatement {
@@ -121,6 +117,24 @@ func generateStatement(action, effect, resource string) events.IAMPolicyStatemen
 	}
 }
 
+func GenerateDenyPolicy(principalId, arn string) events.APIGatewayCustomAuthorizerResponse {
+	return events.APIGatewayCustomAuthorizerResponse{
+		PrincipalID: principalId,
+		PolicyDocument: events.APIGatewayCustomAuthorizerPolicy{
+			Version: "2012-10-17",
+			Statement: []events.IAMPolicyStatement{
+				{
+					Action:   []string{"execute-api:Invoke"},
+					Effect:   "Deny",
+					Resource: []string{arn},
+				},
+			},
+		},
+	}
+}
+
 func main() {
 	lambda.Start(AuthorizerHandler)
+	defer DBService.CloseConn()
+
 }

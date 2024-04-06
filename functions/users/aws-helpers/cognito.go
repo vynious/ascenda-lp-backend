@@ -1,20 +1,21 @@
 package aws_helpers
 
 import (
-	"context"
-	"log"
-	"os"
-
-	"github.com/aws/aws-sdk-go-v2/config"
-	cognito "github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/cognitoidentityprovider"
 )
 
-func InitCognitoClient() *cognito.Client {
-	cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion(os.Getenv("AWS_REGION")))
+func InitCognitoClient() *cognitoidentityprovider.CognitoIdentityProvider {
+	sess, err := session.NewSession(&aws.Config{
+		Region:   aws.String("ap-southeast-1"),
+		LogLevel: aws.LogLevel(aws.LogDebugWithHTTPBody),
+	})
+
 	if err != nil {
-		log.Fatalf("failed to load configuration, %v", err)
+		panic(err)
 	}
 
-	cognitoClient := cognito.NewFromConfig(cfg)
-	return cognitoClient
+	cogClient := cognitoidentityprovider.New(sess)
+	return cogClient
 }
