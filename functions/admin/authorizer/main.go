@@ -52,18 +52,26 @@ func GeneratePolicyBasedOnRole(ctx context.Context, roleName, principalId, route
 	resource := determineResource(route)
 	effect := "deny"
 
-	for _, permission := range permissions {
-		if permission.Resource == resource && checkPermission(permission, method) {
-			effect = "allow"
-			statement := generateStatement("execute-api:Invoke", effect, arn)
-			authResponse.PolicyDocument.Statement = append(authResponse.PolicyDocument.Statement, statement)
+	if resource == "maker_checker" {
+		effect := "allow"
+		statement := generateStatement("execute-api:Invoke", effect, arn)
+		authResponse.PolicyDocument.Statement = append(authResponse.PolicyDocument.Statement, statement)
+
+	} else {
+		for _, permission := range permissions {
+			if permission.Resource == resource && checkPermission(permission, method) {
+				effect = "allow"
+				statement := generateStatement("execute-api:Invoke", effect, arn)
+				authResponse.PolicyDocument.Statement = append(authResponse.PolicyDocument.Statement, statement)
+			}
+		}
+		// If no access permissions found, return deny policy
+		if effect == "deny" {
+			return GenerateDenyPolicy(principalId, arn)
 		}
 	}
 
-	// If no access permissions found, return deny policy
-	if effect == "deny" {
-		return GenerateDenyPolicy(principalId, arn)
-	}
+
 
 	return authResponse
 }
