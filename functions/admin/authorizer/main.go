@@ -52,7 +52,7 @@ func GeneratePolicyBasedOnRole(ctx context.Context, roleName, principalId, route
 	resource := determineResource(route)
 	effect := "deny"
 
-	if resource == "maker_checker" {
+	if resource == "maker-checker" {
 		effect := "allow"
 		statement := generateStatement("execute-api:Invoke", effect, arn)
 		authResponse.PolicyDocument.Statement = append(authResponse.PolicyDocument.Statement, statement)
