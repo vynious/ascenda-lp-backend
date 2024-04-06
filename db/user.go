@@ -89,10 +89,6 @@ func UpdateUserWithUpdateUserRequestBody(ctx context.Context, dbs *DBService, us
 		return types.User{}, err
 	}
 
-	if userRequestBody.NewEmail != "" {
-		user.Email = userRequestBody.NewEmail
-	}
-
 	if userRequestBody.NewFirstName != "" {
 		user.FirstName = userRequestBody.NewFirstName
 	}
@@ -108,6 +104,7 @@ func UpdateUserWithUpdateUserRequestBody(ctx context.Context, dbs *DBService, us
 			return types.User{}, err
 		}
 		user.RoleID = &newRole.Id
+		user.RoleName = &newRole.RoleName
 	}
 
 	user.UpdatedAt = time.Now()
@@ -120,12 +117,6 @@ func UpdateUserWithUpdateUserRequestBody(ctx context.Context, dbs *DBService, us
 	if err := tx.Commit().Error; err != nil {
 		return types.User{}, err
 	}
-
-	// if user.RoleID != nil {
-	// 	if err := dbs.Conn.Preload("Permissions").Where("id = ?", user.RoleID).First(&user.Role).Error; err != nil {
-	// 		log.Printf("Error loading role: %v", err)
-	// 	}
-	// }
 
 	return user, nil
 
