@@ -83,4 +83,5 @@ func LambdaHandler(ctx context.Context, req *events.APIGatewayV2HTTPRequest) (ev
 
 func main() {
 	lambda.Start(LambdaHandler)
+	defer DBService.CloseConn()
 }

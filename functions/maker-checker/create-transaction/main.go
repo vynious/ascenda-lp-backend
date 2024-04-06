@@ -28,7 +28,7 @@ func init() {
 }
 
 func CreateTransactionHandler(ctx context.Context, req *events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyResponse, error) {
-	defer DBService.CloseConn()
+
 
 	if err := json.Unmarshal([]byte(req.Body), &requestBody); err != nil {
 		return events.APIGatewayProxyResponse{
@@ -174,4 +174,5 @@ func CreateTransactionHandler(ctx context.Context, req *events.APIGatewayV2HTTPR
 
 func main() {
 	lambda.Start(CreateTransactionHandler)
+	defer DBService.CloseConn()
 }
