@@ -596,6 +596,7 @@ Resources:
       Policies:
         - Statement:
             - Action:
+                - cognito-idp:AdminDeleteUser
                 - ec2:CreateNetworkInterface
                 - ec2:DescribeNetworkInterfaces
                 - ec2:DescribeSubnets
@@ -713,6 +714,7 @@ Resources:
       Policies:
         - Statement:
             - Action:
+                - cognito-idp:AdminUpdateUser
                 - ec2:CreateNetworkInterface
                 - ec2:DescribeNetworkInterfaces
                 - ec2:DescribeSubnets
