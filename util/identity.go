@@ -27,5 +27,6 @@ func GetRoleWithCognito(token string) (string, error) {
 			break
 		}
 	}
+	
 	return roleName, nil
 }

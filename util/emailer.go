@@ -72,15 +72,15 @@ func EmailCheckers(ctx context.Context, actionType string, checkersEmail []strin
 			Tags:                 nil,
 		}
 
-		verified, err := VerifyEmail(ctx, email)
-		if err != nil {
-			log.Printf("unable to verify email: %v", err)
-			continue
-		}
-		if verified == false {
-			log.Printf("%v is not verified", email)
-			continue
-		}
+		// verified, err := VerifyEmail(ctx, email)
+		// if err != nil {
+		// 	log.Printf("unable to verify email: %v", err)
+		// 	continue
+		// }
+		// if !verified {
+		// 	log.Printf("%v is not verified", email)
+		// 	continue
+		// }
 
 		if _, err := sesClient.SendEmail(ctx, &input); err != nil {
 			log.Printf("failed send email to %v due to %v", email, err)
