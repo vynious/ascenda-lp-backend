@@ -38,8 +38,10 @@ func AuthorizerHandler(ctx context.Context, req events.APIGatewayCustomAuthorize
 }
 
 func GeneratePolicyBasedOnRole(ctx context.Context, roleName, principalId, route, method, arn string) events.APIGatewayCustomAuthorizerResponse {
+	log.Printf("GeneratePolicyBasedOnRole %s, %s", roleName, principalId)
 	role, err := db.RetrieveRoleWithRoleName(ctx, DBService, roleName)
 	if err != nil {
+		log.Printf("GenerateDenyPolicy %s", roleName)
 		return GenerateDenyPolicy(principalId, arn)
 	}
 
@@ -56,6 +58,11 @@ func GeneratePolicyBasedOnRole(ctx context.Context, roleName, principalId, route
 			statement := generateStatement("execute-api:Invoke", effect, arn)
 			authResponse.PolicyDocument.Statement = append(authResponse.PolicyDocument.Statement, statement)
 		}
+	}
+
+	// If no access permissions found, return deny policy
+	if effect == "deny" {
+		return GenerateDenyPolicy(principalId, arn)
 	}
 
 	return authResponse
