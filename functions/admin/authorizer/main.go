@@ -135,4 +135,6 @@ func GenerateDenyPolicy(principalId, arn string) events.APIGatewayCustomAuthoriz
 
 func main() {
 	lambda.Start(AuthorizerHandler)
+	defer DBService.CloseConn()
+
 }
