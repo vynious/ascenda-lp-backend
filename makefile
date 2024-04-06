@@ -4,7 +4,8 @@ USER_FUNCTIONS := get-users get-user create-user update-user delete-user
 POINT_FUNCTIONS := get-points create-points update-points delete-points
 MAKER_FUNCTIONS := get-transactions create-transaction update-transaction
 ROLE_FUNCTIONS := get-role get-roles create-role update-role delete-role
-#TODO ADMINISTRATIVE_FUNCTIONS := get-logs lambda-authorizer
+LOG_FUNCTIONS := get-logs
+ADMIN_FUNCTIONS := authorizer
 REGION := ap-southeast-1
 
 build-user:
@@ -31,20 +32,26 @@ build-role:
 build-role-%:
 	cd functions/roles/$* && GOOS=linux GOARCH=arm64 CGO_ENABLED=0 ${GO} build -o bootstrap
 
+build-logs:
+	${MAKE} ${MAKEOPTS} $(foreach logFunction,${LOG_FUNCTIONS}, build-logs-${logFunction})
+
+build-logs-%:
+	cd functions/logs/$* && GOOS=linux GOARCH=arm64 CGO_ENABLED=0 ${GO} build -o bootstrap
+
 build-administrative:
-	${MAKE} ${MAKEOPTS} $(foreach adminFunction,${ADMINISTRATIVE_FUNCTIONS}, build-administrative-${adminFunction})
+	${MAKE} ${MAKEOPTS} $(foreach adminFunction,${ADMIN_FUNCTIONS}, build-administrative-${adminFunction})
 
 build-administrative-%:
-	cd functions/administrative/$* && GOOS=linux GOARCH=arm64 CGO_ENABLED=0 ${GO} build -o bootstrap
+	cd functions/admin/$* && GOOS=linux GOARCH=arm64 CGO_ENABLED=0 ${GO} build -o bootstrap
 
-build: build-user build-point build-maker build-role #TODO build-administrative
+build: build-user build-point build-maker build-role build-logs build-administrative
 
 clean:
 	@rm $(foreach function,${USER_FUNCTIONS}, functions/users/${function}/bootstrap)
 	@rm $(foreach function,${POINT_FUNCTIONS}, functions/points/${function}/bootstrap)
 	@rm $(foreach function,${MAKER_FUNCTIONS}, functions/maker-checker/${function}/bootstrap)
 	@rm $(foreach function,${ROLE_FUNCTIONS}, functions/roles/${function}/bootstrap)
-	@rm $(foreach function,${ADMINISTRATIVE_FUNCTIONS}, functions/admin/${function}/bootstrap)
+	@rm $(foreach function,${ADMIN_FUNCTIONS}, functions/admin/${function}/bootstrap)
 
 deploy:
 	sam build && sam deploy --stack-name ${STACK_NAME};
@@ -52,7 +59,7 @@ deploy:
 deploy-auto: 
 	@sam deploy --stack-name ${STACK_NAME} --no-confirm-changeset --no-fail-on-empty-changeset;
 
-deploy-full-auto: build-user build-point build-maker build-role build-administrative
+deploy-full-auto: build-user build-point build-maker build-role build-logs build-administrative
 	@sam deploy --stack-name ${STACK_NAME} --no-confirm-changeset --no-fail-on-empty-changeset;
 
 delete:
