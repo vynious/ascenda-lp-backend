@@ -47,13 +47,9 @@ clean:
 	@rm $(foreach function,${ADMINISTRATIVE_FUNCTIONS}, functions/admin/${function}/bootstrap)
 
 deploy:
-	@sam deploy --stack-name ${STACK_NAME};
+	sam build && sam deploy --stack-name ${STACK_NAME};
 
-
-deploy-shawn:
-	@sam build && sam deploy --stack-name ${STACK_NAME};
-
-deploy-auto:
+deploy-auto: 
 	@sam deploy --stack-name ${STACK_NAME} --no-confirm-changeset --no-fail-on-empty-changeset;
 
 deploy-full-auto: build-user build-point build-maker build-role build-administrative
@@ -68,8 +64,8 @@ build-run:
 teardown:
 	sam delete --stack-name ${STACK_NAME}
 
-deploy-nashwyn:
-	sam build && sam deploy --stack-name ${STACK_NAME};
+deploy-jj:
+	sam deploy --stack-name ${STACK_NAME} --profile itsa
 
 db-reset:
 	go run seed/main.go

@@ -30,6 +30,48 @@ Parameters:
     Type: String
 
 Resources:
+  AscendaGateway:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: Prod
+      Cors:
+        AllowMethods: "'GET, POST, PUT, DELETE, OPTIONS'"
+        AllowHeaders: "'Content-Type, X-Amz-Date, Authorization, X-Api-Key, X-Amz-Security-Token'"
+        AllowOrigin: "'*'"
+      Auth:
+        DefaultAuthorizer: CustomAuthorizer1
+        AddDefaultAuthorizerToCorsPreflight: False
+        InvokeRole: arn:aws:iam::276374573009:role/api_gateway_auth_invocation
+        Authorizers:
+          CustomAuthorizer1:
+            FunctionPayloadType: REQUEST
+            FunctionArn: !GetAtt CustomAuthorizer.Arn
+            Identity:
+              Headers:
+                - Authorization
+              ReauthorizeEvery: 0
+      GatewayResponses:
+        DEFAULT_4XX:
+          ResponseParameters:
+            Headers:
+              Access-Control-Allow-Origin: "'*'"
+      # Domain:
+      #   DomainName: itsag1t2.com
+      #   CertificateArn: arn:aws:acm:ap-southeast-1:276374573009:certificate/d72f5e58-096f-4917-a848-14fad7b26d49
+      #   Route53:
+      #     HostedZoneId: Z05937523KU9FR1TMTEUC
+      #     EvaluateTargetHealth: false
+
+  CustomAuthorizer:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: go1.x
+    Properties:
+      FunctionName: "custom_authorizer"
+      CodeUri: functions/admin/authorizer/
+      Handler: bootstrap
+      Role: !Sub arn:aws:iam::${AWS::AccountId}:role/AscendaUserLambdaRole
+
   GetPointsFunction:
     Type: AWS::Serverless::Function
     Metadata:
@@ -75,9 +117,10 @@ Resources:
           - subnet-39ee2971
           - subnet-0e2ff868
       Events:
-        CatchAll:
+        Api:
           Type: Api
           Properties:
+            RestApiId: !Ref AscendaGateway
             Path: /points
             Method: GET
 
@@ -117,9 +160,10 @@ Resources:
           - subnet-39ee2971
           - subnet-0e2ff868
       Events:
-        CatchAll:
+        Api:
           Type: Api
           Properties:
+            RestApiId: !Ref AscendaGateway
             Path: /points
             Method: PUT
 
@@ -159,9 +203,10 @@ Resources:
           - subnet-39ee2971
           - subnet-0e2ff868
       Events:
-        CatchAll:
+        Api:
           Type: Api
           Properties:
+            RestApiId: !Ref AscendaGateway
             Path: /points
             Method: POST
 
@@ -201,9 +246,10 @@ Resources:
           - subnet-39ee2971
           - subnet-0e2ff868
       Events:
-        CatchAll:
+        Api:
           Type: Api
           Properties:
+            RestApiId: !Ref AscendaGateway
             Path: /points
             Method: DELETE
 
@@ -251,9 +297,10 @@ Resources:
           - subnet-39ee2971
           - subnet-0e2ff868
       Events:
-        CatchAll:
+        Api:
           Type: Api
           Properties:
+            RestApiId: !Ref AscendaGateway
             Path: /maker-checker
             Method: GET
 
@@ -293,9 +340,10 @@ Resources:
           - subnet-39ee2971
           - subnet-0e2ff868
       Events:
-        CatchAll:
+        Api:
           Type: Api
           Properties:
+            RestApiId: !Ref AscendaGateway
             Path: /maker-checker
             Method: PUT
 
@@ -337,9 +385,10 @@ Resources:
           - subnet-39ee2971
           - subnet-0e2ff868
       Events:
-        CatchAll:
+        Api:
           Type: Api
           Properties:
+            RestApiId: !Ref AscendaGateway
             Path: /maker-checker
             Method: POST
 
@@ -379,9 +428,10 @@ Resources:
           - subnet-39ee2971
           - subnet-0e2ff868
       Events:
-        CatchAll:
+        Api:
           Type: Api
           Properties:
+            RestApiId: !Ref AscendaGateway
             Path: /role
             Method: POST
 
@@ -421,9 +471,10 @@ Resources:
           - subnet-39ee2971
           - subnet-0e2ff868
       Events:
-        CatchAll:
+        Api:
           Type: Api
           Properties:
+            RestApiId: !Ref AscendaGateway
             Path: /role
             Method: DELETE
 
@@ -463,9 +514,10 @@ Resources:
           - subnet-39ee2971
           - subnet-0e2ff868
       Events:
-        CatchAll:
+        Api:
           Type: Api
           Properties:
+            RestApiId: !Ref AscendaGateway
             Path: /role
             Method: GET
 
@@ -505,9 +557,10 @@ Resources:
           - subnet-39ee2971
           - subnet-0e2ff868
       Events:
-        CatchAll:
+        Api:
           Type: Api
           Properties:
+            RestApiId: !Ref AscendaGateway
             Path: /roles
             Method: GET
 
@@ -547,9 +600,10 @@ Resources:
           - subnet-39ee2971
           - subnet-0e2ff868
       Events:
-        CatchAll:
+        Api:
           Type: Api
           Properties:
+            RestApiId: !Ref AscendaGateway
             Path: /role
             Method: PUT
 
@@ -590,9 +644,10 @@ Resources:
           - subnet-39ee2971
           - subnet-0e2ff868
       Events:
-        CatchAll:
+        Api:
           Type: Api
           Properties:
+            RestApiId: !Ref AscendaGateway
             Path: /user
             Method: POST
       Environment:
@@ -635,9 +690,10 @@ Resources:
           - subnet-39ee2971
           - subnet-0e2ff868
       Events:
-        CatchAll:
+        Api:
           Type: Api
           Properties:
+            RestApiId: !Ref AscendaGateway
             Path: /user
             Method: DELETE
       Environment:
@@ -680,9 +736,10 @@ Resources:
           - subnet-39ee2971
           - subnet-0e2ff868
       Events:
-        CatchAll:
+        Api:
           Type: Api
           Properties:
+            RestApiId: !Ref AscendaGateway
             Path: /user
             Method: GET
 
@@ -722,9 +779,10 @@ Resources:
           - subnet-39ee2971
           - subnet-0e2ff868
       Events:
-        CatchAll:
+        Api:
           Type: Api
           Properties:
+            RestApiId: !Ref AscendaGateway
             Path: /users
             Method: GET
 
@@ -764,9 +822,10 @@ Resources:
           - subnet-39ee2971
           - subnet-0e2ff868
       Events:
-        CatchAll:
+        Api:
           Type: Api
           Properties:
+            RestApiId: !Ref AscendaGateway
             Path: /user
             Method: PUT
       Environment:
@@ -819,36 +878,20 @@ Resources:
           - subnet-39ee2971
           - subnet-0e2ff868
       Events:
-        CatchAll:
+        Api:
           Type: Api
           Properties:
+            RestApiId: !Ref AscendaGateway
             Path: /logs
             Method: GET
-
-
-  CustomAuthorizer:
-    Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: go1.x
-    Properties:
-      FunctionName: "custom_authorizer"
-      CodeUri: functions/admin/authorizer/
-      Handler: bootstrap
-      Policies:
-        - AWSLambdaBasicExecutionRole
-        - Statement:
-            - Action:
-                - cognito-idp:*
-              Effect: Allow
-              Resource: "*"
 
 Outputs:
   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
   # Find out more about other implicit resources you can reference within SAM
   # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
-  APIEndpoint:
-    Description: "API Gateway endpoint URL for Prod environment for First Function"
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/points/"
-  GetPointsFunction:
-    Description: "First Lambda Function ARN"
-    Value: !GetAtt GetPointsFunction.Arn
+  AscendaGateway:
+    Description: "API Gateway ID"
+    Value: !Ref AscendaGateway
+  # GetPointsFunction:
+  #   Description: "First Lambda Function ARN"
+  #   Value: !GetAtt GetPointsFunction.Arn
