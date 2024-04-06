@@ -10,9 +10,10 @@ import (
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
+	cognito "github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider"
+	cognito_types "github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider/types"
 	"github.com/aws/aws-sdk-go-v2/service/rds"
 	"github.com/aws/aws-sdk-go/aws"
-	cognito "github.com/aws/aws-sdk-go/service/cognitoidentityprovider"
 	"github.com/google/uuid"
 	"github.com/vynious/ascenda-lp-backend/db"
 	aws_helpers "github.com/vynious/ascenda-lp-backend/functions/users/aws-helpers"
@@ -24,7 +25,7 @@ import (
 var (
 	DBService     *db.DBService
 	RDSClient     *rds.Client
-	cognitoClient *cognito.CognitoIdentityProvider
+	cognitoClient *cognito.Client
 	err           error
 )
 
@@ -38,11 +39,13 @@ func init() {
 
 func cognitoCreateUser(userRequestBody types.CreateUserRequestBody, newUUID string) error {
 	cognitoInput := &cognito.AdminCreateUserInput{
-		ForceAliasCreation:     aws.Bool(true),
-		UserPoolId:             aws.String(os.Getenv("COGNITO_USER_POOL_ID")),
-		Username:               aws.String(userRequestBody.Email),
-		DesiredDeliveryMediums: []*string{aws.String(cognito.DeliveryMediumTypeEmail)},
-		UserAttributes: []*cognito.AttributeType{
+		ForceAliasCreation: true,
+		UserPoolId:         aws.String(os.Getenv("COGNITO_USER_POOL_ID")),
+		Username:           aws.String(userRequestBody.Email),
+		DesiredDeliveryMediums: []cognito_types.DeliveryMediumType{
+			cognito_types.DeliveryMediumTypeEmail,
+		},
+		UserAttributes: []cognito_types.AttributeType{
 			{
 				Name:  aws.String("email"),
 				Value: aws.String(userRequestBody.Email),
@@ -61,7 +64,7 @@ func cognitoCreateUser(userRequestBody types.CreateUserRequestBody, newUUID stri
 			},
 		},
 	}
-	_, err := cognitoClient.AdminCreateUser(cognitoInput)
+	_, err := cognitoClient.AdminCreateUser(context.TODO(), cognitoInput)
 	if err != nil {
 		log.Println(err)
 		return err
