@@ -2,13 +2,24 @@ package db
 
 import (
 	"context"
+	"log"
 	"time"
 
 	"github.com/vynious/ascenda-lp-backend/types"
+	"github.com/vynious/ascenda-lp-backend/util"
 	"gorm.io/gorm"
 )
 
 func CreateRoleWithCreateRoleRequestBody(ctx context.Context, dbs *DBService, roleRequestBody types.CreateRoleRequestBody) (string, error) {
+	logEntry := types.Log{
+		Type:         "Role",
+		Action:       "Created Role with request body",
+		UserId:       ctx.Value("userId").(string),
+		UserLocation: ctx.Value("userLocation").(string),
+	}
+	if err := util.CreateLogEntry(logEntry); err != nil {
+		log.Printf("Error creating log entry: %v", err)
+	}
 	role := types.Role{
 		RoleName:  roleRequestBody.RoleName,
 		CreatedAt: time.Now(),
@@ -28,6 +39,15 @@ func CreateRoleWithCreateRoleRequestBody(ctx context.Context, dbs *DBService, ro
 }
 
 func RetrieveRoleWithRoleName(ctx context.Context, dbs *DBService, roleName string) (types.Role, error) {
+	logEntry := types.Log{
+		Type:         "Role",
+		Action:       "Retrieve role with role name",
+		UserId:       ctx.Value("userId").(string),
+		UserLocation: ctx.Value("userLocation").(string),
+	}
+	if err := util.CreateLogEntry(logEntry); err != nil {
+		log.Printf("Error creating log entry: %v", err)
+	}
 	var role types.Role
 	if err := dbs.Conn.Preload("Permissions").Preload("Users").Where("role_name = ?", roleName).First(&role).Error; err != nil {
 		return types.Role{}, err
@@ -36,6 +56,15 @@ func RetrieveRoleWithRoleName(ctx context.Context, dbs *DBService, roleName stri
 }
 
 func RetrieveAllRolesWithUsers(ctx context.Context, dbs *DBService) ([]types.Role, error) {
+	logEntry := types.Log{
+		Type:         "Role",
+		Action:       "Retrive all roles with users",
+		UserId:       ctx.Value("userId").(string),
+		UserLocation: ctx.Value("userLocation").(string),
+	}
+	if err := util.CreateLogEntry(logEntry); err != nil {
+		log.Printf("Error creating log entry: %v", err)
+	}
 	var roles []types.Role
 	if result := dbs.Conn.WithContext(ctx).Preload("Permissions").Preload("Users").Find(&roles); result.Error != nil {
 		return nil, result.Error
@@ -44,6 +73,15 @@ func RetrieveAllRolesWithUsers(ctx context.Context, dbs *DBService) ([]types.Rol
 }
 
 func RetrieveRoleWithRetrieveRoleRequestBody(ctx context.Context, dbs *DBService, roleRequestBody types.GetRoleRequestBody) (types.Role, error) {
+	logEntry := types.Log{
+		Type:         "Role",
+		Action:       "Retrieve role with req body",
+		UserId:       ctx.Value("userId").(string),
+		UserLocation: ctx.Value("userLocation").(string),
+	}
+	if err := util.CreateLogEntry(logEntry); err != nil {
+		log.Printf("Error creating log entry: %v", err)
+	}
 	var role types.Role
 	if err := dbs.Conn.Preload("Permissions").Preload("Users").Where("role_name = ?", roleRequestBody.RoleName).First(&role).Error; err != nil {
 		return types.Role{}, err
@@ -52,6 +90,15 @@ func RetrieveRoleWithRetrieveRoleRequestBody(ctx context.Context, dbs *DBService
 }
 
 func DeleteRoleWithDeleteRoleRequestBody(ctx context.Context, dbs *DBService, roleRequestBody types.DeleteRoleRequestBody) error {
+	logEntry := types.Log{
+		Type:         "Role",
+		Action:       "Delete role with delete req body",
+		UserId:       ctx.Value("userId").(string),
+		UserLocation: ctx.Value("userLocation").(string),
+	}
+	if err := util.CreateLogEntry(logEntry); err != nil {
+		log.Printf("Error creating log entry: %v", err)
+	}
 	tx := dbs.Conn.Begin()
 
 	var role types.Role
@@ -80,7 +127,15 @@ func DeleteRoleWithDeleteRoleRequestBody(ctx context.Context, dbs *DBService, ro
 
 func UpdateRole(ctx context.Context, dbs *DBService, roleRequestBody types.UpdateRoleRequestBody) (types.Role, error) {
 	tx := dbs.Conn.Begin()
-
+	logEntry := types.Log{
+		Type:         "Role",
+		Action:       "Updated role",
+		UserId:       ctx.Value("userId").(string),
+		UserLocation: ctx.Value("userLocation").(string),
+	}
+	if err := util.CreateLogEntry(logEntry); err != nil {
+		log.Printf("Error creating log entry: %v", err)
+	}
 	var role types.Role
 	if err := tx.Where("role_name = ?", roleRequestBody.RoleName).First(&role).Error; err != nil {
 		tx.Rollback()

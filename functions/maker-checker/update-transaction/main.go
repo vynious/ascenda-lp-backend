@@ -26,7 +26,8 @@ func init() {
 }
 
 func LambdaHandler(ctx context.Context, req *events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyResponse, error) {
-
+	ctx = context.WithValue(ctx, "userId", req.Headers["userId"])
+	ctx = context.WithValue(ctx, "userLocation", req.Headers["CloudFront-Viewer-Country"])
 	/*
 		check role/user of requested
 	*/

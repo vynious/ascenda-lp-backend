@@ -28,6 +28,8 @@ func init() {
 }
 
 func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyResponse, error) {
+	ctx = context.WithValue(ctx, "userId", request.Headers["userId"])
+	ctx = context.WithValue(ctx, "userLocation", request.Headers["CloudFront-Viewer-Country"])
 	email, exists := request.QueryStringParameters["email"]
 	if !exists || email == "" {
 		return events.APIGatewayProxyResponse{

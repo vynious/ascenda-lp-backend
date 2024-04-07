@@ -27,6 +27,8 @@ func init() {
 }
 
 func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyResponse, error) {
+	ctx = context.WithValue(ctx, "userId", request.Headers["userId"])
+	ctx = context.WithValue(ctx, "userLocation", request.Headers["CloudFront-Viewer-Country"])
 	roles, err := db.RetrieveAllRolesWithUsers(ctx, DBService)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {

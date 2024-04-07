@@ -56,6 +56,8 @@ func cognitoDeleteUser(userRequestBody types.DeleteUserRequestBody) error {
 }
 
 func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyResponse, error) {
+	ctx = context.WithValue(ctx, "userId", request.Headers["userId"])
+	ctx = context.WithValue(ctx, "userLocation", request.Headers["CloudFront-Viewer-Country"])
 	if request.RequestContext.HTTP.Method == "OPTIONS" {
 		return events.APIGatewayProxyResponse{
 			StatusCode: 200,

@@ -15,8 +15,10 @@ func (dbs *DBService) GetPoints(ctx context.Context) ([]types.Points, error) {
 	res := dbs.Conn.Find(&pointsRecords)
 	if res.Error != nil {
 		logEntry := types.Log{
-			Type:   "Points",
-			Action: fmt.Sprintf("Failed to query points: %s", res.Error),
+			Type:         "Points",
+			Action:       "Failed to query points",
+			UserId:       ctx.Value("userId").(string),
+			UserLocation: ctx.Value("userLocation").(string),
 		}
 		if err := util.CreateLogEntry(logEntry); err != nil {
 			log.Printf("Error creating log entry: %v", err)
@@ -25,8 +27,10 @@ func (dbs *DBService) GetPoints(ctx context.Context) ([]types.Points, error) {
 	}
 
 	logEntry := types.Log{
-		Type:   "Points",
-		Action: "Queried all points",
+		Type:         "Points",
+		Action:       "Queried all points",
+		UserId:       ctx.Value("userId").(string),
+		UserLocation: ctx.Value("userLocation").(string),
 	}
 	if err := util.CreateLogEntry(logEntry); err != nil {
 		log.Printf("Error creating log entry: %v", err)
@@ -40,13 +44,40 @@ func (dbs *DBService) GetPointsAccountById(ctx context.Context, accId string) ([
 	var pointsRecords []types.Points
 	res := dbs.Conn.Where("id = ?", accId).First(&pointsRecords)
 	if res.Error != nil {
+		logEntry := types.Log{
+			Type:         "Points",
+			Action:       "Failed to connect to db when querying user point account by id",
+			UserId:       ctx.Value("userId").(string),
+			UserLocation: ctx.Value("userLocation").(string),
+		}
+		if err := util.CreateLogEntry(logEntry); err != nil {
+			log.Printf("Error creating log entry: %v", err)
+		}
 		return nil, fmt.Errorf("database error %s", res.Error)
 	}
 
 	if res.RowsAffected == 0 {
+		logEntry := types.Log{
+			Type:         "Points",
+			Action:       fmt.Sprintf("Tried to query for a user that does not exist %s", accId),
+			UserId:       ctx.Value("userId").(string),
+			UserLocation: ctx.Value("userLocation").(string),
+		}
+		if err := util.CreateLogEntry(logEntry); err != nil {
+			log.Printf("Error creating log entry: %v", err)
+		}
 		return nil, fmt.Errorf("account %s does not exist", accId)
 	}
 
+	logEntry := types.Log{
+		Type:         "Points",
+		Action:       fmt.Sprintf("Successfully queried points for account id for %s", accId),
+		UserId:       ctx.Value("userId").(string),
+		UserLocation: ctx.Value("userLocation").(string),
+	}
+	if err := util.CreateLogEntry(logEntry); err != nil {
+		log.Printf("Error creating log entry: %v", err)
+	}
 	return pointsRecords, nil
 }
 
@@ -56,13 +87,40 @@ func (dbs *DBService) GetPointsAccountsByUser(ctx context.Context, userId string
 	var pointsRecords []types.Points
 	res := dbs.Conn.Where("user_id = ?", userId).Find(&pointsRecords)
 	if res.Error != nil {
+		logEntry := types.Log{
+			Type:         "Points",
+			Action:       fmt.Sprintf("Failed to connect to db when getting points account by user for %s", userId),
+			UserId:       ctx.Value("userId").(string),
+			UserLocation: ctx.Value("userLocation").(string),
+		}
+		if err := util.CreateLogEntry(logEntry); err != nil {
+			log.Printf("Error creating log entry: %v", err)
+		}
 		return nil, fmt.Errorf("database error %s", res.Error)
 	}
 
 	if res.RowsAffected == 0 {
+		logEntry := types.Log{
+			Type:         "Points",
+			Action:       fmt.Sprintf("Tried querying an account that does not exist when getting points account by user for %s", userId),
+			UserId:       ctx.Value("userId").(string),
+			UserLocation: ctx.Value("userLocation").(string),
+		}
+		if err := util.CreateLogEntry(logEntry); err != nil {
+			log.Printf("Error creating log entry: %v", err)
+		}
 		return nil, fmt.Errorf("user %s does not exist", userId)
 	}
 
+	logEntry := types.Log{
+		Type:         "Points",
+		Action:       fmt.Sprintf("Queried getting points account by user for %s", userId),
+		UserId:       ctx.Value("userId").(string),
+		UserLocation: ctx.Value("userLocation").(string),
+	}
+	if err := util.CreateLogEntry(logEntry); err != nil {
+		log.Printf("Error creating log entry: %v", err)
+	}
 	return pointsRecords, nil
 }
 
@@ -71,12 +129,39 @@ func (dbs *DBService) UpdatePoints(ctx context.Context, req types.UpdatePointsRe
 	var pointsRecords []types.Points
 	pointsRecords, err := dbs.GetPointsAccountById(ctx, req.ID)
 	if err != nil {
+		logEntry := types.Log{
+			Type:         "Points",
+			Action:       fmt.Sprintf("Failed to update points with %+v", req),
+			UserId:       ctx.Value("userId").(string),
+			UserLocation: ctx.Value("userLocation").(string),
+		}
+		if err := util.CreateLogEntry(logEntry); err != nil {
+			log.Printf("Error creating log entry: %v", err)
+		}
 		return nil, err
 	}
 
 	res := dbs.Conn.Model(pointsRecords).Update("balance", req.NewBalance).First(&pointsRecords)
 	if res.RowsAffected == 0 {
+		logEntry := types.Log{
+			Type:         "Points",
+			Action:       fmt.Sprintf("No points updated with with %+v", req),
+			UserId:       ctx.Value("userId").(string),
+			UserLocation: ctx.Value("userLocation").(string),
+		}
+		if err := util.CreateLogEntry(logEntry); err != nil {
+			log.Printf("Error creating log entry: %v", err)
+		}
 		return nil, res.Error
+	}
+	logEntry := types.Log{
+		Type:         "Points",
+		Action:       fmt.Sprintf("Updated points with %+v", req),
+		UserId:       ctx.Value("userId").(string),
+		UserLocation: ctx.Value("userLocation").(string),
+	}
+	if err := util.CreateLogEntry(logEntry); err != nil {
+		log.Printf("Error creating log entry: %v", err)
 	}
 
 	return &pointsRecords[0], nil
@@ -91,16 +176,51 @@ func (dbs *DBService) CreatePointsAccount(ctx context.Context, req types.CreateP
 	}
 	res := dbs.Conn.Model(types.Points{}).Create(&pointsRecord)
 	if res.RowsAffected == 0 {
+		logEntry := types.Log{
+			Type:         "Points",
+			Action:       fmt.Sprintf("Failed to create points account with %+v", req),
+			UserId:       ctx.Value("userId").(string),
+			UserLocation: ctx.Value("userLocation").(string),
+		}
+		if err := util.CreateLogEntry(logEntry); err != nil {
+			log.Printf("Error creating log entry: %v", err)
+		}
 		return nil, fmt.Errorf("database error %s", res.Error)
 	}
-
+	logEntry := types.Log{
+		Type:         "Points",
+		Action:       fmt.Sprintf("Created points account with %+v", req),
+		UserId:       ctx.Value("userId").(string),
+		UserLocation: ctx.Value("userLocation").(string),
+	}
+	if err := util.CreateLogEntry(logEntry); err != nil {
+		log.Printf("Error creating log entry: %v", err)
+	}
 	return &pointsRecord, nil
 }
 
 func (dbs *DBService) DeletePointsAccountByUser(ctx context.Context, userId string) (bool, error) {
 	res := dbs.Conn.Where("user_id = ?", &userId).Delete(&types.Points{})
 	if res.RowsAffected == 0 {
+		logEntry := types.Log{
+			Type:         "Points",
+			Action:       fmt.Sprintf("Faled to delete points account for user %s", userId),
+			UserId:       ctx.Value("userId").(string),
+			UserLocation: ctx.Value("userLocation").(string),
+		}
+		if err := util.CreateLogEntry(logEntry); err != nil {
+			log.Printf("Error creating log entry: %v", err)
+		}
 		return false, fmt.Errorf("database error %s", res.Error)
+	}
+	logEntry := types.Log{
+		Type:         "Points",
+		Action:       fmt.Sprintf("Deleted points account for user %s", userId),
+		UserId:       ctx.Value("userId").(string),
+		UserLocation: ctx.Value("userLocation").(string),
+	}
+	if err := util.CreateLogEntry(logEntry); err != nil {
+		log.Printf("Error creating log entry: %v", err)
 	}
 
 	return true, nil
@@ -109,7 +229,25 @@ func (dbs *DBService) DeletePointsAccountByUser(ctx context.Context, userId stri
 func (dbs *DBService) DeletePointsAccountByID(ctx context.Context, accId string) (bool, error) {
 	res := dbs.Conn.Delete(&types.Points{}, &accId)
 	if res.RowsAffected == 0 {
+		logEntry := types.Log{
+			Type:         "Points",
+			Action:       fmt.Sprintf("Faled to delete points account for id %s", accId),
+			UserId:       ctx.Value("userId").(string),
+			UserLocation: ctx.Value("userLocation").(string),
+		}
+		if err := util.CreateLogEntry(logEntry); err != nil {
+			log.Printf("Error creating log entry: %v", err)
+		}
 		return false, fmt.Errorf("database error %v", res.Error)
+	}
+	logEntry := types.Log{
+		Type:         "Points",
+		Action:       fmt.Sprintf("Deleted points account for id %s", accId),
+		UserId:       ctx.Value("userId").(string),
+		UserLocation: ctx.Value("userLocation").(string),
+	}
+	if err := util.CreateLogEntry(logEntry); err != nil {
+		log.Printf("Error creating log entry: %v", err)
 	}
 
 	return true, nil

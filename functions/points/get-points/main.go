@@ -35,7 +35,11 @@ func main() {
 }
 
 func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyResponse, error) {
+	log.Printf("Request Headers %s", request.Headers)
 	var pointsRecords []types.Points
+
+	ctx = context.WithValue(ctx, "userId", request.Headers["userId"])
+	ctx = context.WithValue(ctx, "userLocation", request.Headers["CloudFront-Viewer-Country"])
 
 	params := request.QueryStringParameters
 
