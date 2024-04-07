@@ -109,13 +109,6 @@ Resources:
                 - secretsmanager:ListSecrets
               Effect: Allow
               Resource: "*"
-      VpcConfig:
-        SecurityGroupIds:
-          - sg-08f58f539a3e92eb4
-          - sg-0926d9e015281d694
-        SubnetIds:
-          - subnet-39ee2971
-          - subnet-0e2ff868
       Events:
         Api:
           Type: Api
@@ -153,12 +146,7 @@ Resources:
                 - secretsmanager:ListSecrets
               Effect: Allow
               Resource: "*"
-      VpcConfig:
-        SecurityGroupIds:
-          - sg-08f58f539a3e92eb4
-        SubnetIds:
-          - subnet-39ee2971
-          - subnet-0e2ff868
+
       Events:
         Api:
           Type: Api
@@ -196,12 +184,7 @@ Resources:
                 - secretsmanager:ListSecrets
               Effect: Allow
               Resource: "*"
-      VpcConfig:
-        SecurityGroupIds:
-          - sg-08f58f539a3e92eb4
-        SubnetIds:
-          - subnet-39ee2971
-          - subnet-0e2ff868
+
       Events:
         Api:
           Type: Api
@@ -239,12 +222,7 @@ Resources:
                 - secretsmanager:ListSecrets
               Effect: Allow
               Resource: "*"
-      VpcConfig:
-        SecurityGroupIds:
-          - sg-08f58f539a3e92eb4
-        SubnetIds:
-          - subnet-39ee2971
-          - subnet-0e2ff868
+
       Events:
         Api:
           Type: Api
@@ -290,12 +268,7 @@ Resources:
                 - secretsmanager:ListSecrets
               Effect: Allow
               Resource: "*"
-      VpcConfig:
-        SecurityGroupIds:
-          - sg-08f58f539a3e92eb4
-        SubnetIds:
-          - subnet-39ee2971
-          - subnet-0e2ff868
+
       Events:
         Api:
           Type: Api
@@ -333,12 +306,6 @@ Resources:
                 - secretsmanager:ListSecrets
               Effect: Allow
               Resource: "*"
-      VpcConfig:
-        SecurityGroupIds:
-          - sg-08f58f539a3e92eb4
-        SubnetIds:
-          - subnet-39ee2971
-          - subnet-0e2ff868
       Events:
         Api:
           Type: Api
@@ -378,12 +345,6 @@ Resources:
                 - secretsmanager:ListSecrets
               Effect: Allow
               Resource: "*"
-      VpcConfig:
-        SecurityGroupIds:
-          - sg-08f58f539a3e92eb4
-        SubnetIds:
-          - subnet-39ee2971
-          - subnet-0e2ff868
       Events:
         Api:
           Type: Api
@@ -421,12 +382,7 @@ Resources:
                 - secretsmanager:ListSecrets
               Effect: Allow
               Resource: "*"
-      VpcConfig:
-        SecurityGroupIds:
-          - sg-08f58f539a3e92eb4
-        SubnetIds:
-          - subnet-39ee2971
-          - subnet-0e2ff868
+
       Events:
         Api:
           Type: Api
@@ -464,12 +420,7 @@ Resources:
                 - secretsmanager:ListSecrets
               Effect: Allow
               Resource: "*"
-      VpcConfig:
-        SecurityGroupIds:
-          - sg-08f58f539a3e92eb4
-        SubnetIds:
-          - subnet-39ee2971
-          - subnet-0e2ff868
+
       Events:
         Api:
           Type: Api
@@ -507,12 +458,7 @@ Resources:
                 - secretsmanager:ListSecrets
               Effect: Allow
               Resource: "*"
-      VpcConfig:
-        SecurityGroupIds:
-          - sg-08f58f539a3e92eb4
-        SubnetIds:
-          - subnet-39ee2971
-          - subnet-0e2ff868
+
       Events:
         Api:
           Type: Api
@@ -550,12 +496,7 @@ Resources:
                 - secretsmanager:ListSecrets
               Effect: Allow
               Resource: "*"
-      VpcConfig:
-        SecurityGroupIds:
-          - sg-08f58f539a3e92eb4
-        SubnetIds:
-          - subnet-39ee2971
-          - subnet-0e2ff868
+ 
       Events:
         Api:
           Type: Api
@@ -593,12 +534,7 @@ Resources:
                 - secretsmanager:ListSecrets
               Effect: Allow
               Resource: "*"
-      VpcConfig:
-        SecurityGroupIds:
-          - sg-08f58f539a3e92eb4
-        SubnetIds:
-          - subnet-39ee2971
-          - subnet-0e2ff868
+
       Events:
         Api:
           Type: Api
@@ -637,12 +573,6 @@ Resources:
                 - secretsmanager:ListSecrets
               Effect: Allow
               Resource: "*"
-      VpcConfig:
-        SecurityGroupIds:
-          - sg-08f58f539a3e92eb4
-        SubnetIds:
-          - subnet-39ee2971
-          - subnet-0e2ff868
       Events:
         Api:
           Type: Api
@@ -666,6 +596,7 @@ Resources:
       Policies:
         - Statement:
             - Action:
+                - cognito-idp:AdminDeleteUser
                 - ec2:CreateNetworkInterface
                 - ec2:DescribeNetworkInterfaces
                 - ec2:DescribeSubnets
@@ -683,12 +614,7 @@ Resources:
                 - secretsmanager:ListSecrets
               Effect: Allow
               Resource: "*"
-      VpcConfig:
-        SecurityGroupIds:
-          - sg-08f58f539a3e92eb4
-        SubnetIds:
-          - subnet-39ee2971
-          - subnet-0e2ff868
+
       Events:
         Api:
           Type: Api
@@ -729,12 +655,7 @@ Resources:
                 - secretsmanager:ListSecrets
               Effect: Allow
               Resource: "*"
-      VpcConfig:
-        SecurityGroupIds:
-          - sg-08f58f539a3e92eb4
-        SubnetIds:
-          - subnet-39ee2971
-          - subnet-0e2ff868
+
       Events:
         Api:
           Type: Api
@@ -772,12 +693,7 @@ Resources:
                 - secretsmanager:ListSecrets
               Effect: Allow
               Resource: "*"
-      VpcConfig:
-        SecurityGroupIds:
-          - sg-08f58f539a3e92eb4
-        SubnetIds:
-          - subnet-39ee2971
-          - subnet-0e2ff868
+
       Events:
         Api:
           Type: Api
@@ -798,6 +714,7 @@ Resources:
       Policies:
         - Statement:
             - Action:
+                - cognito-idp:AdminUpdateUserAttributes
                 - ec2:CreateNetworkInterface
                 - ec2:DescribeNetworkInterfaces
                 - ec2:DescribeSubnets
@@ -815,12 +732,6 @@ Resources:
                 - secretsmanager:ListSecrets
               Effect: Allow
               Resource: "*"
-      VpcConfig:
-        SecurityGroupIds:
-          - sg-08f58f539a3e92eb4
-        SubnetIds:
-          - subnet-39ee2971
-          - subnet-0e2ff868
       Events:
         Api:
           Type: Api
@@ -870,13 +781,6 @@ Resources:
                 - secretsmanager:ListSecrets
               Effect: Allow
               Resource: "*"
-      VpcConfig:
-        SecurityGroupIds:
-          - sg-08f58f539a3e92eb4
-          - sg-0926d9e015281d694
-        SubnetIds:
-          - subnet-39ee2971
-          - subnet-0e2ff868
       Events:
         Api:
           Type: Api

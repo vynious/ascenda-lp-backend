@@ -40,7 +40,8 @@ func (dbs *DBService) CreateTransaction(ctx context.Context, action types.MakerA
 		return nil, err
 	}
 
-	return txn, nil
+
+	return txn, tx.Commit().Error
 }
 
 func (dbs *DBService) GetTransaction(ctx context.Context, txnId string) (*[]types.Transaction, error) {

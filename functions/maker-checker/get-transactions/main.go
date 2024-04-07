@@ -117,4 +117,6 @@ func GetTransactionsHandler(ctx context.Context, req *events.APIGatewayV2HTTPReq
 
 func main() {
 	lambda.Start(GetTransactionsHandler)
+	defer DBService.CloseConn()
+
 }

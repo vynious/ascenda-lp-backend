@@ -72,12 +72,12 @@ func EmailCheckers(ctx context.Context, actionType string, checkersEmail []strin
 			Tags:                 nil,
 		}
 
-		verified, err := VerifyEmail(ctx, email)
+		verified, err := VerifyEmail(ctx, sesClient, email)
 		if err != nil {
 			log.Printf("unable to verify email: %v", err)
 			continue
 		}
-		if verified == false {
+		if !verified {
 			log.Printf("%v is not verified", email)
 			continue
 		}
@@ -119,15 +119,8 @@ func SendEmailVerification(ctx context.Context, email string) error {
 }
 
 // VerifyEmail sends a verification email to the target address to add their verify their identity for receiving emails.
-func VerifyEmail(ctx context.Context, email string) (bool, error) {
-	cfg, err := config.LoadDefaultConfig(ctx)
-	if err != nil {
-		return false, fmt.Errorf("failed loading cfg for ses: %v", err)
-	}
-
-	sesClient := ses.NewFromConfig(cfg)
-
-	if _, err := sesClient.VerifyEmailIdentity(ctx, &ses.VerifyEmailIdentityInput{
+func VerifyEmail(ctx context.Context, client *ses.Client, email string) (bool, error) {
+	if _, err := client.VerifyEmailIdentity(ctx, &ses.VerifyEmailIdentityInput{
 		EmailAddress: aws.String(email),
 	}); err != nil {
 		return false, fmt.Errorf("failed to send verification email: %v", err)
