@@ -14,14 +14,20 @@ func (dbs *DBService) GetPoints(ctx context.Context) ([]types.Points, error) {
 	var pointsRecords []types.Points
 	res := dbs.Conn.Find(&pointsRecords)
 	if res.Error != nil {
-		return nil, fmt.Errorf("database error %s", res.Error)
-	}
-	logEntry := types.Log{
-		Type:         "Points",
-		Action:       "Queried all points",
-		UserLocation: "unknown",
+		logEntry := types.Log{
+			Type:   "Points",
+			Action: fmt.Sprintf("Failed to query points: %s", res.Error),
+		}
+		if err := util.CreateLogEntry(logEntry); err != nil {
+			log.Printf("Error creating log entry: %v", err)
+		}
+		return nil, fmt.Errorf("database error: %s", res.Error)
 	}
 
+	logEntry := types.Log{
+		Type:   "Points",
+		Action: "Queried all points",
+	}
 	if err := util.CreateLogEntry(logEntry); err != nil {
 		log.Printf("Error creating log entry: %v", err)
 	}
