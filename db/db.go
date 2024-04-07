@@ -45,8 +45,10 @@ func SpawnDBService() (*DBService, error) {
 // CloseConn closes connection to db
 func (dbs *DBService) CloseConn() error {
 	db, _ := dbs.Conn.DB()
+	log.Println("closing db connection")
 	if err := db.Close(); err != nil {
 		return fmt.Errorf("failed to close connection")
 	}
+	log.Println("closed db connection")
 	return nil
 }

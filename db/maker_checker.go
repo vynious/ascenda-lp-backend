@@ -111,7 +111,6 @@ func (dbs *DBService) GetPendingTransactionsForChecker(ctx context.Context, chec
 	if err != nil {
 		return nil, err
 	}
-
 	return transactions, nil
 }
 

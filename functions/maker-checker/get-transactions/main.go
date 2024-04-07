@@ -32,8 +32,6 @@ func init() {
 func GetTransactionsHandler(ctx context.Context, req *events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyResponse, error) {
 	var transactions *[]types.Transaction
 
-	defer DBService.CloseConn()
-
 	params := req.QueryStringParameters
 
 	switch {

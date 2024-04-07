@@ -81,7 +81,7 @@ func GeneratePolicyBasedOnRole(ctx context.Context, roleName, principalId, route
 
 func determineResource(route string) string {
 	switch route {
-	case "user", "users":
+	case "user", "users", "role", "roles":
 		return "user_storage"
 	case "points":
 		return "points_ledger"
