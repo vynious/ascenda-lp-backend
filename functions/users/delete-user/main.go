@@ -56,6 +56,15 @@ func cognitoDeleteUser(userRequestBody types.DeleteUserRequestBody) error {
 }
 
 func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyResponse, error) {
+	// Checking if userid and userlocation exists for logging purposes
+	// userId, ok := request.Headers["userId"]
+	// if ok {
+	// 	ctx = context.WithValue(ctx, "userId", userId)
+	// }
+	userLocation, ok := request.Headers["CloudFront-Viewer-Country"]
+	if ok {
+		ctx = context.WithValue(ctx, "userLocation", userLocation)
+	}
 	if request.RequestContext.HTTP.Method == "OPTIONS" {
 		return events.APIGatewayProxyResponse{
 			StatusCode: 200,

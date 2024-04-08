@@ -1,6 +1,7 @@
 package util
 
 import (
+	"log"
 	"net/http"
 	"regexp"
 	"time"
@@ -8,7 +9,6 @@ import (
 	"strings"
 
 	"github.com/aws/aws-lambda-go/events"
-	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -17,7 +17,7 @@ import (
 	"github.com/vynious/ascenda-lp-backend/types"
 )
 
-func CreateLogEntry(log types.Log) error {
+func CreateLogEntry(customLog types.Log) error {
 	// Specify your AWS credentials and region here
 	sess, err := session.NewSession(&aws.Config{
 		Region:      aws.String("ap-southeast-1"),
@@ -26,19 +26,19 @@ func CreateLogEntry(log types.Log) error {
 	if err != nil {
 		return err
 	}
-
+	log.Printf("Connected to log db")
 	// Create a DynamoDB client
 	svc := dynamodb.New(sess)
 
 	// Filter PII in the action field
-	filteredAction := filterPII(log.Action)
+	filteredAction := filterPII(customLog.Action)
 
 	// Generate a UUID for the log ID
 	logID := uuid.New().String()
 
 	// Set the Timestamp field to the current time
-	log.Timestamp = time.Now().UTC()
-
+	customLog.Timestamp = time.Now().UTC()
+	log.Printf("Putting in db")
 	input := &dynamodb.PutItemInput{
 		TableName: aws.String("logs"),
 		Item: map[string]*dynamodb.AttributeValue{
@@ -46,32 +46,32 @@ func CreateLogEntry(log types.Log) error {
 				S: aws.String(logID),
 			},
 			"UserID": {
-				S: aws.String(log.UserId),
+				S: aws.String(customLog.UserId),
 			},
 			"Type": {
-				S: aws.String(log.Type),
+				S: aws.String(customLog.Type),
 			},
 			"Action": {
 				S: aws.String(filteredAction), // Redact PII in the action field
 			},
 			"UserLocation": {
-				S: aws.String(log.UserLocation),
+				S: aws.String(customLog.UserLocation),
 			},
 			"Timestamp": {
-				S: aws.String(log.Timestamp.Format(time.RFC3339)),
+				S: aws.String(customLog.Timestamp.Format(time.RFC3339)),
 			},
 			"TTL": {
-				S: aws.String(log.TTL),
+				S: aws.String(customLog.TTL),
 			},
 		},
 	}
 
 	_, err = svc.PutItem(input)
 	if err != nil {
-		// log.Printf("Error creating log entry: %v", err)
+		log.Printf("Error creating log entry: %v", err)
 		return err
 	}
-
+	log.Printf("putted")
 	return nil
 }
 
@@ -128,8 +128,4 @@ func HandleRequest(request events.APIGatewayProxyRequest) (events.APIGatewayProx
 		StatusCode: http.StatusOK,
 		Body:       "Log entry created successfully",
 	}, nil
-}
-
-func main() {
-	lambda.Start(HandleRequest)
 }
