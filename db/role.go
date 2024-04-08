@@ -8,7 +8,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func CreateRoleWithCreateRoleRequestBody(ctx context.Context, dbs *DBService, roleRequestBody types.CreateRoleRequestBody) (string, error) {
+func CreateRoleWithCreateRoleRequestBody(ctx context.Context, dbs *DB, roleRequestBody types.CreateRoleRequestBody) (string, error) {
 	role := types.Role{
 		RoleName:  roleRequestBody.RoleName,
 		CreatedAt: time.Now(),
@@ -27,7 +27,7 @@ func CreateRoleWithCreateRoleRequestBody(ctx context.Context, dbs *DBService, ro
 	return role.RoleName, tx.Commit().Error
 }
 
-func RetrieveRoleWithRoleName(ctx context.Context, dbs *DBService, roleName string) (types.Role, error) {
+func RetrieveRoleWithRoleName(ctx context.Context, dbs *DB, roleName string) (types.Role, error) {
 	var role types.Role
 	if err := dbs.Conn.Preload("Permissions").Preload("Users").Where("role_name = ?", roleName).First(&role).Error; err != nil {
 		return types.Role{}, err
@@ -35,7 +35,7 @@ func RetrieveRoleWithRoleName(ctx context.Context, dbs *DBService, roleName stri
 	return role, nil
 }
 
-func RetrieveAllRolesWithUsers(ctx context.Context, dbs *DBService) ([]types.Role, error) {
+func RetrieveAllRolesWithUsers(ctx context.Context, dbs *DB) ([]types.Role, error) {
 	var roles []types.Role
 	if result := dbs.Conn.WithContext(ctx).Preload("Permissions").Preload("Users").Find(&roles); result.Error != nil {
 		return nil, result.Error
@@ -43,7 +43,7 @@ func RetrieveAllRolesWithUsers(ctx context.Context, dbs *DBService) ([]types.Rol
 	return roles, nil
 }
 
-func RetrieveRoleWithRetrieveRoleRequestBody(ctx context.Context, dbs *DBService, roleRequestBody types.GetRoleRequestBody) (types.Role, error) {
+func RetrieveRoleWithRetrieveRoleRequestBody(ctx context.Context, dbs *DB, roleRequestBody types.GetRoleRequestBody) (types.Role, error) {
 	var role types.Role
 	if err := dbs.Conn.Preload("Permissions").Preload("Users").Where("role_name = ?", roleRequestBody.RoleName).First(&role).Error; err != nil {
 		return types.Role{}, err
@@ -51,7 +51,7 @@ func RetrieveRoleWithRetrieveRoleRequestBody(ctx context.Context, dbs *DBService
 	return role, nil
 }
 
-func DeleteRoleWithDeleteRoleRequestBody(ctx context.Context, dbs *DBService, roleRequestBody types.DeleteRoleRequestBody) error {
+func DeleteRoleWithDeleteRoleRequestBody(ctx context.Context, dbs *DB, roleRequestBody types.DeleteRoleRequestBody) error {
 	tx := dbs.Conn.Begin()
 
 	var role types.Role
@@ -78,7 +78,7 @@ func DeleteRoleWithDeleteRoleRequestBody(ctx context.Context, dbs *DBService, ro
 	return tx.Commit().Error
 }
 
-func UpdateRole(ctx context.Context, dbs *DBService, roleRequestBody types.UpdateRoleRequestBody) (types.Role, error) {
+func UpdateRole(ctx context.Context, dbs *DB, roleRequestBody types.UpdateRoleRequestBody) (types.Role, error) {
 	tx := dbs.Conn.Begin()
 
 	var role types.Role

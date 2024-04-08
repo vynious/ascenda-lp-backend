@@ -8,7 +8,7 @@ import (
 	"github.com/vynious/ascenda-lp-backend/types"
 )
 
-func CreateUserWithCreateUserRequestBody(ctx context.Context, dbs *DBService, userRequestBody types.CreateUserRequestBody, newUUID string) (*types.User, error) {
+func CreateUserWithCreateUserRequestBody(ctx context.Context, dbs *DB, userRequestBody types.CreateUserRequestBody, newUUID string) (*types.User, error) {
 	var roleID *uint = nil
 
 	if userRequestBody.RoleName != "" {
@@ -39,7 +39,7 @@ func CreateUserWithCreateUserRequestBody(ctx context.Context, dbs *DBService, us
 	return &user, tx.Commit().Error
 }
 
-func RetrieveUserWithGetUserRequestBody(ctx context.Context, dbs *DBService, userRequestBody types.GetUserRequestBody) (*types.User, error) {
+func RetrieveUserWithGetUserRequestBody(ctx context.Context, dbs *DB, userRequestBody types.GetUserRequestBody) (*types.User, error) {
 	var user types.User
 	result := dbs.Conn.WithContext(ctx).Where("email = ?", userRequestBody.Email).First(&user)
 	if result.Error != nil {
@@ -48,7 +48,7 @@ func RetrieveUserWithGetUserRequestBody(ctx context.Context, dbs *DBService, use
 	return &user, nil
 }
 
-func RetrieveUserWithEmail(ctx context.Context, dbs *DBService, email string) (*types.User, error) {
+func RetrieveUserWithEmail(ctx context.Context, dbs *DB, email string) (*types.User, error) {
 	var user types.User
 	result := dbs.Conn.WithContext(ctx).Where("email = ?", email).First(&user)
 	if result.Error != nil {
@@ -57,7 +57,7 @@ func RetrieveUserWithEmail(ctx context.Context, dbs *DBService, email string) (*
 	return &user, nil
 }
 
-func RetrieveAllUsers(ctx context.Context, dbs *DBService) ([]types.User, error) {
+func RetrieveAllUsers(ctx context.Context, dbs *DB) ([]types.User, error) {
 	var users []types.User
 	result := dbs.Conn.WithContext(ctx).Find(&users)
 	if result.Error != nil {
@@ -66,7 +66,7 @@ func RetrieveAllUsers(ctx context.Context, dbs *DBService) ([]types.User, error)
 	return users, nil
 }
 
-func DeleteUserWithDeleteUserRequestBody(ctx context.Context, dbs *DBService, userRequestBody types.DeleteUserRequestBody) error {
+func DeleteUserWithDeleteUserRequestBody(ctx context.Context, dbs *DB, userRequestBody types.DeleteUserRequestBody) error {
 	var user types.User
 	res := dbs.Conn.WithContext(ctx).Where("id = ?", userRequestBody.Id).First(&user)
 	if res.Error != nil {
@@ -80,7 +80,7 @@ func DeleteUserWithDeleteUserRequestBody(ctx context.Context, dbs *DBService, us
 	return nil
 }
 
-func UpdateUserWithUpdateUserRequestBody(ctx context.Context, dbs *DBService, userRequestBody types.UpdateUserRequestBody) (types.User, error) {
+func UpdateUserWithUpdateUserRequestBody(ctx context.Context, dbs *DB, userRequestBody types.UpdateUserRequestBody) (types.User, error) {
 	tx := dbs.Conn.Begin()
 	log.Println(userRequestBody)
 	var user types.User
