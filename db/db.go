@@ -55,7 +55,7 @@ func GetAvailableDatabases() []string {
 
 	log.Printf("GetAvailableDatabases")
 	var databases []string
-	if err := conn.Raw("SELECT datname FROM pg_database WHERE datistemplate = false and datname not in ('rdsadmin', 'postgres', 'ascenda');").Pluck("datname", &databases).Error; err != nil {
+	if err := conn.Raw("SELECT datname FROM pg_database WHERE datistemplate = false and datname not in ('rdsadmin', 'postgres');").Pluck("datname", &databases).Error; err != nil {
 		log.Fatalf("Failed to fetch databases: %v", err)
 	}
 
