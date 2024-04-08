@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/vynious/ascenda-lp-backend/db"
 	makerchecker "github.com/vynious/ascenda-lp-backend/types"
+	"github.com/vynious/ascenda-lp-backend/util"
 )
 
 var (
@@ -16,7 +17,7 @@ var (
 	requestBody  makerchecker.UpdateTransactionRequestBody
 	responseBody makerchecker.TransactionResponseBody
 	err          error
-	DB *db.DB
+	DB           *db.DB
 )
 
 func init() {
@@ -28,10 +29,10 @@ func init() {
 
 func LambdaHandler(ctx context.Context, req *events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyResponse, error) {
 	// Checking if userid and userlocation exists for logging purposes
-	// userId, ok := request.Headers["userId"]
-	// if ok {
-	// 	ctx = context.WithValue(ctx, "userId", userId)
-	// }
+	userId, err := util.GetCustomAttributeWithCognito("custom:userId", req.Headers["Authorization"])
+	if err != nil {
+		ctx = context.WithValue(ctx, "userId", userId)
+	}
 	userLocation, ok := req.Headers["CloudFront-Viewer-Country"]
 	if ok {
 		ctx = context.WithValue(ctx, "userLocation", userLocation)
@@ -39,9 +40,8 @@ func LambdaHandler(ctx context.Context, req *events.APIGatewayV2HTTPRequest) (ev
 	/*
 		check role/user of requested
 	*/
-	
-	DB = DBService.GetBanksDB(req.Headers["Authorization"])
 
+	DB = DBService.GetBanksDB(req.Headers["Authorization"])
 
 	if err := json.Unmarshal([]byte(req.Body), &requestBody); err != nil {
 		return events.APIGatewayProxyResponse{

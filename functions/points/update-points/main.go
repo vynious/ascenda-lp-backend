@@ -10,6 +10,7 @@ import (
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/vynious/ascenda-lp-backend/db"
 	"github.com/vynious/ascenda-lp-backend/types"
+	"github.com/vynious/ascenda-lp-backend/util"
 )
 
 var (
@@ -36,10 +37,10 @@ func main() {
 
 func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyResponse, error) {
 	// Checking if userid and userlocation exists for logging purposes
-	// userId, ok := request.Headers["userId"]
-	// if ok {
-	// 	ctx = context.WithValue(ctx, "userId", userId)
-	// }
+	userId, err := util.GetCustomAttributeWithCognito("custom:userId", request.Headers["Authorization"])
+	if err != nil {
+		ctx = context.WithValue(ctx, "userId", userId)
+	}
 	userLocation, ok := request.Headers["CloudFront-Viewer-Country"]
 	if ok {
 		ctx = context.WithValue(ctx, "userLocation", userLocation)

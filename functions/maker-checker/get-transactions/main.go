@@ -9,11 +9,12 @@ import (
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/vynious/ascenda-lp-backend/db"
 	"github.com/vynious/ascenda-lp-backend/types"
+	"github.com/vynious/ascenda-lp-backend/util"
 )
 
 var (
 	DBService *db.DBService
-	DB *db.DB
+	DB        *db.DB
 	err       error
 	headers   = map[string]string{
 		"Access-Control-Allow-Headers": "Content-Type",
@@ -32,13 +33,13 @@ func init() {
 }
 
 func GetTransactionsHandler(ctx context.Context, req *events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyResponse, error) {
-	
+
 	var transactions *[]types.Transaction
 	// Checking if userid and userlocation exists for logging purposes
-	// userId, ok := request.Headers["userId"]
-	// if ok {
-	// 	ctx = context.WithValue(ctx, "userId", userId)
-	// }
+	userId, err := util.GetCustomAttributeWithCognito("custom:userId", req.Headers["Authorization"])
+	if err != nil {
+		ctx = context.WithValue(ctx, "userId", userId)
+	}
 	userLocation, ok := req.Headers["CloudFront-Viewer-Country"]
 	if ok {
 		ctx = context.WithValue(ctx, "userLocation", userLocation)
@@ -46,7 +47,6 @@ func GetTransactionsHandler(ctx context.Context, req *events.APIGatewayV2HTTPReq
 	params := req.QueryStringParameters
 
 	DB = DBService.GetBanksDB(req.Headers["Authorization"])
-
 
 	switch {
 	case params["transaction_id"] != "":

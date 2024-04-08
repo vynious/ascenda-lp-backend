@@ -17,6 +17,7 @@ import (
 	"github.com/vynious/ascenda-lp-backend/db"
 	aws_helpers "github.com/vynious/ascenda-lp-backend/functions/users/aws-helpers"
 	"github.com/vynious/ascenda-lp-backend/types"
+	"github.com/vynious/ascenda-lp-backend/util"
 	"gorm.io/gorm"
 )
 
@@ -58,10 +59,10 @@ func cognitoDeleteUser(userRequestBody types.DeleteUserRequestBody) error {
 
 func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyResponse, error) {
 	// Checking if userid and userlocation exists for logging purposes
-	// userId, ok := request.Headers["userId"]
-	// if ok {
-	// 	ctx = context.WithValue(ctx, "userId", userId)
-	// }
+	userId, err := util.GetCustomAttributeWithCognito("custom:userId", request.Headers["Authorization"])
+	if err != nil {
+		ctx = context.WithValue(ctx, "userId", userId)
+	}
 	userLocation, ok := request.Headers["CloudFront-Viewer-Country"]
 	if ok {
 		ctx = context.WithValue(ctx, "userLocation", userLocation)
