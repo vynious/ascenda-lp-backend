@@ -23,7 +23,7 @@ func main() {
 		log.Fatalf("Failed to load .env")
 	}
 
-	var DB, err = db.SpawnDBService()
+	var DBS, err = db.SpawnDBService()
 	if err != nil {
 		log.Fatalf("Error spawn DB service...")
 	}

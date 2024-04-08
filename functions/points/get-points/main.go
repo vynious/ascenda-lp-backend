@@ -6,6 +6,7 @@ import (
 	"log"
 
 	"github.com/vynious/ascenda-lp-backend/types"
+	"github.com/vynious/ascenda-lp-backend/util"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -13,9 +14,9 @@ import (
 )
 
 var (
-	DB      *db.DBService
-	err     error
-	headers = map[string]string{
+	DBService *db.DBService
+	err       error
+	headers   = map[string]string{
 		"Access-Control-Allow-Headers": "Content-Type",
 		"Access-Control-Allow-Origin":  "*",
 		"Access-Control-Allow-Methods": "GET",
@@ -24,18 +25,24 @@ var (
 
 func init() {
 	log.Printf("INIT")
-	DB, err = db.SpawnDBService()
+	DBService, err = db.SpawnDBService()
 }
 
 func main() {
 	// we are simulating a lambda behind an ApiGatewayV2
 	lambda.Start(handler)
 
-	defer DB.CloseConn()
+	defer DBService.CloseConnections()
 }
 
 func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyResponse, error) {
 	var pointsRecords []types.Points
+
+	bank, err := util.GetCustomAttributeWithCognito("custom:bank", request.Headers["Authorization"])
+	if err != nil {
+		log.Printf("error decoding token to get custom:bank attribute")
+	}
+	DB := DBService.ConnMap[bank]
 
 	params := request.QueryStringParameters
 

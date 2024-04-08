@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	DB      *db.DBService
+	DBS     *db.DBService
 	err     error
 	headers = map[string]string{
 		"Access-Control-Allow-Headers": "Content-Type",
@@ -24,7 +24,7 @@ var (
 
 func init() {
 	log.Printf("INIT")
-	DB, err = db.SpawnDBService()
+	DBS, err = db.SpawnDBService()
 }
 
 func main() {

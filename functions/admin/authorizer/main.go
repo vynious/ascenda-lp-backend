@@ -23,6 +23,12 @@ func init() {
 }
 
 func AuthorizerHandler(ctx context.Context, req events.APIGatewayCustomAuthorizerRequestTypeRequest) (events.APIGatewayCustomAuthorizerResponse, error) {
+	bank, err := util.GetCustomAttributeWithCognito("custom:bank", req.Headers["Authorization"])
+	if err != nil {
+		log.Printf("error decoding token to get custom:bank attribute")
+	}
+	DB := DBService.ConnMap[bank]
+
 	token := req.Headers["Authorization"]
 	method := req.HTTPMethod
 	route := req.Path[1:]
@@ -73,7 +79,6 @@ func GeneratePolicyBasedOnRole(ctx context.Context, roleName, principalId, route
 			return GenerateDenyPolicy(principalId, arn)
 		}
 	}
-
 
 	log.Printf("%+v", authResponse)
 	return authResponse
@@ -135,6 +140,6 @@ func GenerateDenyPolicy(principalId, arn string) events.APIGatewayCustomAuthoriz
 
 func main() {
 	lambda.Start(AuthorizerHandler)
-	defer DBService.CloseConn()
+	defer DBService.CloseConnections()
 
 }

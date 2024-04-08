@@ -134,5 +134,5 @@ func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (event
 
 func main() {
 	lambda.Start(handler)
-	defer DBService.CloseConn()
+	defer DBService.CloseConnections()
 }

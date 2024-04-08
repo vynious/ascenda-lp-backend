@@ -81,5 +81,5 @@ func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (event
 func main() {
 	// we are simulating a lambda behind an ApiGatewayV2
 	lambda.Start(handler)
-	defer DBService.CloseConn()
+	defer DBService.CloseConnections()
 }

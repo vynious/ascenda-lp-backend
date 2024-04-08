@@ -29,7 +29,6 @@ func init() {
 
 func CreateTransactionHandler(ctx context.Context, req *events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyResponse, error) {
 
-
 	if err := json.Unmarshal([]byte(req.Body), &requestBody); err != nil {
 		return events.APIGatewayProxyResponse{
 			StatusCode: 404,
@@ -174,5 +173,5 @@ func CreateTransactionHandler(ctx context.Context, req *events.APIGatewayV2HTTPR
 
 func main() {
 	lambda.Start(CreateTransactionHandler)
-	defer DBService.CloseConn()
+	defer DBService.CloseConnections()
 }
