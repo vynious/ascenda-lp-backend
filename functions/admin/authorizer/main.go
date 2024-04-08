@@ -29,7 +29,7 @@ func AuthorizerHandler(ctx context.Context, req events.APIGatewayCustomAuthorize
 
 	log.Printf("Authorizer %s %s", method, route)
 
-	roleName, err := util.GetRoleWithCognito(token)
+	roleName, err := util.GetCustomAttributeWithCognito("custom:role", token)
 	if err != nil || roleName == "" {
 		return GenerateDenyPolicy(uuid.NewString(), req.MethodArn), nil
 	}
