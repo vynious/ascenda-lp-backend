@@ -27,7 +27,9 @@ func init() {
 }
 
 func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyResponse, error) {
-	roles, err := db.RetrieveAllRolesWithUsers(ctx, DBService)
+	DB := DBService.GetBanksDB(request.Headers["Authorization"])
+
+	roles, err := db.RetrieveAllRolesWithUsers(ctx, DB)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return events.APIGatewayProxyResponse{

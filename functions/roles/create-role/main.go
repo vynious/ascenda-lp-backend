@@ -29,6 +29,8 @@ func init() {
 }
 
 func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyResponse, error) {
+	DB := DBService.GetBanksDB(request.Headers["Authorization"])
+
 	if request.RequestContext.HTTP.Method == "OPTIONS" {
 		return events.APIGatewayProxyResponse{
 			StatusCode: 200,
@@ -56,11 +58,11 @@ func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (event
 		}, nil
 	}
 
-	_, err := db.RetrieveRoleWithRoleName(ctx, DBService, roleRequestBody.RoleName)
+	_, err := db.RetrieveRoleWithRoleName(ctx, DB, roleRequestBody.RoleName)
 	if err != nil {
 		log.Println(err)
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			roleName, err := db.CreateRoleWithCreateRoleRequestBody(ctx, DBService, roleRequestBody)
+			roleName, err := db.CreateRoleWithCreateRoleRequestBody(ctx, DB, roleRequestBody)
 			if err != nil {
 				log.Printf("Database error: %s", err)
 				return events.APIGatewayProxyResponse{
