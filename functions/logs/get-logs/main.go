@@ -71,7 +71,6 @@ func handler(request events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyResp
 }
 
 func fetchLogs(request events.APIGatewayV2HTTPRequest, tableName string) (events.APIGatewayProxyResponse, error) {
-
 	// start
 	key := request.QueryStringParameters["key"]
 	lastEvaluatedKey := make(map[string]*dynamodb.AttributeValue)
@@ -97,41 +96,30 @@ func fetchLogs(request events.APIGatewayV2HTTPRequest, tableName string) (events
 		return events.APIGatewayProxyResponse{}, errors.New("failed to fetch record")
 	}
 
-	// result, err := dynaClient.Scan(input)
-	// if err != nil {
-	// 	return nil, errors.New(types.ErrorFailedToFetchRecord)
-	// }
-
 	for _, i := range result.Items {
 		logItem := new(types.Log)
 		err := dynamodbattribute.UnmarshalMap(i, logItem)
 		if err != nil {
 			return events.APIGatewayProxyResponse{}, errors.New("failed to fetch record")
 		}
+		logItem.LogId = *i["log_id"].S // Assign log ID
 		*item = append(*item, *logItem)
 	}
 
 	itemWithKey.Data = *item
 
 	if len(result.LastEvaluatedKey) == 0 {
-		responseBody, err := json.Marshal(itemWithKey)
-		if err != nil {
-			log.Printf("Failed to marshal response: %v", err)
-			return events.APIGatewayProxyResponse{
-				StatusCode: 500,
-				Headers:    headers,
-				Body:       "Internal server error",
-			}, nil
-		}
-		return events.APIGatewayProxyResponse{
-			StatusCode: 200,
-			Headers:    headers,
-			Body:       string(responseBody),
-		}, nil
+		response := formatResponse(itemWithKey)
+		return response, nil
 	}
 
 	itemWithKey.Key = *result.LastEvaluatedKey["log_id"].S
 
+	response := formatResponse(itemWithKey)
+	return response, nil
+}
+
+func formatResponse(itemWithKey *types.ReturnLogData) events.APIGatewayProxyResponse {
 	responseBody, err := json.Marshal(itemWithKey)
 	if err != nil {
 		log.Printf("Failed to marshal response: %v", err)
@@ -139,13 +127,13 @@ func fetchLogs(request events.APIGatewayV2HTTPRequest, tableName string) (events
 			StatusCode: 500,
 			Headers:    headers,
 			Body:       "Internal server error",
-		}, nil
+		}
 	}
 	return events.APIGatewayProxyResponse{
 		StatusCode: 200,
 		Headers:    headers,
 		Body:       string(responseBody),
-	}, nil
+	}
 }
 
 // var logs []types.Log

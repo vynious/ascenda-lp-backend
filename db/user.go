@@ -123,8 +123,7 @@ func RetrieveAllUsers(ctx context.Context, dbs *DB) ([]types.User, error) {
 	}
 
 	if reqUser.RoleName != nil && *reqUser.RoleName == "product_manager" {
-		excludedRoles := []string{"product_manager", "owner", "manager", "engineer"}
-		if err := dbs.Conn.WithContext(ctx).Where("role_name NOT IN ?", excludedRoles).Find(&users).Error; err != nil {
+		if err := dbs.Conn.WithContext(ctx).Not(map[string]interface{}{"role_name": []string{"product_manager", "owner", "manager", "engineer"}}).Find(&users).Error; err != nil {
 			log.Println(err)
 			return nil, err
 		}
