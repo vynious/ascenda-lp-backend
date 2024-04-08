@@ -30,23 +30,57 @@ type DBService struct {
 	timeout time.Duration
 }
 
+func CreateDBIfNotExists(bank string) error {
+	conn, err := connectToDB("ascenda")
+	db, _ := conn.DB()
+	defer db.Close()
+
+	if err != nil {
+		log.Printf("Failed to connect to default ascenda db")
+	}
+
+	if err := conn.Exec(fmt.Sprintf("CREATE DATABASE %s", bank)).Error; err != nil {
+		log.Printf("failed to create database %s", err)
+	}
+	return nil
+}
+
+func GetAvailableDatabases() []string {
+	conn, err := connectToDB("ascenda")
+	db, _ := conn.DB()
+	defer db.Close()
+	if err != nil {
+		log.Printf("Failed to connect to default ascenda db")
+	}
+
+	log.Printf("GetAvailableDatabases")
+	var databases []string
+	if err := conn.Raw("SELECT datname FROM pg_database WHERE datistemplate = false and datname not in ('rdsadmin', 'postgres', 'ascenda');").Pluck("datname", &databases).Error; err != nil {
+		log.Fatalf("Failed to fetch databases: %v", err)
+	}
+
+	log.Printf("Fetch available databases %s", databases)
+	return databases
+}
+
 func SpawnDBService() (*DBService, error) {
 	dbService := &DBService{
 		ConnMap: make(map[string]*DB),
 	}
 
 	// Connect to banks and populate the ConnMap
-	bankNames := []string{"ascenda", "bankb"} // Add more banks as needed
-	for _, bank := range bankNames {
+	bankDBs := GetAvailableDatabases()
+
+	// bankDBs := []string{"ascenda", "bankb", "bankz"} // Add more banks as needed
+	for _, bank := range bankDBs {
 		conn, err := connectToDB(bank)
 		if err != nil {
-			return nil, fmt.Errorf("failed to connect to %s: %v", bank, err)
+			log.Fatalf("failed to connect to %s: %v", bank, err)
 		}
 		dbService.ConnMap[bank] = &DB{Conn: conn}
 	}
 
 	log.Println("Successfully connected to all databases")
-
 	return dbService, nil
 }
 
@@ -63,7 +97,7 @@ func connectToDB(bank string) (*gorm.DB, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to make connection")
 	}
-	log.Printf("Successfully connected to Database")
+	log.Printf("Successfully connected to Database %s", conn.Name())
 
 	return conn, nil
 }
