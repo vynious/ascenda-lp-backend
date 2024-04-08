@@ -8,8 +8,11 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/cognitoidentityprovider"
 	"github.com/joho/godotenv"
 	"github.com/vynious/ascenda-lp-backend/db"
+	aws_helpers "github.com/vynious/ascenda-lp-backend/functions/users/aws-helpers"
 	"github.com/vynious/ascenda-lp-backend/types"
 )
 
@@ -91,18 +94,19 @@ func seedPoints(records [][]string, DB *db.DBService) {
 }
 
 func seedUsers(records [][]string, DB *db.DBService) {
+	cognitoClient := aws_helpers.InitCognitoClient()
+
 	var usersRecords []types.User
 	for i, record := range records {
 		if i == 0 {
 			continue
 		}
 
-		var uintRoleIdPtr *uint = nil
+		var rolePtr *string = nil
 
 		if record[4] != "" {
-			roleId, _ := strconv.Atoi(record[4])
-			uintRoleId := uint(roleId)
-			uintRoleIdPtr = &uintRoleId
+			role := record[4]
+			rolePtr = &role
 		}
 
 		data := types.User{
@@ -111,8 +115,48 @@ func seedUsers(records [][]string, DB *db.DBService) {
 			FirstName: record[2],
 			LastName:  record[3],
 			// if no role specified, customer role (no admin access)
-			RoleID: uintRoleIdPtr,
+			RoleName: rolePtr,
 		}
+
+		cognitoUserAttributes := []*cognitoidentityprovider.AttributeType{
+			{
+				Name:  aws.String("email"),
+				Value: aws.String(data.Email),
+			},
+			{
+				Name:  aws.String("email_verified"),
+				Value: aws.String("true"),
+			},
+			{
+				Name:  aws.String("custom:userID"),
+				Value: aws.String(data.Id),
+			},
+		}
+
+		if rolePtr != nil {
+			cognitoUserAttributes = append(cognitoUserAttributes, &cognitoidentityprovider.AttributeType{
+				Name:  aws.String("custom:role"),
+				Value: aws.String(*rolePtr),
+			})
+		}
+
+		cognitoInput := &cognitoidentityprovider.AdminCreateUserInput{
+			ForceAliasCreation: aws.Bool(true),
+			DesiredDeliveryMediums: []*string{
+				aws.String("EMAIL"),
+			},
+			UserAttributes: cognitoUserAttributes,
+			UserPoolId:     aws.String(os.Getenv("COGNITO_USER_POOL_ID")),
+			Username:       aws.String(data.Email),
+			MessageAction:  aws.String("SUPPRESS"),
+		}
+		log.Println("creating user in user pool")
+		_, err := cognitoClient.AdminCreateUser(cognitoInput)
+		if err != nil {
+			log.Panicln(err)
+		}
+		log.Println("User created in user pool")
+
 		usersRecords = append(usersRecords, data)
 	}
 
@@ -254,6 +298,7 @@ func seedApprovalChainMap(DB *db.DBService) {
 
 // SeedCustomUser creates a user with a specified role
 func seedCustomUsers(DB *db.DBService) {
+	cognitoClient := aws_helpers.InitCognitoClient()
 	// Define users
 	users := []types.User{
 		{
@@ -262,6 +307,7 @@ func seedCustomUsers(DB *db.DBService) {
 			FirstName: "shawn",
 			LastName:  "thiah",
 			RoleID:    getRoleID(DB, "product_manager"),
+			RoleName:  aws.String("product_manager"),
 			CreatedAt: time.Time{},
 			UpdatedAt: time.Time{},
 		},
@@ -271,13 +317,51 @@ func seedCustomUsers(DB *db.DBService) {
 			FirstName: "jingjie",
 			LastName:  "lim",
 			RoleID:    getRoleID(DB, "owner"),
+			RoleName:  aws.String("owner"),
 			CreatedAt: time.Time{},
 			UpdatedAt: time.Time{},
 		},
 	}
 
 	for _, user := range users {
-		log.Printf("added users")
+		cognitoUserAttributes := []*cognitoidentityprovider.AttributeType{
+			{
+				Name:  aws.String("email"),
+				Value: aws.String(user.Email),
+			},
+			{
+				Name:  aws.String("email_verified"),
+				Value: aws.String("true"),
+			},
+			{
+				Name:  aws.String("custom:userID"),
+				Value: aws.String(user.Id),
+			},
+			{
+				Name:  aws.String("custom:role"),
+				Value: aws.String(*user.RoleName),
+			},
+		}
+
+		cognitoInput := &cognitoidentityprovider.AdminCreateUserInput{
+			ForceAliasCreation: aws.Bool(true),
+			DesiredDeliveryMediums: []*string{
+				aws.String("EMAIL"),
+			},
+			UserAttributes: cognitoUserAttributes,
+			UserPoolId:     aws.String(os.Getenv("COGNITO_USER_POOL_ID")),
+			Username:       aws.String(user.Email),
+			MessageAction:  aws.String("SUPPRESS"),
+		}
+		log.Println("creating user in user pool")
+
+		_, err := cognitoClient.AdminCreateUser(cognitoInput)
+		if err != nil {
+			log.Panicln(err)
+		}
+		log.Println("User created in user pool")
+
+		log.Printf("adding users to rds")
 		if err := DB.Conn.Create(&user).Error; err != nil {
 			log.Fatalf("Failed to create user: %v", err)
 		}
