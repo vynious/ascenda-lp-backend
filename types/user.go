@@ -11,12 +11,21 @@ type User struct {
 	LastName  string
 	RoleID    *uint `gorm:"index"`
 	RoleName  *string
-	Role      *Role     `gorm:"foreignKey:RoleID"`
+	Role      *Role `gorm:"foreignKey:RoleID"`
+	Bank      string
 	CreatedAt time.Time `gorm:"default:now()"`
 	UpdatedAt time.Time `gorm:"default:now()"`
 }
 
 type UserList []User
+
+type CreateCustomUserRequestBody struct {
+	FirstName string
+	LastName  string
+	Email     string
+	RoleName  string
+	Bank      string
+}
 
 type CreateUserRequestBody struct {
 	FirstName string
