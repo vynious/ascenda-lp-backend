@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/vynious/ascenda-lp-backend/types"
+	"github.com/vynious/ascenda-lp-backend/util"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -65,6 +66,16 @@ func connectToDB(bank string) (*gorm.DB, error) {
 	log.Printf("Successfully connected to Database")
 
 	return conn, nil
+}
+
+func (DBService *DBService) GetBanksDB(token string) *DB {
+	bank, err := util.GetCustomAttributeWithCognito("custom:bank", token)
+	if err != nil {
+		log.Printf("error decoding token to get custom:bank attribute")
+	}
+	DB := DBService.ConnMap[bank]
+
+	return DB
 }
 
 // CloseConn closes connection to db

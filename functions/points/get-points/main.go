@@ -6,7 +6,6 @@ import (
 	"log"
 
 	"github.com/vynious/ascenda-lp-backend/types"
-	"github.com/vynious/ascenda-lp-backend/util"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -38,11 +37,7 @@ func main() {
 func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyResponse, error) {
 	var pointsRecords []types.Points
 
-	bank, err := util.GetCustomAttributeWithCognito("custom:bank", request.Headers["Authorization"])
-	if err != nil {
-		log.Printf("error decoding token to get custom:bank attribute")
-	}
-	DB := DBService.ConnMap[bank]
+	DB := DBService.GetBanksDB(request.Headers["Authorization"])
 
 	params := request.QueryStringParameters
 
