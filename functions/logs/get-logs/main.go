@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"strconv"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -50,39 +49,56 @@ func handler(request events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyResp
 	logsTable := fmt.Sprintf("%s_logs", bank)
 	log.Printf("Fetch logs from %s", logsTable)
 
-	ttlStr := request.QueryStringParameters["TTL"]
-	if ttlStr != "" {
-		ttl, err := strconv.Atoi(ttlStr)
-		if err != nil {
-			return events.APIGatewayProxyResponse{}, errors.New("invalid TTL value")
-		}
-
-		return setTTL(ttl, logsTable)
-	}
-
-	// Check if ID is provided in query parameters
-	// id := request.QueryStringParameters["id"]
-	// if len(id) > 0 {
-	// 	return fetchLogByID(id, logsTable)
-	// }
-
-	// Fetch all logs if no ID provided
 	return fetchLogs(request, logsTable)
 }
 
 func fetchLogs(request events.APIGatewayV2HTTPRequest, tableName string) (events.APIGatewayProxyResponse, error) {
-	// start
+	// Get search criteria from query parameters
+	criteria := request.QueryStringParameters["criteria"]
+	value := request.QueryStringParameters["value"]
 	key := request.QueryStringParameters["key"]
+
 	lastEvaluatedKey := make(map[string]*dynamodb.AttributeValue)
 	item := new([]types.Log)
 	itemWithKey := new(types.ReturnLogData)
 
-	log.Printf("fetching logs")
 	input := &dynamodb.ScanInput{
 		TableName: aws.String(tableName),
 		Limit:     aws.Int64(int64(100)),
 	}
 
+	// If a search criteria is provided, add it to the filter expression
+	if criteria != "" && value != "" {
+		expressionAttributeValues := map[string]*dynamodb.AttributeValue{
+			":val": {
+				S: aws.String(value),
+			},
+		}
+
+		// Define filter expressions based on search criteria
+		filterExpression := ""
+		var expressionAttributeNames map[string]*string // Map to hold expression attribute name aliases
+
+		switch criteria {
+		case "LogId":
+			filterExpression = "contains(log_id, :val)"
+		case "UserId":
+			filterExpression = "contains(UserID, :val)"
+		case "Type":
+			filterExpression = "contains(#T, :val)"
+			expressionAttributeNames = map[string]*string{"#T": aws.String("Type")} // Define alias for "Type"
+		}
+
+		input.FilterExpression = aws.String(filterExpression)
+		input.ExpressionAttributeValues = expressionAttributeValues
+
+		// Assign expression attribute name aliases if they exist
+		if len(expressionAttributeNames) > 0 {
+			input.ExpressionAttributeNames = expressionAttributeNames
+		}
+	}
+
+	// If a key is provided, set it as the ExclusiveStartKey
 	if len(key) != 0 {
 		lastEvaluatedKey["log_id"] = &dynamodb.AttributeValue{
 			S: aws.String(key),
@@ -90,12 +106,14 @@ func fetchLogs(request events.APIGatewayV2HTTPRequest, tableName string) (events
 		input.ExclusiveStartKey = lastEvaluatedKey
 	}
 
+	// Execute the scan operation
 	result, err := svc.Scan(input)
 	if err != nil {
 		log.Printf("failed to fetch logs: " + err.Error())
 		return events.APIGatewayProxyResponse{}, errors.New("failed to fetch record")
 	}
 
+	// Unmarshal the items and add them to the log array
 	for _, i := range result.Items {
 		logItem := new(types.Log)
 		err := dynamodbattribute.UnmarshalMap(i, logItem)
@@ -106,15 +124,15 @@ func fetchLogs(request events.APIGatewayV2HTTPRequest, tableName string) (events
 		*item = append(*item, *logItem)
 	}
 
+	// Populate the ReturnLogData structure
 	itemWithKey.Data = *item
 
-	if len(result.LastEvaluatedKey) == 0 {
-		response := formatResponse(itemWithKey)
-		return response, nil
+	// If there are more records to fetch, set the next key
+	if len(result.LastEvaluatedKey) != 0 {
+		itemWithKey.Key = *result.LastEvaluatedKey["log_id"].S
 	}
 
-	itemWithKey.Key = *result.LastEvaluatedKey["log_id"].S
-
+	// Format and return the response
 	response := formatResponse(itemWithKey)
 	return response, nil
 }
@@ -134,126 +152,6 @@ func formatResponse(itemWithKey *types.ReturnLogData) events.APIGatewayProxyResp
 		Headers:    headers,
 		Body:       string(responseBody),
 	}
-}
-
-// var logs []types.Log
-// for _, i := range result.Items {
-// 	logItem := new(types.Log)
-// 	err := dynamodbattribute.UnmarshalMap(i, logItem)
-// 	if err != nil {
-// 		log.Printf("failed to unmarshal logs: " + err.Error())
-// 		return events.APIGatewayProxyResponse{}, err
-// 	}
-// 	logItem.LogId = *i["log_id"].S
-// 	logs = append(logs, *logItem)
-// }
-
-// responseBody, err := json.Marshal(logs)
-// if err != nil {
-// 	log.Printf("Failed to parse logs: %v", err)
-// 	return events.APIGatewayProxyResponse{
-// 		StatusCode: 400,
-// 		Headers: map[string]string{
-// 			"Access-Control-Allow-Headers": "Content-Type",
-// 			"Access-Control-Allow-Origin":  "*",
-// 			"Access-Control-Allow-Methods": "GET",
-// 		},
-// 		Body: "Internal server error, failed to execute",
-// 	}, nil
-// }
-
-// return events.APIGatewayProxyResponse{
-// 	Body:       string(responseBody),
-// 	StatusCode: 200,
-// 	Headers: map[string]string{
-// 		"Access-Control-Allow-Headers": "Content-Type",
-// 		"Access-Control-Allow-Origin":  "*",
-// 		"Access-Control-Allow-Methods": "GET",
-// 	},
-// }, nil
-
-// func FetchLogs(req events.APIGatewayProxyRequest, tableName string, dynaClient dynamodbiface.DynamoDBAPI) (*types.ReturnLogData, error) {
-//	// get all logs with pagination of limit 100
-// 	key := req.QueryStringParameters["key"]
-// 	lastEvaluatedKey := make(map[string]*dynamodb.AttributeValue)
-
-// 	item := new([]types.Log)
-// 	itemWithKey := new(types.ReturnLogData)
-
-// 	input := &dynamodb.ScanInput{
-// 		TableName: aws.String(tableName),
-// 		Limit:     aws.Int64(int64(100)),
-// 	}
-
-// 	if len(key) != 0 {
-// 		lastEvaluatedKey["log_id"] = &dynamodb.AttributeValue{
-// 			S: aws.String(key),
-// 		}
-// 		input.ExclusiveStartKey = lastEvaluatedKey
-// 	}
-
-// 	result, err := dynaClient.Scan(input)
-// 	if err != nil {
-// 		return nil, errors.New(types.ErrorFailedToFetchRecord)
-// 	}
-
-// 	for _, i := range result.Items {
-// 		logItem := new(types.Log)
-// 		err := dynamodbattribute.UnmarshalMap(i, logItem)
-// 		if err != nil {
-// 			return nil, err
-// 		}
-// 		*item = append(*item, *logItem)
-// 	}
-
-// 	itemWithKey.Data = *item
-
-// 	if len(result.LastEvaluatedKey) == 0 {
-// 		return itemWithKey, nil
-// 	}
-
-// 	itemWithKey.Key = *result.LastEvaluatedKey["log_id"].S
-
-// 	return itemWithKey, nil
-// }
-
-// }
-
-func setTTL(ttl int, tableName string) (events.APIGatewayProxyResponse, error) {
-	// Check if TTL is already enabled
-	descOutput, err := svc.DescribeTimeToLive(&dynamodb.DescribeTimeToLiveInput{
-		TableName: aws.String(tableName),
-	})
-	if err != nil {
-		log.Printf("failed to describe TTL: %s", err.Error())
-		return events.APIGatewayProxyResponse{}, errors.New("failed to describe TTL")
-	}
-
-	// If TTL is already enabled, return an error
-	if descOutput.TimeToLiveDescription.TimeToLiveStatus != nil &&
-		*descOutput.TimeToLiveDescription.TimeToLiveStatus == "ENABLED" {
-		log.Printf("TTL is already enabled for table %s", tableName)
-		return events.APIGatewayProxyResponse{}, errors.New("TTL is already enabled")
-	}
-
-	input := &dynamodb.UpdateTimeToLiveInput{
-		TableName: aws.String(tableName),
-		TimeToLiveSpecification: &dynamodb.TimeToLiveSpecification{
-			AttributeName: aws.String("ttl"),
-			Enabled:       aws.Bool(true),
-		},
-	}
-
-	_, err = svc.UpdateTimeToLive(input)
-	if err != nil {
-		log.Printf("failed to update TTL: %s", err.Error())
-		return events.APIGatewayProxyResponse{}, errors.New("failed to update TTL")
-	}
-
-	return events.APIGatewayProxyResponse{
-		StatusCode: 200,
-		Body:       "TTL set successfully",
-	}, nil
 }
 
 func main() {

@@ -34,15 +34,28 @@ func CreateUserWithCreateUserRequestBody(ctx context.Context, dbs *DB, userReque
 		roleID = &role.Id
 	}
 
-	user := types.User{
-		Id:        newUUID,
-		Email:     userRequestBody.Email,
-		FirstName: userRequestBody.FirstName,
-		LastName:  userRequestBody.LastName,
-		RoleID:    roleID,
-		RoleName:  &userRequestBody.RoleName,
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
+	var user types.User
+
+	if userRequestBody.RoleName == "" {
+		user = types.User{
+			Id:        newUUID,
+			Email:     userRequestBody.Email,
+			FirstName: userRequestBody.FirstName,
+			LastName:  userRequestBody.LastName,
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
+		}
+	} else {
+		user = types.User{
+			Id:        newUUID,
+			Email:     userRequestBody.Email,
+			FirstName: userRequestBody.FirstName,
+			LastName:  userRequestBody.LastName,
+			RoleID:    roleID,
+			RoleName:  &userRequestBody.RoleName,
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
+		}
 	}
 
 	tx := dbs.Conn.Begin()
@@ -121,10 +134,11 @@ func RetrieveAllUsers(ctx context.Context, dbs *DB) ([]types.User, error) {
 	if err := dbs.Conn.WithContext(ctx).Where("id = ?", reqUserId).First(&reqUser).Error; err != nil {
 		return nil, err
 	}
-
+	log.Println("reqUser")
+	log.Println(reqUser)
 	if reqUser.RoleName != nil && *reqUser.RoleName == "product_manager" {
-		if err := dbs.Conn.WithContext(ctx).Not(map[string]interface{}{"role_name": []string{"product_manager", "owner", "manager", "engineer"}}).Find(&users).Error; err != nil {
-			log.Println(err)
+		if err := dbs.Conn.WithContext(ctx).Where("role_name IS NULL").Find(&users).Error; err != nil {
+			log.Println("Error retrieving users with NULL role_name:", err)
 			return nil, err
 		}
 	} else {
