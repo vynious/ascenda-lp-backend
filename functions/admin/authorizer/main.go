@@ -12,7 +12,11 @@ import (
 	"github.com/vynious/ascenda-lp-backend/util"
 )
 
-var DBService *db.DBService
+var (
+	DBService *db.DBService
+	DB *db.DB
+)
+
 
 func init() {
 	var err error
@@ -23,11 +27,8 @@ func init() {
 }
 
 func AuthorizerHandler(ctx context.Context, req events.APIGatewayCustomAuthorizerRequestTypeRequest) (events.APIGatewayCustomAuthorizerResponse, error) {
-	bank, err := util.GetCustomAttributeWithCognito("custom:bank", req.Headers["Authorization"])
-	if err != nil {
-		log.Printf("error decoding token to get custom:bank attribute")
-	}
-	DB := DBService.ConnMap[bank]
+
+	DB = DBService.GetBanksDB(req.Headers["Authorization"])
 
 	token := req.Headers["Authorization"]
 	method := req.HTTPMethod
@@ -45,7 +46,7 @@ func AuthorizerHandler(ctx context.Context, req events.APIGatewayCustomAuthorize
 
 func GeneratePolicyBasedOnRole(ctx context.Context, roleName, principalId, route, method, arn string) events.APIGatewayCustomAuthorizerResponse {
 	log.Printf("GeneratePolicyBasedOnRole %s, %s", roleName, principalId)
-	role, err := db.RetrieveRoleWithRoleName(ctx, DBService, roleName)
+	role, err := db.RetrieveRoleWithRoleName(ctx, DB, roleName)
 	if err != nil {
 		log.Printf("GenerateDenyPolicy %s", roleName)
 		return GenerateDenyPolicy(principalId, arn)

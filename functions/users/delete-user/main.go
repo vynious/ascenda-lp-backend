@@ -25,6 +25,7 @@ var (
 	RDSClient     *rds.Client
 	cognitoClient *cognito.CognitoIdentityProvider
 	err           error
+	DB *db.DB
 )
 
 func init() {
@@ -56,6 +57,8 @@ func cognitoDeleteUser(userRequestBody types.DeleteUserRequestBody) error {
 }
 
 func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyResponse, error) {
+	DB = DBService.GetBanksDB(request.Headers["Authorization"])
+
 	if request.RequestContext.HTTP.Method == "OPTIONS" {
 		return events.APIGatewayProxyResponse{
 			StatusCode: 200,
@@ -96,7 +99,7 @@ func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (event
 		}, nil
 	}
 
-	err = db.DeleteUserWithDeleteUserRequestBody(ctx, DBService, userRequestBody)
+	err = db.DeleteUserWithDeleteUserRequestBody(ctx, DB, userRequestBody)
 	if err != nil {
 		log.Println(err)
 		if errors.Is(err, gorm.ErrRecordNotFound) {

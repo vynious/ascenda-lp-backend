@@ -18,6 +18,7 @@ var (
 	DBService *db.DBService
 	RDSClient *rds.Client
 	err       error
+	DB *db.DB
 )
 
 func init() {
@@ -28,6 +29,8 @@ func init() {
 }
 
 func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyResponse, error) {
+	DB = DBService.GetBanksDB(request.Headers["Authorization"])
+
 	email, exists := request.QueryStringParameters["email"]
 	if !exists || email == "" {
 		return events.APIGatewayProxyResponse{
@@ -42,7 +45,7 @@ func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (event
 	}
 
 	userRequestBody := types.GetUserRequestBody{Email: email}
-	user, err := db.RetrieveUserWithGetUserRequestBody(ctx, DBService, userRequestBody)
+	user, err := db.RetrieveUserWithGetUserRequestBody(ctx, DB, userRequestBody)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return events.APIGatewayProxyResponse{

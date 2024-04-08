@@ -26,6 +26,7 @@ var (
 	RDSClient     *rds.Client
 	cognitoClient *cognitoidentityprovider.CognitoIdentityProvider
 	err           error
+	DB *db.DB
 )
 
 func init() {
@@ -78,6 +79,8 @@ func cognitoCreateUser(userRequestBody types.CreateUserRequestBody, newUUID stri
 }
 
 func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyResponse, error) {
+	DB = DBService.GetBanksDB(request.Headers["Authorization"])
+
 	if request.RequestContext.HTTP.Method == "OPTIONS" {
 		return events.APIGatewayProxyResponse{
 			StatusCode: 200,
@@ -118,7 +121,7 @@ func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (event
 		}, nil
 	}
 
-	_, err := db.RetrieveUserWithEmail(ctx, DBService, userRequestBody.Email)
+	_, err := db.RetrieveUserWithEmail(ctx, DB, userRequestBody.Email)
 	if err != nil {
 		log.Println(err)
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -135,7 +138,7 @@ func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (event
 					Body: "Error creating user",
 				}, nil
 			}
-			user, err := db.CreateUserWithCreateUserRequestBody(ctx, DBService, userRequestBody, newUUID)
+			user, err := db.CreateUserWithCreateUserRequestBody(ctx, DB, userRequestBody, newUUID)
 			if err != nil {
 				log.Printf("Database error: %s", err)
 				if errors.Is(err, gorm.ErrRecordNotFound) {

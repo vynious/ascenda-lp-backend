@@ -27,6 +27,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Error spawn DB service...")
 	}
+	
 
 	clearDatabase(DB)
 

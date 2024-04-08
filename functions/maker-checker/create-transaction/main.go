@@ -14,6 +14,7 @@ import (
 
 var (
 	DBService    *db.DBService
+	DB *db.DB
 	requestBody  types.CreateTransactionBody
 	responseBody types.TransactionResponseBody
 	err          error
@@ -28,6 +29,9 @@ func init() {
 }
 
 func CreateTransactionHandler(ctx context.Context, req *events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyResponse, error) {
+
+	DB = DBService.GetBanksDB(req.Headers["Authorization"])
+
 
 	if err := json.Unmarshal([]byte(req.Body), &requestBody); err != nil {
 		return events.APIGatewayProxyResponse{
@@ -72,7 +76,7 @@ func CreateTransactionHandler(ctx context.Context, req *events.APIGatewayV2HTTPR
 			RequestBody: rawJsonBody,
 		}
 
-		txn, err := DBService.CreateTransaction(ctx, updatedMakerCheckerAction, makerId)
+		txn, err := DB.CreateTransaction(ctx, updatedMakerCheckerAction, makerId)
 		if err != nil {
 			return events.APIGatewayProxyResponse{
 				StatusCode: 500,
@@ -110,7 +114,7 @@ func CreateTransactionHandler(ctx context.Context, req *events.APIGatewayV2HTTPR
 			RequestBody: rawJsonBody,
 		}
 
-		txn, err := DBService.CreateTransaction(ctx, updatedMakerCheckerAction, makerId)
+		txn, err := DB.CreateTransaction(ctx, updatedMakerCheckerAction, makerId)
 		if err != nil {
 			return events.APIGatewayProxyResponse{
 				StatusCode: 500,
@@ -138,7 +142,7 @@ func CreateTransactionHandler(ctx context.Context, req *events.APIGatewayV2HTTPR
 
 	// Send emails seek checker's approval (Async)
 	log.Printf("starting to send email...")
-	checkersEmail, err := DBService.GetCheckers(ctx, makerId)
+	checkersEmail, err := DB.GetCheckers(ctx, makerId)
 	if err != nil {
 		log.Println(err.Error())
 	}
