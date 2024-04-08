@@ -37,7 +37,7 @@ func init() {
 
 func handler(request events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyResponse, error) {
 	bank, err := util.GetCustomAttributeWithCognito("custom:bank", request.Headers["Authorization"])
-	if err != nil {
+	if err == nil {
 		log.Printf("failed to get custom:bank from cognito")
 	}
 	logsTable := fmt.Sprintf("%s_logs", bank)

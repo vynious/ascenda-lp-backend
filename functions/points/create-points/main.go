@@ -40,14 +40,19 @@ func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (event
 
 	req := types.CreatePointsAccountRequestBody{}
 	// Checking if userid and userlocation exists for logging purposes
-	userId, err := util.GetCustomAttributeWithCognito("custom:userId", request.Headers["Authorization"])
-	if err != nil {
+	userId, err := util.GetCustomAttributeWithCognito("custom:userID", request.Headers["Authorization"])
+	if err == nil {
 		ctx = context.WithValue(ctx, "userId", userId)
 	}
 	userLocation, ok := request.Headers["CloudFront-Viewer-Country"]
 	if ok {
 		ctx = context.WithValue(ctx, "userLocation", userLocation)
 	}
+	bank, err := util.GetCustomAttributeWithCognito("custom:bank", request.Headers["Authorization"])
+	if err == nil {
+		ctx = context.WithValue(ctx, "bank", bank)
+	}
+
 	if err := json.Unmarshal([]byte(request.Body), &req); err != nil {
 		return events.APIGatewayProxyResponse{
 			StatusCode: 400,

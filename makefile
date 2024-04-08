@@ -72,7 +72,7 @@ teardown:
 	sam delete --stack-name ${STACK_NAME}
 
 deploy-jj:
-	sam deploy --stack-name ${STACK_NAME} --profile itsa
+	sam build && sam deploy --stack-name ${STACK_NAME} --profile itsa
 
 db-reset:
 	go run seed/main.go

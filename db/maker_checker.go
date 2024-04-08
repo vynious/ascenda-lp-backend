@@ -18,9 +18,9 @@ func (dbs *DB) CreateTransaction(ctx context.Context, action types.MakerAction, 
 	userLocation, locationOk := ctx.Value("userLocation").(string)
 	if locationOk {
 		logEntry := types.Log{
-			Type:   "Maker Checker",
-			Action: "CreateTransaction",
-			// UserId:       ctx.Value("userId").(string),
+			Type:         "Maker Checker",
+			Action:       "CreateTransaction",
+			UserId:       ctx.Value("userId").(string),
 			UserLocation: userLocation,
 		}
 		if err := util.CreateLogEntry(ctx.Value("bank").(string), logEntry); err != nil {
@@ -63,9 +63,9 @@ func (dbs *DB) GetTransaction(ctx context.Context, txnId string) (*[]types.Trans
 	userLocation, locationOk := ctx.Value("userLocation").(string)
 	if locationOk {
 		logEntry := types.Log{
-			Type:   "Maker Checker",
-			Action: "GetTransaction",
-			// UserId:       ctx.Value("userId").(string),
+			Type:         "Maker Checker",
+			Action:       "GetTransaction",
+			UserId:       ctx.Value("userId").(string),
 			UserLocation: userLocation,
 		}
 		if err := util.CreateLogEntry(ctx.Value("bank").(string), logEntry); err != nil {
@@ -88,9 +88,9 @@ func (dbs *DB) GetTransactions(ctx context.Context) (*[]types.Transaction, error
 	userLocation, locationOk := ctx.Value("userLocation").(string)
 	if locationOk {
 		logEntry := types.Log{
-			Type:   "Maker Checker",
-			Action: "GetTransactions",
-			// UserId:       ctx.Value("userId").(string),
+			Type:         "Maker Checker",
+			Action:       "GetTransactions",
+			UserId:       ctx.Value("userId").(string),
 			UserLocation: userLocation,
 		}
 		if err := util.CreateLogEntry(ctx.Value("bank").(string), logEntry); err != nil {
@@ -112,9 +112,9 @@ func (dbs *DB) GetTransactionsByMakerIdByStatus(ctx context.Context, makerId str
 	userLocation, locationOk := ctx.Value("userLocation").(string)
 	if locationOk {
 		logEntry := types.Log{
-			Type:   "Maker Checker",
-			Action: "GetTransactionsByMakerIdByStatus",
-			// UserId:       ctx.Value("userId").(string),
+			Type:         "Maker Checker",
+			Action:       "GetTransactionsByMakerIdByStatus",
+			UserId:       ctx.Value("userId").(string),
 			UserLocation: userLocation,
 		}
 		if err := util.CreateLogEntry(ctx.Value("bank").(string), logEntry); err != nil {
@@ -139,9 +139,9 @@ func (dbs *DB) GetPendingTransactionsForChecker(ctx context.Context, checkerId s
 	userLocation, locationOk := ctx.Value("userLocation").(string)
 	if locationOk {
 		logEntry := types.Log{
-			Type:   "Maker Checker",
-			Action: "GetPendingTransactionsForChecker",
-			// UserId:       ctx.Value("userId").(string),
+			Type:         "Maker Checker",
+			Action:       "GetPendingTransactionsForChecker",
+			UserId:       ctx.Value("userId").(string),
 			UserLocation: userLocation,
 		}
 		if err := util.CreateLogEntry(ctx.Value("bank").(string), logEntry); err != nil {
@@ -186,9 +186,9 @@ func (dbs *DB) GetCompletedTransactionsByCheckerId(ctx context.Context, checkerI
 	userLocation, locationOk := ctx.Value("userLocation").(string)
 	if locationOk {
 		logEntry := types.Log{
-			Type:   "Maker Checker",
-			Action: "GetCompletedTransactionsByCheckerId",
-			// UserId:       ctx.Value("userId").(string),
+			Type:         "Maker Checker",
+			Action:       "GetCompletedTransactionsByCheckerId",
+			UserId:       ctx.Value("userId").(string),
 			UserLocation: userLocation,
 		}
 		if err := util.CreateLogEntry(ctx.Value("bank").(string), logEntry); err != nil {
@@ -215,9 +215,9 @@ func (dbs *DB) UpdateTransaction(ctx context.Context, txnId string, checkerId st
 	userLocation, locationOk := ctx.Value("userLocation").(string)
 	if locationOk {
 		logEntry := types.Log{
-			Type:   "Maker Checker",
-			Action: "UpdateTransaction",
-			// UserId:       ctx.Value("userId").(string),
+			Type:         "Maker Checker",
+			Action:       "UpdateTransaction",
+			UserId:       ctx.Value("userId").(string),
 			UserLocation: userLocation,
 		}
 		if err := util.CreateLogEntry(ctx.Value("bank").(string), logEntry); err != nil {
@@ -281,9 +281,9 @@ func (dbs *DB) GetCheckers(ctx context.Context, makerId string) ([]string, error
 	userLocation, locationOk := ctx.Value("userLocation").(string)
 	if locationOk {
 		logEntry := types.Log{
-			Type:   "Maker Checker",
-			Action: "GetCheckers",
-			// UserId:       ctx.Value("userId").(string),
+			Type:         "Maker Checker",
+			Action:       "GetCheckers",
+			UserId:       ctx.Value("userId").(string),
 			UserLocation: userLocation,
 		}
 		if err := util.CreateLogEntry(ctx.Value("bank").(string), logEntry); err != nil {
@@ -324,9 +324,9 @@ func (dbs *DB) ProcessTransaction(ctx context.Context, action *types.MakerAction
 	userLocation, locationOk := ctx.Value("userLocation").(string)
 	if locationOk {
 		logEntry := types.Log{
-			Type:   "Maker Checker",
-			Action: "ProcessTransaction",
-			// UserId:       ctx.Value("userId").(string),
+			Type:         "Maker Checker",
+			Action:       "ProcessTransaction",
+			UserId:       ctx.Value("userId").(string),
 			UserLocation: userLocation,
 		}
 		if err := util.CreateLogEntry(ctx.Value("bank").(string), logEntry); err != nil {

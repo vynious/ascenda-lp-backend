@@ -40,8 +40,8 @@ func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (event
 	var pointsRecords []types.Points
 
 	// Checking if userid and userlocation exists for logging purposes
-	userId, err := util.GetCustomAttributeWithCognito("custom:userId", request.Headers["Authorization"])
-	if err != nil {
+	userId, err := util.GetCustomAttributeWithCognito("custom:userID", request.Headers["Authorization"])
+	if err == nil {
 		ctx = context.WithValue(ctx, "userId", userId)
 	}
 	userLocation, ok := request.Headers["CloudFront-Viewer-Country"]
@@ -49,7 +49,7 @@ func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (event
 		ctx = context.WithValue(ctx, "userLocation", userLocation)
 	}
 	bank, err := util.GetCustomAttributeWithCognito("custom:bank", request.Headers["Authorization"])
-	if err != nil {
+	if err == nil {
 		ctx = context.WithValue(ctx, "bank", bank)
 	}
 	DB := DBService.GetBanksDB(request.Headers["Authorization"])

@@ -30,7 +30,7 @@ func init() {
 
 func CreateTransactionHandler(ctx context.Context, req *events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyResponse, error) {
 	// Checking if userid and userlocation exists for logging purposes
-	userId, err := util.GetCustomAttributeWithCognito("custom:userId", req.Headers["Authorization"])
+	userId, err := util.GetCustomAttributeWithCognito("custom:userID", req.Headers["Authorization"])
 	if err != nil {
 		ctx = context.WithValue(ctx, "userId", userId)
 	}

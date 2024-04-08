@@ -15,9 +15,9 @@ func CreateRoleWithCreateRoleRequestBody(ctx context.Context, dbs *DB, roleReque
 	userLocation, locationOk := ctx.Value("userLocation").(string)
 	if locationOk {
 		logEntry := types.Log{
-			Type:   "Role",
-			Action: "Created Role with create user request body",
-			// UserId:       ctx.Value("userId").(string),
+			Type:         "Role",
+			Action:       "Created Role with create user request body",
+			UserId:       ctx.Value("userId").(string),
 			UserLocation: userLocation,
 		}
 		if err := util.CreateLogEntry(ctx.Value("bank").(string), logEntry); err != nil {
@@ -48,9 +48,9 @@ func RetrieveRoleWithRoleName(ctx context.Context, dbs *DB, roleName string) (ty
 	userLocation, locationOk := ctx.Value("userLocation").(string)
 	if locationOk {
 		logEntry := types.Log{
-			Type:   "Role",
-			Action: "RetrieveRoleWithRoleName",
-			// UserId:       ctx.Value("userId").(string),
+			Type:         "Role",
+			Action:       "RetrieveRoleWithRoleName",
+			UserId:       ctx.Value("userId").(string),
 			UserLocation: userLocation,
 		}
 		if err := util.CreateLogEntry(ctx.Value("bank").(string), logEntry); err != nil {
@@ -69,9 +69,9 @@ func RetrieveAllRolesWithUsers(ctx context.Context, dbs *DB) ([]types.Role, erro
 	userLocation, locationOk := ctx.Value("userLocation").(string)
 	if locationOk {
 		logEntry := types.Log{
-			Type:   "Role",
-			Action: "RetrieveAllRolesWithUsers",
-			// UserId:       ctx.Value("userId").(string),
+			Type:         "Role",
+			Action:       "RetrieveAllRolesWithUsers",
+			UserId:       ctx.Value("userId").(string),
 			UserLocation: userLocation,
 		}
 		if err := util.CreateLogEntry(ctx.Value("bank").(string), logEntry); err != nil {
@@ -90,9 +90,9 @@ func RetrieveRoleWithRetrieveRoleRequestBody(ctx context.Context, dbs *DB, roleR
 	userLocation, locationOk := ctx.Value("userLocation").(string)
 	if locationOk {
 		logEntry := types.Log{
-			Type:   "Role",
-			Action: "RetrieveRoleWithRetrieveRoleRequestBody",
-			// UserId:       ctx.Value("userId").(string),
+			Type:         "Role",
+			Action:       "RetrieveRoleWithRetrieveRoleRequestBody",
+			UserId:       ctx.Value("userId").(string),
 			UserLocation: userLocation,
 		}
 		if err := util.CreateLogEntry(ctx.Value("bank").(string), logEntry); err != nil {
@@ -111,9 +111,9 @@ func DeleteRoleWithDeleteRoleRequestBody(ctx context.Context, dbs *DB, roleReque
 	userLocation, locationOk := ctx.Value("userLocation").(string)
 	if locationOk {
 		logEntry := types.Log{
-			Type:   "Role",
-			Action: "DeleteRoleWithDeleteRoleRequestBody",
-			// UserId:       ctx.Value("userId").(string),
+			Type:         "Role",
+			Action:       "DeleteRoleWithDeleteRoleRequestBody",
+			UserId:       ctx.Value("userId").(string),
 			UserLocation: userLocation,
 		}
 		if err := util.CreateLogEntry(ctx.Value("bank").(string), logEntry); err != nil {
@@ -151,9 +151,9 @@ func UpdateRole(ctx context.Context, dbs *DB, roleRequestBody types.UpdateRoleRe
 	userLocation, locationOk := ctx.Value("userLocation").(string)
 	if locationOk {
 		logEntry := types.Log{
-			Type:   "Role",
-			Action: "UpdateRole",
-			// UserId:       ctx.Value("userId").(string),
+			Type:         "Role",
+			Action:       "UpdateRole",
+			UserId:       ctx.Value("userId").(string),
 			UserLocation: userLocation,
 		}
 		if err := util.CreateLogEntry(ctx.Value("bank").(string), logEntry); err != nil {

@@ -2,13 +2,15 @@ package util
 
 import (
 	"fmt"
+	"log"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/cognitoidentityprovider"
 )
 
 func GetRoleWithCognito(token string) (string, error) {
-	
+
 	var roleName string
 
 	sess := session.Must(session.NewSession())
@@ -27,14 +29,13 @@ func GetRoleWithCognito(token string) (string, error) {
 			break
 		}
 	}
-	
+
 	return roleName, nil
 }
 
 func GetCustomAttributeWithCognito(attribute, token string) (string, error) {
-	
 
-	var res string 
+	var res string
 
 	sess := session.Must(session.NewSession())
 	cogClient := cognitoidentityprovider.New(sess, aws.NewConfig().WithRegion("ap-southeast-1"))
@@ -54,6 +55,6 @@ func GetCustomAttributeWithCognito(attribute, token string) (string, error) {
 		}
 	}
 
-
+	log.Printf("%s, %s", attribute, res)
 	return res, nil
 }

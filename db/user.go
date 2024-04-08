@@ -16,9 +16,9 @@ func CreateUserWithCreateUserRequestBody(ctx context.Context, dbs *DB, userReque
 	userLocation, locationOk := ctx.Value("userLocation").(string)
 	if locationOk {
 		logEntry := types.Log{
-			Type:   "User",
-			Action: "Created Role with create user request body",
-			// UserId:       ctx.Value("userId").(string),
+			Type:         "User",
+			Action:       "Created Role with create user request body",
+			UserId:       ctx.Value("userId").(string),
 			UserLocation: userLocation,
 		}
 		if err := util.CreateLogEntry(ctx.Value("bank").(string), logEntry); err != nil {
@@ -60,9 +60,9 @@ func RetrieveUserWithGetUserRequestBody(ctx context.Context, dbs *DB, userReques
 	userLocation, locationOk := ctx.Value("userLocation").(string)
 	if locationOk {
 		logEntry := types.Log{
-			Type:   "User",
-			Action: "Retrieve user with request body",
-			// UserId:       ctx.Value("userId").(string),
+			Type:         "User",
+			Action:       "Retrieve user with request body",
+			UserId:       ctx.Value("userId").(string),
 			UserLocation: userLocation,
 		}
 		if err := util.CreateLogEntry(ctx.Value("bank").(string), logEntry); err != nil {
@@ -83,9 +83,9 @@ func RetrieveUserWithEmail(ctx context.Context, dbs *DB, email string) (*types.U
 	userLocation, locationOk := ctx.Value("userLocation").(string)
 	if locationOk {
 		logEntry := types.Log{
-			Type:   "User",
-			Action: "Retrieve user with email",
-			// UserId:       ctx.Value("userId").(string),
+			Type:         "User",
+			Action:       "Retrieve user with email",
+			UserId:       ctx.Value("userId").(string),
 			UserLocation: userLocation,
 		}
 		if err := util.CreateLogEntry(ctx.Value("bank").(string), logEntry); err != nil {
@@ -106,9 +106,9 @@ func RetrieveAllUsers(ctx context.Context, dbs *DB) ([]types.User, error) {
 	userLocation, locationOk := ctx.Value("userLocation").(string)
 	if locationOk {
 		logEntry := types.Log{
-			Type:   "User",
-			Action: "Retrieve all users",
-			// UserId:       ctx.Value("userId").(string),
+			Type:         "User",
+			Action:       "Retrieve all users",
+			UserId:       ctx.Value("userId").(string),
 			UserLocation: userLocation,
 		}
 		if err := util.CreateLogEntry(ctx.Value("bank").(string), logEntry); err != nil {
@@ -128,9 +128,9 @@ func DeleteUserWithDeleteUserRequestBody(ctx context.Context, dbs *DB, userReque
 	userLocation, locationOk := ctx.Value("userLocation").(string)
 	if locationOk {
 		logEntry := types.Log{
-			Type:   "User",
-			Action: "Delete user with request body",
-			// UserId:       ctx.Value("userId").(string),
+			Type:         "User",
+			Action:       "Delete user with request body",
+			UserId:       ctx.Value("userId").(string),
 			UserLocation: userLocation,
 		}
 		if err := util.CreateLogEntry(ctx.Value("bank").(string), logEntry); err != nil {
@@ -155,9 +155,9 @@ func UpdateUserWithUpdateUserRequestBody(ctx context.Context, dbs *DB, userReque
 	userLocation, locationOk := ctx.Value("userLocation").(string)
 	if locationOk {
 		logEntry := types.Log{
-			Type:   "User",
-			Action: "Update user with request body",
-			// UserId:       ctx.Value("userId").(string),
+			Type:         "User",
+			Action:       "Update user with request body",
+			UserId:       ctx.Value("userId").(string),
 			UserLocation: userLocation,
 		}
 		if err := util.CreateLogEntry(ctx.Value("bank").(string), logEntry); err != nil {

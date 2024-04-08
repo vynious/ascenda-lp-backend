@@ -29,17 +29,21 @@ func init() {
 }
 
 func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyResponse, error) {
+	log.Printf("GetUser")
 	// Checking if userid and userlocation exists for logging purposes
-	userId, err := util.GetCustomAttributeWithCognito("custom:userId", request.Headers["Authorization"])
-	if err != nil {
+	userId, err := util.GetCustomAttributeWithCognito("custom:userID", request.Headers["Authorization"])
+	if err == nil {
+		log.Printf("GetCustomAttribute custom:userID %s", userId)
 		ctx = context.WithValue(ctx, "userId", userId)
 	}
 	userLocation, ok := request.Headers["CloudFront-Viewer-Country"]
 	if ok {
+		log.Printf("Get Attribute CloudFront-Viewer-Country")
 		ctx = context.WithValue(ctx, "userLocation", userLocation)
 	}
 	bank, err := util.GetCustomAttributeWithCognito("custom:bank", request.Headers["Authorization"])
-	if err != nil {
+	if err == nil {
+		log.Printf("GetCustomAttribute custom:bank %s", bank)
 		ctx = context.WithValue(ctx, "bank", bank)
 	}
 
