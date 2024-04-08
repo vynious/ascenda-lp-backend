@@ -55,54 +55,25 @@ func handler(request events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyResp
 	return fetchLogs(request, logsTable)
 }
 
-// func fetchLogByID(id, tableName string) (events.APIGatewayProxyResponse, error) {
-// 	// Get single log from DynamoDB
-// 	input := &dynamodb.GetItemInput{
-// 		Key: map[string]*dynamodb.AttributeValue{
-// 			"log_id": {
-// 				S: aws.String(id),
-// 			},
-// 		},
-// 		TableName: aws.String(tableName),
-// 	}
-
-// 	result, err := svc.GetItem(input)
-// 	if err != nil {
-// 		return events.APIGatewayProxyResponse{}, errors.New("failed to fetch record")
-// 	}
-
-// 	if result.Item == nil {
-// 		return events.APIGatewayProxyResponse{
-// 			StatusCode: 404,
-// 			Body:       "Log does not exist",
-// 		}, nil
-// 	}
-
-// 	item := new(types.Log)
-// 	err = dynamodbattribute.UnmarshalMap(result.Item, item)
-// 	if err != nil {
-// 		return events.APIGatewayProxyResponse{}, errors.New("failed to unmarshal record")
-// 	}
-
-// 	// Convert log item to JSON
-// 	body, _ := json.Marshal(item)
-
-// 	// Return JSON response
-// 	return events.APIGatewayProxyResponse{
-// 		Body:       string(body),
-// 		StatusCode: 200,
-// 		Headers: map[string]string{
-// 			"Access-Control-Allow-Headers": "Content-Type",
-// 			"Access-Control-Allow-Origin":  "*",
-// 			"Access-Control-Allow-Methods": "GET",
-// 		},
-// 	}, nil
-// }
-
 func fetchLogs(request events.APIGatewayV2HTTPRequest, tableName string) (events.APIGatewayProxyResponse, error) {
+
+	// start
+	key := request.QueryStringParameters["key"]
+	lastEvaluatedKey := make(map[string]*dynamodb.AttributeValue)
+	item := new([]types.Log)
+	itemWithKey := new(types.ReturnLogData)
+
 	log.Printf("fetching logs")
 	input := &dynamodb.ScanInput{
 		TableName: aws.String(tableName),
+		Limit:     aws.Int64(int64(100)),
+	}
+
+	if len(key) != 0 {
+		lastEvaluatedKey["log_id"] = &dynamodb.AttributeValue{
+			S: aws.String(key),
+		}
+		input.ExclusiveStartKey = lastEvaluatedKey
 	}
 
 	result, err := svc.Scan(input)
@@ -111,42 +82,135 @@ func fetchLogs(request events.APIGatewayV2HTTPRequest, tableName string) (events
 		return events.APIGatewayProxyResponse{}, errors.New("failed to fetch record")
 	}
 
-	var logs []types.Log
+	// result, err := dynaClient.Scan(input)
+	// if err != nil {
+	// 	return nil, errors.New(types.ErrorFailedToFetchRecord)
+	// }
+
 	for _, i := range result.Items {
 		logItem := new(types.Log)
 		err := dynamodbattribute.UnmarshalMap(i, logItem)
 		if err != nil {
-			log.Printf("failed to unmarshal logs: " + err.Error())
-			return events.APIGatewayProxyResponse{}, err
+			return events.APIGatewayProxyResponse{}, errors.New("failed to fetch record")
 		}
-		logItem.LogId = *i["log_id"].S // Assuming log_id is the attribute name in DynamoDB
-		logs = append(logs, *logItem)
+		*item = append(*item, *logItem)
 	}
 
-	responseBody, err := json.Marshal(logs)
-	if err != nil {
-		log.Printf("Failed to parse logs: %v", err)
+	itemWithKey.Data = *item
+
+	if len(result.LastEvaluatedKey) == 0 {
+		responseBody, err := json.Marshal(itemWithKey)
+		if err != nil {
+			log.Printf("Failed to marshal response: %v", err)
+			return events.APIGatewayProxyResponse{
+				StatusCode: 500,
+				Body:       "Internal server error",
+			}, nil
+		}
 		return events.APIGatewayProxyResponse{
-			StatusCode: 400,
-			Headers: map[string]string{
-				"Access-Control-Allow-Headers": "Content-Type",
-				"Access-Control-Allow-Origin":  "*",
-				"Access-Control-Allow-Methods": "GET",
-			},
-			Body: "Internal server error, failed to execute",
+			StatusCode: 200,
+			Body:       string(responseBody),
 		}, nil
 	}
 
+	itemWithKey.Key = *result.LastEvaluatedKey["log_id"].S
+
+	responseBody, err := json.Marshal(itemWithKey)
+	if err != nil {
+		log.Printf("Failed to marshal response: %v", err)
+		return events.APIGatewayProxyResponse{
+			StatusCode: 500,
+			Body:       "Internal server error",
+		}, nil
+	}
 	return events.APIGatewayProxyResponse{
-		Body:       string(responseBody),
 		StatusCode: 200,
-		Headers: map[string]string{
-			"Access-Control-Allow-Headers": "Content-Type",
-			"Access-Control-Allow-Origin":  "*",
-			"Access-Control-Allow-Methods": "GET",
-		},
+		Body:       string(responseBody),
 	}, nil
 }
+
+// var logs []types.Log
+// for _, i := range result.Items {
+// 	logItem := new(types.Log)
+// 	err := dynamodbattribute.UnmarshalMap(i, logItem)
+// 	if err != nil {
+// 		log.Printf("failed to unmarshal logs: " + err.Error())
+// 		return events.APIGatewayProxyResponse{}, err
+// 	}
+// 	logItem.LogId = *i["log_id"].S
+// 	logs = append(logs, *logItem)
+// }
+
+// responseBody, err := json.Marshal(logs)
+// if err != nil {
+// 	log.Printf("Failed to parse logs: %v", err)
+// 	return events.APIGatewayProxyResponse{
+// 		StatusCode: 400,
+// 		Headers: map[string]string{
+// 			"Access-Control-Allow-Headers": "Content-Type",
+// 			"Access-Control-Allow-Origin":  "*",
+// 			"Access-Control-Allow-Methods": "GET",
+// 		},
+// 		Body: "Internal server error, failed to execute",
+// 	}, nil
+// }
+
+// return events.APIGatewayProxyResponse{
+// 	Body:       string(responseBody),
+// 	StatusCode: 200,
+// 	Headers: map[string]string{
+// 		"Access-Control-Allow-Headers": "Content-Type",
+// 		"Access-Control-Allow-Origin":  "*",
+// 		"Access-Control-Allow-Methods": "GET",
+// 	},
+// }, nil
+
+// func FetchLogs(req events.APIGatewayProxyRequest, tableName string, dynaClient dynamodbiface.DynamoDBAPI) (*types.ReturnLogData, error) {
+//	// get all logs with pagination of limit 100
+// 	key := req.QueryStringParameters["key"]
+// 	lastEvaluatedKey := make(map[string]*dynamodb.AttributeValue)
+
+// 	item := new([]types.Log)
+// 	itemWithKey := new(types.ReturnLogData)
+
+// 	input := &dynamodb.ScanInput{
+// 		TableName: aws.String(tableName),
+// 		Limit:     aws.Int64(int64(100)),
+// 	}
+
+// 	if len(key) != 0 {
+// 		lastEvaluatedKey["log_id"] = &dynamodb.AttributeValue{
+// 			S: aws.String(key),
+// 		}
+// 		input.ExclusiveStartKey = lastEvaluatedKey
+// 	}
+
+// 	result, err := dynaClient.Scan(input)
+// 	if err != nil {
+// 		return nil, errors.New(types.ErrorFailedToFetchRecord)
+// 	}
+
+// 	for _, i := range result.Items {
+// 		logItem := new(types.Log)
+// 		err := dynamodbattribute.UnmarshalMap(i, logItem)
+// 		if err != nil {
+// 			return nil, err
+// 		}
+// 		*item = append(*item, *logItem)
+// 	}
+
+// 	itemWithKey.Data = *item
+
+// 	if len(result.LastEvaluatedKey) == 0 {
+// 		return itemWithKey, nil
+// 	}
+
+// 	itemWithKey.Key = *result.LastEvaluatedKey["log_id"].S
+
+// 	return itemWithKey, nil
+// }
+
+// }
 
 func setTTL(ttl int, tableName string) (events.APIGatewayProxyResponse, error) {
 	// Check if TTL is already enabled

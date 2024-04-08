@@ -13,3 +13,8 @@ type Log struct {
 	Timestamp    time.Time
 	TTL          string
 }
+
+type ReturnLogData struct {
+	Data []Log  `json:"data"`
+	Key  string `json:"key"`
+}
