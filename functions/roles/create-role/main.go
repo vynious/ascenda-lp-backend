@@ -68,7 +68,7 @@ func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (event
 		}, nil
 	}
 
-	_, err := db.RetrieveRoleWithRoleName(ctx, DB, roleRequestBody.RoleName)
+	_, err = db.RetrieveRoleWithRoleName(ctx, DB, roleRequestBody.RoleName)
 	if err != nil {
 		log.Println(err)
 		if errors.Is(err, gorm.ErrRecordNotFound) {

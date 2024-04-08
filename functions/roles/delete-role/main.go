@@ -67,7 +67,7 @@ func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (event
 		}, nil
 	}
 
-	err := db.DeleteRoleWithDeleteRoleRequestBody(ctx, DB, deleteRequestBody)
+	err = db.DeleteRoleWithDeleteRoleRequestBody(ctx, DB, deleteRequestBody)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return events.APIGatewayProxyResponse{

@@ -96,7 +96,7 @@ func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (event
 		}, nil
 	}
 
-	err := cognitoDeleteUser(userRequestBody)
+	err = cognitoDeleteUser(userRequestBody)
 	if err != nil {
 		return events.APIGatewayProxyResponse{
 			StatusCode: 404,
