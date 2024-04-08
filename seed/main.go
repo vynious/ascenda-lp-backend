@@ -148,8 +148,11 @@ func seedRolesAndPermissions(DB *db.DBService) {
 				},
 				types.RolePermission{
 					Resource:  "points_ledger",
+					CanCreate: true,
 					CanRead:   true,
 					CanUpdate: true,
+					CanDelete: true,
+
 				},
 				types.RolePermission{
 					Resource: "logs",
