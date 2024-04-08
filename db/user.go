@@ -11,15 +11,21 @@ import (
 
 func CreateUserWithCreateUserRequestBody(ctx context.Context, dbs *DBService, userRequestBody types.CreateUserRequestBody, newUUID string) (*types.User, error) {
 	var roleID *uint = nil
-	logEntry := types.Log{
-		Type:         "User",
-		Action:       "Created User with create user request body",
-		UserId:       ctx.Value("userId").(string),
-		UserLocation: ctx.Value("userLocation").(string),
+
+	// Check if userLocation is part of the context
+	userLocation, locationOk := ctx.Value("userLocation").(string)
+	if locationOk {
+		logEntry := types.Log{
+			Type:   "User",
+			Action: "Created Role with create user request body",
+			// UserId:       ctx.Value("userId").(string),
+			UserLocation: userLocation,
+		}
+		if err := util.CreateLogEntry(logEntry); err != nil {
+			log.Printf("Error creating log entry: %v", err)
+		}
 	}
-	if err := util.CreateLogEntry(logEntry); err != nil {
-		log.Printf("Error creating log entry: %v", err)
-	}
+
 	if userRequestBody.RoleName != "" {
 		role, err := RetrieveRoleWithRoleName(ctx, dbs, userRequestBody.RoleName)
 		if err != nil {
@@ -50,15 +56,20 @@ func CreateUserWithCreateUserRequestBody(ctx context.Context, dbs *DBService, us
 
 func RetrieveUserWithGetUserRequestBody(ctx context.Context, dbs *DBService, userRequestBody types.GetUserRequestBody) (*types.User, error) {
 	var user types.User
-	logEntry := types.Log{
-		Type:         "User",
-		Action:       "Retrieve user with request body",
-		UserId:       ctx.Value("userId").(string),
-		UserLocation: ctx.Value("userLocation").(string),
+	// Check if userLocation is part of the context
+	userLocation, locationOk := ctx.Value("userLocation").(string)
+	if locationOk {
+		logEntry := types.Log{
+			Type:   "User",
+			Action: "Retrieve user with request body",
+			// UserId:       ctx.Value("userId").(string),
+			UserLocation: userLocation,
+		}
+		if err := util.CreateLogEntry(logEntry); err != nil {
+			log.Printf("Error creating log entry: %v", err)
+		}
 	}
-	if err := util.CreateLogEntry(logEntry); err != nil {
-		log.Printf("Error creating log entry: %v", err)
-	}
+
 	result := dbs.Conn.WithContext(ctx).Where("email = ?", userRequestBody.Email).First(&user)
 	if result.Error != nil {
 		return nil, result.Error
@@ -68,15 +79,20 @@ func RetrieveUserWithGetUserRequestBody(ctx context.Context, dbs *DBService, use
 
 func RetrieveUserWithEmail(ctx context.Context, dbs *DBService, email string) (*types.User, error) {
 	var user types.User
-	logEntry := types.Log{
-		Type:         "User",
-		Action:       "Retrieve user with email",
-		UserId:       ctx.Value("userId").(string),
-		UserLocation: ctx.Value("userLocation").(string),
+	// Check if userLocation is part of the context
+	userLocation, locationOk := ctx.Value("userLocation").(string)
+	if locationOk {
+		logEntry := types.Log{
+			Type:   "User",
+			Action: "Retrieve user with email",
+			// UserId:       ctx.Value("userId").(string),
+			UserLocation: userLocation,
+		}
+		if err := util.CreateLogEntry(logEntry); err != nil {
+			log.Printf("Error creating log entry: %v", err)
+		}
 	}
-	if err := util.CreateLogEntry(logEntry); err != nil {
-		log.Printf("Error creating log entry: %v", err)
-	}
+
 	result := dbs.Conn.WithContext(ctx).Where("email = ?", email).First(&user)
 	if result.Error != nil {
 		return nil, result.Error
@@ -86,14 +102,18 @@ func RetrieveUserWithEmail(ctx context.Context, dbs *DBService, email string) (*
 
 func RetrieveAllUsers(ctx context.Context, dbs *DBService) ([]types.User, error) {
 	var users []types.User
-	logEntry := types.Log{
-		Type:         "User",
-		Action:       "Retrieve all users",
-		UserId:       ctx.Value("userId").(string),
-		UserLocation: ctx.Value("userLocation").(string),
-	}
-	if err := util.CreateLogEntry(logEntry); err != nil {
-		log.Printf("Error creating log entry: %v", err)
+	// Check if userLocation is part of the context
+	userLocation, locationOk := ctx.Value("userLocation").(string)
+	if locationOk {
+		logEntry := types.Log{
+			Type:   "User",
+			Action: "Retrieve all users",
+			// UserId:       ctx.Value("userId").(string),
+			UserLocation: userLocation,
+		}
+		if err := util.CreateLogEntry(logEntry); err != nil {
+			log.Printf("Error creating log entry: %v", err)
+		}
 	}
 	result := dbs.Conn.WithContext(ctx).Find(&users)
 	if result.Error != nil {
@@ -104,14 +124,18 @@ func RetrieveAllUsers(ctx context.Context, dbs *DBService) ([]types.User, error)
 
 func DeleteUserWithDeleteUserRequestBody(ctx context.Context, dbs *DBService, userRequestBody types.DeleteUserRequestBody) error {
 	var user types.User
-	logEntry := types.Log{
-		Type:         "User",
-		Action:       "Delete user with request body",
-		UserId:       ctx.Value("userId").(string),
-		UserLocation: ctx.Value("userLocation").(string),
-	}
-	if err := util.CreateLogEntry(logEntry); err != nil {
-		log.Printf("Error creating log entry: %v", err)
+	// Check if userLocation is part of the context
+	userLocation, locationOk := ctx.Value("userLocation").(string)
+	if locationOk {
+		logEntry := types.Log{
+			Type:   "User",
+			Action: "Delete user with request body",
+			// UserId:       ctx.Value("userId").(string),
+			UserLocation: userLocation,
+		}
+		if err := util.CreateLogEntry(logEntry); err != nil {
+			log.Printf("Error creating log entry: %v", err)
+		}
 	}
 	res := dbs.Conn.WithContext(ctx).Where("id = ?", userRequestBody.Id).First(&user)
 	if res.Error != nil {
@@ -127,14 +151,18 @@ func DeleteUserWithDeleteUserRequestBody(ctx context.Context, dbs *DBService, us
 
 func UpdateUserWithUpdateUserRequestBody(ctx context.Context, dbs *DBService, userRequestBody types.UpdateUserRequestBody) (types.User, error) {
 	tx := dbs.Conn.Begin()
-	logEntry := types.Log{
-		Type:         "User",
-		Action:       "Update user with request body",
-		UserId:       ctx.Value("userId").(string),
-		UserLocation: ctx.Value("userLocation").(string),
-	}
-	if err := util.CreateLogEntry(logEntry); err != nil {
-		log.Printf("Error creating log entry: %v", err)
+	// Check if userLocation is part of the context
+	userLocation, locationOk := ctx.Value("userLocation").(string)
+	if locationOk {
+		logEntry := types.Log{
+			Type:   "User",
+			Action: "Update user with request body",
+			// UserId:       ctx.Value("userId").(string),
+			UserLocation: userLocation,
+		}
+		if err := util.CreateLogEntry(logEntry); err != nil {
+			log.Printf("Error creating log entry: %v", err)
+		}
 	}
 	log.Println(userRequestBody)
 	var user types.User

@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	"github.com/aws/aws-lambda-go/events"
-	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -129,8 +128,4 @@ func HandleRequest(request events.APIGatewayProxyRequest) (events.APIGatewayProx
 		StatusCode: http.StatusOK,
 		Body:       "Log entry created successfully",
 	}, nil
-}
-
-func main() {
-	lambda.Start(HandleRequest)
 }

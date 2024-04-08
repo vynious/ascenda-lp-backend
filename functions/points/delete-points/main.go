@@ -37,8 +37,15 @@ func main() {
 
 func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyResponse, error) {
 	req := types.DeletePointsAccountRequestBody{}
-	ctx = context.WithValue(ctx, "userId", request.Headers["userId"])
-	ctx = context.WithValue(ctx, "userLocation", request.Headers["CloudFront-Viewer-Country"])
+	// Checking if userid and userlocation exists for logging purposes
+	// userId, ok := request.Headers["userId"]
+	// if ok {
+	// 	ctx = context.WithValue(ctx, "userId", userId)
+	// }
+	userLocation, ok := request.Headers["CloudFront-Viewer-Country"]
+	if ok {
+		ctx = context.WithValue(ctx, "userLocation", userLocation)
+	}
 	if err := json.Unmarshal([]byte(request.Body), &req); err != nil {
 		return events.APIGatewayProxyResponse{
 			StatusCode: 400,

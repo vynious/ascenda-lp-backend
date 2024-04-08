@@ -28,8 +28,15 @@ func init() {
 }
 
 func CreateTransactionHandler(ctx context.Context, req *events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyResponse, error) {
-	ctx = context.WithValue(ctx, "userId", req.Headers["userId"])
-	ctx = context.WithValue(ctx, "userLocation", req.Headers["CloudFront-Viewer-Country"])
+	// Checking if userid and userlocation exists for logging purposes
+	// userId, ok := request.Headers["userId"]
+	// if ok {
+	// 	ctx = context.WithValue(ctx, "userId", userId)
+	// }
+	userLocation, ok := req.Headers["CloudFront-Viewer-Country"]
+	if ok {
+		ctx = context.WithValue(ctx, "userLocation", userLocation)
+	}
 
 	if err := json.Unmarshal([]byte(req.Body), &requestBody); err != nil {
 		return events.APIGatewayProxyResponse{

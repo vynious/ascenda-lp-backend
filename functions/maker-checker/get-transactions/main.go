@@ -32,8 +32,15 @@ func init() {
 
 func GetTransactionsHandler(ctx context.Context, req *events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyResponse, error) {
 	var transactions *[]types.Transaction
-	ctx = context.WithValue(ctx, "userId", req.Headers["userId"])
-	ctx = context.WithValue(ctx, "userLocation", req.Headers["CloudFront-Viewer-Country"])
+	// Checking if userid and userlocation exists for logging purposes
+	// userId, ok := request.Headers["userId"]
+	// if ok {
+	// 	ctx = context.WithValue(ctx, "userId", userId)
+	// }
+	userLocation, ok := req.Headers["CloudFront-Viewer-Country"]
+	if ok {
+		ctx = context.WithValue(ctx, "userLocation", userLocation)
+	}
 	params := req.QueryStringParameters
 
 	switch {

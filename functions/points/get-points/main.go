@@ -38,8 +38,15 @@ func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (event
 	log.Printf("Request Headers %s", request.Headers)
 	var pointsRecords []types.Points
 
-	ctx = context.WithValue(ctx, "userId", request.Headers["userId"])
-	ctx = context.WithValue(ctx, "userLocation", request.Headers["CloudFront-Viewer-Country"])
+	// Checking if userid and userlocation exists for logging purposes
+	// userId, ok := request.Headers["userId"]
+	// if ok {
+	// 	ctx = context.WithValue(ctx, "userId", userId)
+	// }
+	userLocation, ok := request.Headers["CloudFront-Viewer-Country"]
+	if ok {
+		ctx = context.WithValue(ctx, "userLocation", userLocation)
+	}
 
 	params := request.QueryStringParameters
 

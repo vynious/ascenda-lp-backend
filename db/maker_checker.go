@@ -14,14 +14,18 @@ import (
 
 // CreateTransaction creates a maker-checker transaction
 func (dbs *DBService) CreateTransaction(ctx context.Context, action types.MakerAction, makerId string) (*types.Transaction, error) {
-	logEntry := types.Log{
-		Type:         "Maker Checker",
-		Action:       "Created maker checker transaction",
-		UserId:       ctx.Value("userId").(string),
-		UserLocation: ctx.Value("userLocation").(string),
-	}
-	if err := util.CreateLogEntry(logEntry); err != nil {
-		log.Printf("Error creating log entry: %v", err)
+	// Check if userLocation is part of the context
+	userLocation, locationOk := ctx.Value("userLocation").(string)
+	if locationOk {
+		logEntry := types.Log{
+			Type:   "Maker Checker",
+			Action: "CreateTransaction",
+			// UserId:       ctx.Value("userId").(string),
+			UserLocation: userLocation,
+		}
+		if err := util.CreateLogEntry(logEntry); err != nil {
+			log.Printf("Error creating log entry: %v", err)
+		}
 	}
 	var maker types.User
 	var approvalMap types.ApprovalChainMap
@@ -55,16 +59,20 @@ func (dbs *DBService) CreateTransaction(ctx context.Context, action types.MakerA
 }
 
 func (dbs *DBService) GetTransaction(ctx context.Context, txnId string) (*[]types.Transaction, error) {
+	// Check if userLocation is part of the context
+	userLocation, locationOk := ctx.Value("userLocation").(string)
+	if locationOk {
+		logEntry := types.Log{
+			Type:   "Maker Checker",
+			Action: "GetTransaction",
+			// UserId:       ctx.Value("userId").(string),
+			UserLocation: userLocation,
+		}
+		if err := util.CreateLogEntry(logEntry); err != nil {
+			log.Printf("Error creating log entry: %v", err)
+		}
+	}
 	var transaction types.Transaction
-	logEntry := types.Log{
-		Type:         "Maker Checker",
-		Action:       "Get maker checker transaction",
-		UserId:       ctx.Value("userId").(string),
-		UserLocation: ctx.Value("userLocation").(string),
-	}
-	if err := util.CreateLogEntry(logEntry); err != nil {
-		log.Printf("Error creating log entry: %v", err)
-	}
 
 	tx := dbs.Conn.WithContext(ctx)
 
@@ -76,16 +84,21 @@ func (dbs *DBService) GetTransaction(ctx context.Context, txnId string) (*[]type
 }
 
 func (dbs *DBService) GetTransactions(ctx context.Context) (*[]types.Transaction, error) {
+	// Check if userLocation is part of the context
+	userLocation, locationOk := ctx.Value("userLocation").(string)
+	if locationOk {
+		logEntry := types.Log{
+			Type:   "Maker Checker",
+			Action: "GetTransactions",
+			// UserId:       ctx.Value("userId").(string),
+			UserLocation: userLocation,
+		}
+		if err := util.CreateLogEntry(logEntry); err != nil {
+			log.Printf("Error creating log entry: %v", err)
+		}
+	}
 	var transactions []types.Transaction
-	logEntry := types.Log{
-		Type:         "Maker Checker",
-		Action:       "Created maker checker transactions",
-		UserId:       ctx.Value("userId").(string),
-		UserLocation: ctx.Value("userLocation").(string),
-	}
-	if err := util.CreateLogEntry(logEntry); err != nil {
-		log.Printf("Error creating log entry: %v", err)
-	}
+
 	tx := dbs.Conn.WithContext(ctx)
 	if result := tx.Preload("Maker").Find(&transactions); result.Error != nil {
 		return nil, fmt.Errorf("failed to get all transactions: %v", result.Error.Error())
@@ -95,16 +108,21 @@ func (dbs *DBService) GetTransactions(ctx context.Context) (*[]types.Transaction
 
 // GetTransactionsByMakerIdByStatus Gets the transactions by maker_id and the status
 func (dbs *DBService) GetTransactionsByMakerIdByStatus(ctx context.Context, makerId string, status string) (*[]types.Transaction, error) {
+	// Check if userLocation is part of the context
+	userLocation, locationOk := ctx.Value("userLocation").(string)
+	if locationOk {
+		logEntry := types.Log{
+			Type:   "Maker Checker",
+			Action: "GetTransactionsByMakerIdByStatus",
+			// UserId:       ctx.Value("userId").(string),
+			UserLocation: userLocation,
+		}
+		if err := util.CreateLogEntry(logEntry); err != nil {
+			log.Printf("Error creating log entry: %v", err)
+		}
+	}
 	var transactions []types.Transaction
-	logEntry := types.Log{
-		Type:         "Maker Checker",
-		Action:       "Get transaction by maker id by status",
-		UserId:       ctx.Value("userId").(string),
-		UserLocation: ctx.Value("userLocation").(string),
-	}
-	if err := util.CreateLogEntry(logEntry); err != nil {
-		log.Printf("Error creating log entry: %v", err)
-	}
+
 	tx := dbs.Conn.WithContext(ctx)
 	if result := tx.
 		Preload("Maker").
@@ -117,14 +135,18 @@ func (dbs *DBService) GetTransactionsByMakerIdByStatus(ctx context.Context, make
 }
 
 func (dbs *DBService) GetPendingTransactionsForChecker(ctx context.Context, checkerId string) (*[]types.Transaction, error) {
-	logEntry := types.Log{
-		Type:         "Maker Checker",
-		Action:       "Get pending transactions for checker",
-		UserId:       ctx.Value("userId").(string),
-		UserLocation: ctx.Value("userLocation").(string),
-	}
-	if err := util.CreateLogEntry(logEntry); err != nil {
-		log.Printf("Error creating log entry: %v", err)
+	// Check if userLocation is part of the context
+	userLocation, locationOk := ctx.Value("userLocation").(string)
+	if locationOk {
+		logEntry := types.Log{
+			Type:   "Maker Checker",
+			Action: "GetPendingTransactionsForChecker",
+			// UserId:       ctx.Value("userId").(string),
+			UserLocation: userLocation,
+		}
+		if err := util.CreateLogEntry(logEntry); err != nil {
+			log.Printf("Error creating log entry: %v", err)
+		}
 	}
 	var transactions *[]types.Transaction
 	var checkerRoleId uint
@@ -160,14 +182,18 @@ func (dbs *DBService) GetPendingTransactionsForChecker(ctx context.Context, chec
 
 // GetCompletedTransactionsByCheckerId This function assumes that all transactions with a value checker_id has been completed.
 func (dbs *DBService) GetCompletedTransactionsByCheckerId(ctx context.Context, checkerId string) (*[]types.Transaction, error) {
-	logEntry := types.Log{
-		Type:         "Maker Checker",
-		Action:       "Get completed transaction by checker id",
-		UserId:       ctx.Value("userId").(string),
-		UserLocation: ctx.Value("userLocation").(string),
-	}
-	if err := util.CreateLogEntry(logEntry); err != nil {
-		log.Printf("Error creating log entry: %v", err)
+	// Check if userLocation is part of the context
+	userLocation, locationOk := ctx.Value("userLocation").(string)
+	if locationOk {
+		logEntry := types.Log{
+			Type:   "Maker Checker",
+			Action: "GetCompletedTransactionsByCheckerId",
+			// UserId:       ctx.Value("userId").(string),
+			UserLocation: userLocation,
+		}
+		if err := util.CreateLogEntry(logEntry); err != nil {
+			log.Printf("Error creating log entry: %v", err)
+		}
 	}
 	var transactions []types.Transaction
 
@@ -185,14 +211,18 @@ func (dbs *DBService) GetCompletedTransactionsByCheckerId(ctx context.Context, c
 }
 
 func (dbs *DBService) UpdateTransaction(ctx context.Context, txnId string, checkerId string, approval bool) (*types.Transaction, error) {
-	logEntry := types.Log{
-		Type:         "Maker Checker",
-		Action:       "update maker checker transaction",
-		UserId:       ctx.Value("userId").(string),
-		UserLocation: ctx.Value("userLocation").(string),
-	}
-	if err := util.CreateLogEntry(logEntry); err != nil {
-		log.Printf("Error creating log entry: %v", err)
+	// Check if userLocation is part of the context
+	userLocation, locationOk := ctx.Value("userLocation").(string)
+	if locationOk {
+		logEntry := types.Log{
+			Type:   "Maker Checker",
+			Action: "UpdateTransaction",
+			// UserId:       ctx.Value("userId").(string),
+			UserLocation: userLocation,
+		}
+		if err := util.CreateLogEntry(logEntry); err != nil {
+			log.Printf("Error creating log entry: %v", err)
+		}
 	}
 	tx := dbs.Conn.WithContext(ctx).Begin()
 	if tx.Error != nil {
@@ -247,16 +277,21 @@ func (dbs *DBService) UpdateTransaction(ctx context.Context, txnId string, check
 }
 
 func (dbs *DBService) GetCheckers(ctx context.Context, makerId string) ([]string, error) {
+	// Check if userLocation is part of the context
+	userLocation, locationOk := ctx.Value("userLocation").(string)
+	if locationOk {
+		logEntry := types.Log{
+			Type:   "Maker Checker",
+			Action: "GetCheckers",
+			// UserId:       ctx.Value("userId").(string),
+			UserLocation: userLocation,
+		}
+		if err := util.CreateLogEntry(logEntry); err != nil {
+			log.Printf("Error creating log entry: %v", err)
+		}
+	}
 	var checkersEmails []string
-	logEntry := types.Log{
-		Type:         "Maker Checker",
-		Action:       "get maker checker checkers",
-		UserId:       ctx.Value("userId").(string),
-		UserLocation: ctx.Value("userLocation").(string),
-	}
-	if err := util.CreateLogEntry(logEntry); err != nil {
-		log.Printf("Error creating log entry: %v", err)
-	}
+
 	// First, get the maker's role name using the makerId
 	var makerRoleName string
 	err := dbs.Conn.WithContext(ctx).
@@ -285,14 +320,18 @@ func (dbs *DBService) GetCheckers(ctx context.Context, makerId string) ([]string
 }
 
 func (dbs *DBService) ProcessTransaction(ctx context.Context, action *types.MakerAction) error {
-	logEntry := types.Log{
-		Type:         "Maker Checker",
-		Action:       "Process transaction",
-		UserId:       ctx.Value("userId").(string),
-		UserLocation: ctx.Value("userLocation").(string),
-	}
-	if err := util.CreateLogEntry(logEntry); err != nil {
-		log.Printf("Error creating log entry: %v", err)
+	// Check if userLocation is part of the context
+	userLocation, locationOk := ctx.Value("userLocation").(string)
+	if locationOk {
+		logEntry := types.Log{
+			Type:   "Maker Checker",
+			Action: "ProcessTransaction",
+			// UserId:       ctx.Value("userId").(string),
+			UserLocation: userLocation,
+		}
+		if err := util.CreateLogEntry(logEntry); err != nil {
+			log.Printf("Error creating log entry: %v", err)
+		}
 	}
 	switch action.ActionType {
 	case "UpdatePoints":
