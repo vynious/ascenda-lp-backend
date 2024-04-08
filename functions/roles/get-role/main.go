@@ -29,6 +29,7 @@ func init() {
 }
 
 func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyResponse, error) {
+	log.Printf("i am entering the function")
 	// Checking if userid and userlocation exists for logging purposes
 	userId, err := util.GetCustomAttributeWithCognito("custom:userID", request.Headers["Authorization"])
 	if err == nil {
@@ -83,7 +84,7 @@ func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (event
 			}, nil
 		}
 	}
-
+	log.Printf("i have made it out of hell 1")
 	responseBody, err := json.Marshal(role)
 	if err != nil {
 		log.Printf("JSON marshal error: %s", err)
@@ -97,6 +98,7 @@ func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (event
 			Body: "Error marshaling role into JSON",
 		}, nil
 	}
+	log.Printf("i have made it out of hell 2")
 	return events.APIGatewayProxyResponse{
 		StatusCode: 200,
 		Headers: map[string]string{

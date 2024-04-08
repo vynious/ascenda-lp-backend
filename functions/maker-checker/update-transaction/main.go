@@ -30,7 +30,7 @@ func init() {
 func LambdaHandler(ctx context.Context, req *events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyResponse, error) {
 	// Checking if userid and userlocation exists for logging purposes
 	userId, err := util.GetCustomAttributeWithCognito("custom:userID", req.Headers["Authorization"])
-	if err != nil {
+	if err == nil {
 		ctx = context.WithValue(ctx, "userId", userId)
 	}
 	userLocation, ok := req.Headers["CloudFront-Viewer-Country"]
@@ -38,7 +38,7 @@ func LambdaHandler(ctx context.Context, req *events.APIGatewayV2HTTPRequest) (ev
 		ctx = context.WithValue(ctx, "userLocation", userLocation)
 	}
 	bank, err := util.GetCustomAttributeWithCognito("custom:bank", req.Headers["Authorization"])
-	if err != nil {
+	if err == nil {
 		ctx = context.WithValue(ctx, "bank", bank)
 	}
 	/*

@@ -37,7 +37,7 @@ func GetTransactionsHandler(ctx context.Context, req *events.APIGatewayV2HTTPReq
 	var transactions *[]types.Transaction
 	// Checking if userid and userlocation exists for logging purposes
 	userId, err := util.GetCustomAttributeWithCognito("custom:userID", req.Headers["Authorization"])
-	if err != nil {
+	if err == nil {
 		ctx = context.WithValue(ctx, "userId", userId)
 	}
 	userLocation, ok := req.Headers["CloudFront-Viewer-Country"]
@@ -45,7 +45,7 @@ func GetTransactionsHandler(ctx context.Context, req *events.APIGatewayV2HTTPReq
 		ctx = context.WithValue(ctx, "userLocation", userLocation)
 	}
 	bank, err := util.GetCustomAttributeWithCognito("custom:bank", req.Headers["Authorization"])
-	if err != nil {
+	if err == nil {
 		ctx = context.WithValue(ctx, "bank", bank)
 	}
 	params := req.QueryStringParameters

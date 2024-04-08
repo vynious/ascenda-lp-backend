@@ -115,10 +115,27 @@ func RetrieveAllUsers(ctx context.Context, dbs *DB) ([]types.User, error) {
 			log.Printf("Error creating log entry: %v", err)
 		}
 	}
-	result := dbs.Conn.WithContext(ctx).Find(&users)
-	if result.Error != nil {
-		return nil, result.Error
+
+	reqUserId := ctx.Value("userId").(string)
+	var reqUser types.User
+	if err := dbs.Conn.WithContext(ctx).Where("id = ?", reqUserId).First(&reqUser).Error; err != nil {
+		return nil, err
 	}
+
+	if reqUser.RoleName != nil && *reqUser.RoleName == "product_manager" {
+		excludedRoles := []string{"product_manager", "owner", "manager", "engineer"}
+		if err := dbs.Conn.WithContext(ctx).Where("role_name NOT IN ?", excludedRoles).Find(&users).Error; err != nil {
+			log.Println(err)
+			return nil, err
+		}
+	} else {
+		if err := dbs.Conn.WithContext(ctx).Find(&users).Error; err != nil {
+			log.Println(err)
+			return nil, err
+		}
+	}
+	log.Println(users)
+
 	return users, nil
 }
 
