@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/csv"
+	"flag"
 	"fmt"
 	"log"
 	"os"
@@ -14,7 +15,7 @@ import (
 )
 
 var (
-	DB        *db.DBService
+	DBService *db.DBService
 	batchsize = 100
 )
 
@@ -22,11 +23,22 @@ func main() {
 	if err := godotenv.Load(); err != nil {
 		log.Fatalf("Failed to load .env")
 	}
+	// Get the value of the "bank" flag
+	bankFlag := flag.String("bank", "banktest", "Description Bank Name")
+	flag.Parse()
+	bank := *bankFlag
 
-	var DB, err = db.SpawnDBService()
+	if err := db.CreateDBIfNotExists(bank); err != nil {
+		log.Printf("error creating db %s", bank)
+	}
+
+	var DBService, err = db.SpawnDBService()
 	if err != nil {
 		log.Fatalf("Error spawn DB service...")
 	}
+	
+
+	DB := DBService.ConnMap[bank]
 
 	clearDatabase(DB)
 
@@ -37,7 +49,7 @@ func main() {
 	}
 	log.Print("Successfully auto-migrated models")
 
-	defer DB.CloseConn()
+	defer DBService.CloseConnections()
 
 	seedRolesAndPermissions(DB)
 	seedApprovalChainMap(DB)
@@ -47,7 +59,7 @@ func main() {
 
 }
 
-func seedFile(filename string, DB *db.DBService) {
+func seedFile(filename string, DB *db.DB) {
 	file, err := os.Open(fmt.Sprintf("./seed/data/%s.csv", filename))
 	if err != nil {
 		log.Fatalf("Error opening %s.csv: %v", filename, err)
@@ -69,7 +81,7 @@ func seedFile(filename string, DB *db.DBService) {
 	}
 }
 
-func seedPoints(records [][]string, DB *db.DBService) {
+func seedPoints(records [][]string, DB *db.DB) {
 	var pointsRecords []types.Points
 	for i, record := range records {
 		if i == 0 {
@@ -90,7 +102,7 @@ func seedPoints(records [][]string, DB *db.DBService) {
 	}
 }
 
-func seedUsers(records [][]string, DB *db.DBService) {
+func seedUsers(records [][]string, DB *db.DB) {
 	var usersRecords []types.User
 	for i, record := range records {
 		if i == 0 {
@@ -122,18 +134,19 @@ func seedUsers(records [][]string, DB *db.DBService) {
 	}
 }
 
-func clearDatabase(DB *db.DBService) {
+func clearDatabase(DB *db.DB) {
 	// Specify the order of deletion based on foreign key dependencies
-	models := []interface{}{&types.RolePermission{}, &types.Transaction{}, &types.Points{}, types.ApprovalChainMap{}, &types.User{}, &types.Role{}, types.MakerAction{}}
+	models := []interface{}{&types.RolePermission{}, &types.Transaction{}, &types.Points{}, types.ApprovalChainMap{}, &types.User{}, &types.Role{}}
 	for _, model := range models {
 		if result := DB.Conn.Unscoped().Where("1 = 1").Delete(model); result.Error != nil {
-			log.Fatalf("Failed to clear table for model %v: %v", model, result.Error)
+			log.Printf("Failed to clear table for model %v: %v", model, result.Error)
+			continue
 		}
 	}
 	log.Println("Successfully cleared the database")
 }
 
-func seedRolesAndPermissions(DB *db.DBService) {
+func seedRolesAndPermissions(DB *db.DB) {
 	// Owner, Manager, Engineer, Product Manager
 	var roles types.RoleList = types.RoleList{
 		types.Role{
@@ -148,8 +161,10 @@ func seedRolesAndPermissions(DB *db.DBService) {
 				},
 				types.RolePermission{
 					Resource:  "points_ledger",
+					CanCreate: true,
 					CanRead:   true,
 					CanUpdate: true,
+					CanDelete: true,
 				},
 				types.RolePermission{
 					Resource: "logs",
@@ -217,7 +232,7 @@ func seedRolesAndPermissions(DB *db.DBService) {
 	log.Printf("Successful roles and perms seed")
 }
 
-func seedApprovalChainMap(DB *db.DBService) {
+func seedApprovalChainMap(DB *db.DB) {
 	var approvalChainMaps = []struct {
 		MakerRoleName   string
 		CheckerRoleName string
@@ -253,7 +268,7 @@ func seedApprovalChainMap(DB *db.DBService) {
 }
 
 // SeedCustomUser creates a user with a specified role
-func seedCustomUsers(DB *db.DBService) {
+func seedCustomUsers(DB *db.DB) {
 	// Define users
 	users := []types.User{
 		{
@@ -284,7 +299,7 @@ func seedCustomUsers(DB *db.DBService) {
 	}
 }
 
-func getRoleID(DB *db.DBService, roleName string) *uint {
+func getRoleID(DB *db.DB, roleName string) *uint {
 	var role types.Role
 	if err := DB.Conn.Where("role_name = ?", roleName).First(&role).Error; err != nil {
 		log.Fatalf("Role not found: %v", err)

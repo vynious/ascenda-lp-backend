@@ -16,6 +16,7 @@ var (
 	requestBody  makerchecker.UpdateTransactionRequestBody
 	responseBody makerchecker.TransactionResponseBody
 	err          error
+	DB *db.DB
 )
 
 func init() {
@@ -38,6 +39,9 @@ func LambdaHandler(ctx context.Context, req *events.APIGatewayV2HTTPRequest) (ev
 	/*
 		check role/user of requested
 	*/
+	
+	DB = DBService.GetBanksDB(req.Headers["Authorization"])
+
 
 	if err := json.Unmarshal([]byte(req.Body), &requestBody); err != nil {
 		return events.APIGatewayProxyResponse{
@@ -51,7 +55,7 @@ func LambdaHandler(ctx context.Context, req *events.APIGatewayV2HTTPRequest) (ev
 		}, nil
 	}
 
-	updatedTxn, err := DBService.UpdateTransaction(ctx, requestBody.TransactionId, requestBody.CheckerId, requestBody.Approval)
+	updatedTxn, err := DB.UpdateTransaction(ctx, requestBody.TransactionId, requestBody.CheckerId, requestBody.Approval)
 	if err != nil {
 		return events.APIGatewayProxyResponse{
 			StatusCode: 500,
@@ -91,5 +95,5 @@ func LambdaHandler(ctx context.Context, req *events.APIGatewayV2HTTPRequest) (ev
 
 func main() {
 	lambda.Start(LambdaHandler)
-	defer DBService.CloseConn()
+	defer DBService.CloseConnections()
 }

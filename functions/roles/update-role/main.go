@@ -37,6 +37,8 @@ func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (event
 	if ok {
 		ctx = context.WithValue(ctx, "userLocation", userLocation)
 	}
+	DB := DBService.GetBanksDB(request.Headers["Authorization"])
+
 	if request.RequestContext.HTTP.Method == "OPTIONS" {
 		return events.APIGatewayProxyResponse{
 			StatusCode: 200,
@@ -64,7 +66,7 @@ func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (event
 		}, nil
 	}
 
-	updatedRole, err := db.UpdateRole(ctx, DBService, roleRequestBody)
+	updatedRole, err := db.UpdateRole(ctx, DB, roleRequestBody)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return events.APIGatewayProxyResponse{
@@ -116,5 +118,5 @@ func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (event
 func main() {
 	// we are simulating a lambda behind an ApiGatewayV2
 	lambda.Start(handler)
-	defer DBService.CloseConn()
+	defer DBService.CloseConnections()
 }

@@ -10,7 +10,7 @@ import (
 	"github.com/vynious/ascenda-lp-backend/util"
 )
 
-func (dbs *DBService) GetPoints(ctx context.Context) ([]types.Points, error) {
+func (dbs *DB) GetPoints(ctx context.Context) ([]types.Points, error) {
 	var pointsRecords []types.Points
 	res := dbs.Conn.Find(&pointsRecords)
 	if res.Error != nil {
@@ -46,7 +46,7 @@ func (dbs *DBService) GetPoints(ctx context.Context) ([]types.Points, error) {
 	return pointsRecords, nil
 }
 
-func (dbs *DBService) GetPointsAccountById(ctx context.Context, accId string) ([]types.Points, error) {
+func (dbs *DB) GetPointsAccountById(ctx context.Context, accId string) ([]types.Points, error) {
 
 	var pointsRecords []types.Points
 	res := dbs.Conn.Where("id = ?", accId).First(&pointsRecords)
@@ -99,7 +99,7 @@ func (dbs *DBService) GetPointsAccountById(ctx context.Context, accId string) ([
 	return pointsRecords, nil
 }
 
-func (dbs *DBService) GetPointsAccountsByUser(ctx context.Context, userId string) ([]types.Points, error) {
+func (dbs *DB) GetPointsAccountsByUser(ctx context.Context, userId string) ([]types.Points, error) {
 
 	log.Printf("Test %s", userId)
 	var pointsRecords []types.Points
@@ -153,7 +153,7 @@ func (dbs *DBService) GetPointsAccountsByUser(ctx context.Context, userId string
 	return pointsRecords, nil
 }
 
-func (dbs *DBService) UpdatePoints(ctx context.Context, req types.UpdatePointsRequestBody) (*types.Points, error) {
+func (dbs *DB) UpdatePoints(ctx context.Context, req types.UpdatePointsRequestBody) (*types.Points, error) {
 
 	var pointsRecords []types.Points
 	pointsRecords, err := dbs.GetPointsAccountById(ctx, req.ID)
@@ -208,7 +208,7 @@ func (dbs *DBService) UpdatePoints(ctx context.Context, req types.UpdatePointsRe
 	return &pointsRecords[0], nil
 }
 
-func (dbs *DBService) CreatePointsAccount(ctx context.Context, req types.CreatePointsAccountRequestBody) (*types.Points, error) {
+func (dbs *DB) CreatePointsAccount(ctx context.Context, req types.CreatePointsAccountRequestBody) (*types.Points, error) {
 
 	pointsRecord := types.Points{
 		ID:      uuid.NewString(),
@@ -248,7 +248,7 @@ func (dbs *DBService) CreatePointsAccount(ctx context.Context, req types.CreateP
 	return &pointsRecord, nil
 }
 
-func (dbs *DBService) DeletePointsAccountByUser(ctx context.Context, userId string) (bool, error) {
+func (dbs *DB) DeletePointsAccountByUser(ctx context.Context, userId string) (bool, error) {
 	res := dbs.Conn.Where("user_id = ?", &userId).Delete(&types.Points{})
 	if res.RowsAffected == 0 {
 		// Check if userLocation is part of the context
@@ -283,7 +283,7 @@ func (dbs *DBService) DeletePointsAccountByUser(ctx context.Context, userId stri
 	return true, nil
 }
 
-func (dbs *DBService) DeletePointsAccountByID(ctx context.Context, accId string) (bool, error) {
+func (dbs *DB) DeletePointsAccountByID(ctx context.Context, accId string) (bool, error) {
 	res := dbs.Conn.Delete(&types.Points{}, &accId)
 	if res.RowsAffected == 0 {
 		// Check if userLocation is part of the context

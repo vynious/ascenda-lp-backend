@@ -12,7 +12,11 @@ import (
 	"github.com/vynious/ascenda-lp-backend/util"
 )
 
-var DBService *db.DBService
+var (
+	DBService *db.DBService
+	DB *db.DB
+)
+
 
 func init() {
 	var err error
@@ -23,13 +27,16 @@ func init() {
 }
 
 func AuthorizerHandler(ctx context.Context, req events.APIGatewayCustomAuthorizerRequestTypeRequest) (events.APIGatewayCustomAuthorizerResponse, error) {
+
+	DB = DBService.GetBanksDB(req.Headers["Authorization"])
+
 	token := req.Headers["Authorization"]
 	method := req.HTTPMethod
 	route := req.Path[1:]
 
 	log.Printf("Authorizer %s %s", method, route)
 
-	roleName, err := util.GetRoleWithCognito(token)
+	roleName, err := util.GetCustomAttributeWithCognito("custom:role", token)
 	if err != nil || roleName == "" {
 		return GenerateDenyPolicy(uuid.NewString(), req.MethodArn), nil
 	}
@@ -39,7 +46,7 @@ func AuthorizerHandler(ctx context.Context, req events.APIGatewayCustomAuthorize
 
 func GeneratePolicyBasedOnRole(ctx context.Context, roleName, principalId, route, method, arn string) events.APIGatewayCustomAuthorizerResponse {
 	log.Printf("GeneratePolicyBasedOnRole %s, %s", roleName, principalId)
-	role, err := db.RetrieveRoleWithRoleName(ctx, DBService, roleName)
+	role, err := db.RetrieveRoleWithRoleName(ctx, DB, roleName)
 	if err != nil {
 		log.Printf("GenerateDenyPolicy %s", roleName)
 		return GenerateDenyPolicy(principalId, arn)
@@ -73,7 +80,6 @@ func GeneratePolicyBasedOnRole(ctx context.Context, roleName, principalId, route
 			return GenerateDenyPolicy(principalId, arn)
 		}
 	}
-
 
 	log.Printf("%+v", authResponse)
 	return authResponse
@@ -135,6 +141,6 @@ func GenerateDenyPolicy(principalId, arn string) events.APIGatewayCustomAuthoriz
 
 func main() {
 	lambda.Start(AuthorizerHandler)
-	defer DBService.CloseConn()
+	defer DBService.CloseConnections()
 
 }

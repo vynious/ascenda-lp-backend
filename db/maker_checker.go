@@ -13,7 +13,7 @@ import (
 )
 
 // CreateTransaction creates a maker-checker transaction
-func (dbs *DBService) CreateTransaction(ctx context.Context, action types.MakerAction, makerId string) (*types.Transaction, error) {
+func (dbs *DB) CreateTransaction(ctx context.Context, action types.MakerAction, makerId string) (*types.Transaction, error) {
 	// Check if userLocation is part of the context
 	userLocation, locationOk := ctx.Value("userLocation").(string)
 	if locationOk {
@@ -58,7 +58,7 @@ func (dbs *DBService) CreateTransaction(ctx context.Context, action types.MakerA
 	return txn, tx.Commit().Error
 }
 
-func (dbs *DBService) GetTransaction(ctx context.Context, txnId string) (*[]types.Transaction, error) {
+func (dbs *DB) GetTransaction(ctx context.Context, txnId string) (*[]types.Transaction, error) {
 	// Check if userLocation is part of the context
 	userLocation, locationOk := ctx.Value("userLocation").(string)
 	if locationOk {
@@ -83,7 +83,7 @@ func (dbs *DBService) GetTransaction(ctx context.Context, txnId string) (*[]type
 	return &[]types.Transaction{transaction}, nil
 }
 
-func (dbs *DBService) GetTransactions(ctx context.Context) (*[]types.Transaction, error) {
+func (dbs *DB) GetTransactions(ctx context.Context) (*[]types.Transaction, error) {
 	// Check if userLocation is part of the context
 	userLocation, locationOk := ctx.Value("userLocation").(string)
 	if locationOk {
@@ -107,7 +107,7 @@ func (dbs *DBService) GetTransactions(ctx context.Context) (*[]types.Transaction
 }
 
 // GetTransactionsByMakerIdByStatus Gets the transactions by maker_id and the status
-func (dbs *DBService) GetTransactionsByMakerIdByStatus(ctx context.Context, makerId string, status string) (*[]types.Transaction, error) {
+func (dbs *DB) GetTransactionsByMakerIdByStatus(ctx context.Context, makerId string, status string) (*[]types.Transaction, error) {
 	// Check if userLocation is part of the context
 	userLocation, locationOk := ctx.Value("userLocation").(string)
 	if locationOk {
@@ -134,7 +134,7 @@ func (dbs *DBService) GetTransactionsByMakerIdByStatus(ctx context.Context, make
 	return &transactions, nil
 }
 
-func (dbs *DBService) GetPendingTransactionsForChecker(ctx context.Context, checkerId string) (*[]types.Transaction, error) {
+func (dbs *DB) GetPendingTransactionsForChecker(ctx context.Context, checkerId string) (*[]types.Transaction, error) {
 	// Check if userLocation is part of the context
 	userLocation, locationOk := ctx.Value("userLocation").(string)
 	if locationOk {
@@ -181,7 +181,7 @@ func (dbs *DBService) GetPendingTransactionsForChecker(ctx context.Context, chec
 }
 
 // GetCompletedTransactionsByCheckerId This function assumes that all transactions with a value checker_id has been completed.
-func (dbs *DBService) GetCompletedTransactionsByCheckerId(ctx context.Context, checkerId string) (*[]types.Transaction, error) {
+func (dbs *DB) GetCompletedTransactionsByCheckerId(ctx context.Context, checkerId string) (*[]types.Transaction, error) {
 	// Check if userLocation is part of the context
 	userLocation, locationOk := ctx.Value("userLocation").(string)
 	if locationOk {
@@ -210,7 +210,7 @@ func (dbs *DBService) GetCompletedTransactionsByCheckerId(ctx context.Context, c
 	return &transactions, nil
 }
 
-func (dbs *DBService) UpdateTransaction(ctx context.Context, txnId string, checkerId string, approval bool) (*types.Transaction, error) {
+func (dbs *DB) UpdateTransaction(ctx context.Context, txnId string, checkerId string, approval bool) (*types.Transaction, error) {
 	// Check if userLocation is part of the context
 	userLocation, locationOk := ctx.Value("userLocation").(string)
 	if locationOk {
@@ -276,7 +276,7 @@ func (dbs *DBService) UpdateTransaction(ctx context.Context, txnId string, check
 	return &updatedTransaction, nil
 }
 
-func (dbs *DBService) GetCheckers(ctx context.Context, makerId string) ([]string, error) {
+func (dbs *DB) GetCheckers(ctx context.Context, makerId string) ([]string, error) {
 	// Check if userLocation is part of the context
 	userLocation, locationOk := ctx.Value("userLocation").(string)
 	if locationOk {
@@ -319,7 +319,7 @@ func (dbs *DBService) GetCheckers(ctx context.Context, makerId string) ([]string
 	return checkersEmails, nil
 }
 
-func (dbs *DBService) ProcessTransaction(ctx context.Context, action *types.MakerAction) error {
+func (dbs *DB) ProcessTransaction(ctx context.Context, action *types.MakerAction) error {
 	// Check if userLocation is part of the context
 	userLocation, locationOk := ctx.Value("userLocation").(string)
 	if locationOk {

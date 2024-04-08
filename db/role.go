@@ -10,7 +10,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func CreateRoleWithCreateRoleRequestBody(ctx context.Context, dbs *DBService, roleRequestBody types.CreateRoleRequestBody) (string, error) {
+func CreateRoleWithCreateRoleRequestBody(ctx context.Context, dbs *DB, roleRequestBody types.CreateRoleRequestBody) (string, error) {
 	// Check if userLocation is part of the context
 	userLocation, locationOk := ctx.Value("userLocation").(string)
 	if locationOk {
@@ -43,7 +43,7 @@ func CreateRoleWithCreateRoleRequestBody(ctx context.Context, dbs *DBService, ro
 	return role.RoleName, tx.Commit().Error
 }
 
-func RetrieveRoleWithRoleName(ctx context.Context, dbs *DBService, roleName string) (types.Role, error) {
+func RetrieveRoleWithRoleName(ctx context.Context, dbs *DB, roleName string) (types.Role, error) {
 	// Check if userLocation is part of the context
 	userLocation, locationOk := ctx.Value("userLocation").(string)
 	if locationOk {
@@ -64,7 +64,7 @@ func RetrieveRoleWithRoleName(ctx context.Context, dbs *DBService, roleName stri
 	return role, nil
 }
 
-func RetrieveAllRolesWithUsers(ctx context.Context, dbs *DBService) ([]types.Role, error) {
+func RetrieveAllRolesWithUsers(ctx context.Context, dbs *DB) ([]types.Role, error) {
 	// Check if userLocation is part of the context
 	userLocation, locationOk := ctx.Value("userLocation").(string)
 	if locationOk {
@@ -85,7 +85,7 @@ func RetrieveAllRolesWithUsers(ctx context.Context, dbs *DBService) ([]types.Rol
 	return roles, nil
 }
 
-func RetrieveRoleWithRetrieveRoleRequestBody(ctx context.Context, dbs *DBService, roleRequestBody types.GetRoleRequestBody) (types.Role, error) {
+func RetrieveRoleWithRetrieveRoleRequestBody(ctx context.Context, dbs *DB, roleRequestBody types.GetRoleRequestBody) (types.Role, error) {
 	// Check if userLocation is part of the context
 	userLocation, locationOk := ctx.Value("userLocation").(string)
 	if locationOk {
@@ -106,7 +106,7 @@ func RetrieveRoleWithRetrieveRoleRequestBody(ctx context.Context, dbs *DBService
 	return role, nil
 }
 
-func DeleteRoleWithDeleteRoleRequestBody(ctx context.Context, dbs *DBService, roleRequestBody types.DeleteRoleRequestBody) error {
+func DeleteRoleWithDeleteRoleRequestBody(ctx context.Context, dbs *DB, roleRequestBody types.DeleteRoleRequestBody) error {
 	// Check if userLocation is part of the context
 	userLocation, locationOk := ctx.Value("userLocation").(string)
 	if locationOk {
@@ -146,7 +146,7 @@ func DeleteRoleWithDeleteRoleRequestBody(ctx context.Context, dbs *DBService, ro
 	return tx.Commit().Error
 }
 
-func UpdateRole(ctx context.Context, dbs *DBService, roleRequestBody types.UpdateRoleRequestBody) (types.Role, error) {
+func UpdateRole(ctx context.Context, dbs *DB, roleRequestBody types.UpdateRoleRequestBody) (types.Role, error) {
 	// Check if userLocation is part of the context
 	userLocation, locationOk := ctx.Value("userLocation").(string)
 	if locationOk {

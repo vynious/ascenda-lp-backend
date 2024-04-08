@@ -13,9 +13,9 @@ import (
 )
 
 var (
-	DB      *db.DBService
-	err     error
-	headers = map[string]string{
+	DBService *db.DBService
+	err       error
+	headers   = map[string]string{
 		"Access-Control-Allow-Headers": "Content-Type",
 		"Access-Control-Allow-Origin":  "*",
 		"Access-Control-Allow-Methods": "GET",
@@ -24,14 +24,14 @@ var (
 
 func init() {
 	log.Printf("INIT")
-	DB, err = db.SpawnDBService()
+	DBService, err = db.SpawnDBService()
 }
 
 func main() {
 	// we are simulating a lambda behind an ApiGatewayV2
 	lambda.Start(handler)
 
-	defer DB.CloseConn()
+	defer DBService.CloseConnections()
 }
 
 func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyResponse, error) {
@@ -47,6 +47,7 @@ func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (event
 	if ok {
 		ctx = context.WithValue(ctx, "userLocation", userLocation)
 	}
+	DB := DBService.GetBanksDB(request.Headers["Authorization"])
 
 	params := request.QueryStringParameters
 
