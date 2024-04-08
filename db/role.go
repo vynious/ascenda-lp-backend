@@ -20,7 +20,7 @@ func CreateRoleWithCreateRoleRequestBody(ctx context.Context, dbs *DB, roleReque
 			// UserId:       ctx.Value("userId").(string),
 			UserLocation: userLocation,
 		}
-		if err := util.CreateLogEntry(logEntry); err != nil {
+		if err := util.CreateLogEntry(ctx.Value("bank").(string), logEntry); err != nil {
 			log.Printf("Error creating log entry: %v", err)
 		}
 	}
@@ -53,7 +53,7 @@ func RetrieveRoleWithRoleName(ctx context.Context, dbs *DB, roleName string) (ty
 			// UserId:       ctx.Value("userId").(string),
 			UserLocation: userLocation,
 		}
-		if err := util.CreateLogEntry(logEntry); err != nil {
+		if err := util.CreateLogEntry(ctx.Value("bank").(string), logEntry); err != nil {
 			log.Printf("Error creating log entry: %v", err)
 		}
 	}
@@ -74,7 +74,7 @@ func RetrieveAllRolesWithUsers(ctx context.Context, dbs *DB) ([]types.Role, erro
 			// UserId:       ctx.Value("userId").(string),
 			UserLocation: userLocation,
 		}
-		if err := util.CreateLogEntry(logEntry); err != nil {
+		if err := util.CreateLogEntry(ctx.Value("bank").(string), logEntry); err != nil {
 			log.Printf("Error creating log entry: %v", err)
 		}
 	}
@@ -95,7 +95,7 @@ func RetrieveRoleWithRetrieveRoleRequestBody(ctx context.Context, dbs *DB, roleR
 			// UserId:       ctx.Value("userId").(string),
 			UserLocation: userLocation,
 		}
-		if err := util.CreateLogEntry(logEntry); err != nil {
+		if err := util.CreateLogEntry(ctx.Value("bank").(string), logEntry); err != nil {
 			log.Printf("Error creating log entry: %v", err)
 		}
 	}
@@ -116,7 +116,7 @@ func DeleteRoleWithDeleteRoleRequestBody(ctx context.Context, dbs *DB, roleReque
 			// UserId:       ctx.Value("userId").(string),
 			UserLocation: userLocation,
 		}
-		if err := util.CreateLogEntry(logEntry); err != nil {
+		if err := util.CreateLogEntry(ctx.Value("bank").(string), logEntry); err != nil {
 			log.Printf("Error creating log entry: %v", err)
 		}
 	}
@@ -156,7 +156,7 @@ func UpdateRole(ctx context.Context, dbs *DB, roleRequestBody types.UpdateRoleRe
 			// UserId:       ctx.Value("userId").(string),
 			UserLocation: userLocation,
 		}
-		if err := util.CreateLogEntry(logEntry); err != nil {
+		if err := util.CreateLogEntry(ctx.Value("bank").(string), logEntry); err != nil {
 			log.Printf("Error creating log entry: %v", err)
 		}
 	}

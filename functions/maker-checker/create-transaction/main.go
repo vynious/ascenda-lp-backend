@@ -38,6 +38,10 @@ func CreateTransactionHandler(ctx context.Context, req *events.APIGatewayV2HTTPR
 	if ok {
 		ctx = context.WithValue(ctx, "userLocation", userLocation)
 	}
+	bank, err := util.GetCustomAttributeWithCognito("custom:bank", req.Headers["Authorization"])
+	if err != nil {
+		ctx = context.WithValue(ctx, "bank", bank)
+	}
 
 	DB = DBService.GetBanksDB(req.Headers["Authorization"])
 

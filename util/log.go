@@ -1,14 +1,14 @@
 package util
 
 import (
+	"fmt"
 	"log"
-	"net/http"
+	"os"
 	"regexp"
 	"time"
 
 	"strings"
 
-	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -17,11 +17,11 @@ import (
 	"github.com/vynious/ascenda-lp-backend/types"
 )
 
-func CreateLogEntry(customLog types.Log) error {
+func CreateLogEntry(bank string, customLog types.Log) error {
 	// Specify your AWS credentials and region here
 	sess, err := session.NewSession(&aws.Config{
 		Region:      aws.String("ap-southeast-1"),
-		Credentials: credentials.NewStaticCredentials("AKIAUAWJVJ7IQGRU6FGJ", "tsJfzFep6wKQWX+DSOM20xeLQtiZYQdBkhs2IL3N", ""),
+		Credentials: credentials.NewStaticCredentials(os.Getenv("DYNAMODB_ACCESS_KEY_ID"), os.Getenv("DYNAMODB_ACCESS_SECRET_KEY"), ""),
 	})
 	if err != nil {
 		return err
@@ -40,7 +40,7 @@ func CreateLogEntry(customLog types.Log) error {
 	customLog.Timestamp = time.Now().UTC()
 	log.Printf("Putting in db")
 	input := &dynamodb.PutItemInput{
-		TableName: aws.String("logs"),
+		TableName: aws.String(fmt.Sprintf("%s_logs", bank)),
 		Item: map[string]*dynamodb.AttributeValue{
 			"log_id": {
 				S: aws.String(logID),
@@ -88,44 +88,4 @@ func filterPII(message string) string {
 	}
 
 	return filteredMessage
-}
-
-func HandleRequest(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	// Extract user ID, action type, and action description from the request
-	userID := request.QueryStringParameters["UserID"]
-	actionType := request.QueryStringParameters["ActionType"]
-	// actionDescription := request.QueryStringParameters["ActionDescription"]
-
-	// ip := request.RequestContext.Identity.SourceIP
-
-	// userLocation, err := GetLocationFromIP(ip)
-	// if err != nil {
-	// 	return events.APIGatewayProxyResponse{}, err
-	// }
-
-	// filteredDescription, err := FilterPIIWithMacie(actionDescription)
-	// if err != nil {
-	// 	return events.APIGatewayProxyResponse{}, err
-	// }
-	// Create a log entry
-	logs := types.Log{
-		LogId:  "unique_log_id",
-		UserId: userID,
-		Action: actionType,
-		Type:   "user_action",
-		// Action:       actionDescription,
-		UserLocation: "here",
-		Timestamp:    time.Now(),
-		TTL:          "",
-	}
-	// Store the log entry in DynamoDB
-	err := CreateLogEntry(logs)
-	if err != nil {
-		return events.APIGatewayProxyResponse{}, err
-	}
-
-	return events.APIGatewayProxyResponse{
-		StatusCode: http.StatusOK,
-		Body:       "Log entry created successfully",
-	}, nil
 }

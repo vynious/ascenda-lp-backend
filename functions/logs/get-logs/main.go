@@ -3,7 +3,9 @@ package main
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
+	"os"
 	"strconv"
 
 	"github.com/aws/aws-lambda-go/events"
@@ -14,6 +16,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 	"github.com/vynious/ascenda-lp-backend/types"
+	"github.com/vynious/ascenda-lp-backend/util"
 )
 
 var svc *dynamodb.DynamoDB
@@ -22,7 +25,7 @@ func init() {
 	log.Printf("INIT")
 	sess, err := session.NewSession(&aws.Config{
 		Region:      aws.String("ap-southeast-1"),
-		Credentials: credentials.NewStaticCredentials("AKIAUAWJVJ7IYLBCMQES", "bN3rxyZZnwSI34+vWhyI7y5D1XYh40b4JGCE5OvZ", ""),
+		Credentials: credentials.NewStaticCredentials(os.Getenv("DYNAMODB_ACCESS_KEY_ID"), os.Getenv("DYNAMODB_ACCESS_SECRET_KEY"), ""),
 	})
 	if err != nil {
 		log.Printf("failed to connect to db: " + err.Error())
@@ -33,7 +36,11 @@ func init() {
 }
 
 func handler(request events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyResponse, error) {
-	const logsTable = "logs"
+	bank, err := util.GetCustomAttributeWithCognito("custom:bank", request.Headers["Authorization"])
+	if err != nil {
+		log.Printf("failed to get custom:bank from cognito")
+	}
+	logsTable := fmt.Sprintf("%s_logs", bank)
 
 	ttlStr := request.QueryStringParameters["TTL"]
 	if ttlStr != "" {

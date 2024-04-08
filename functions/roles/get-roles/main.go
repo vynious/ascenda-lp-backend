@@ -37,6 +37,10 @@ func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (event
 	if ok {
 		ctx = context.WithValue(ctx, "userLocation", userLocation)
 	}
+	bank, err := util.GetCustomAttributeWithCognito("custom:bank", request.Headers["Authorization"])
+	if err != nil {
+		ctx = context.WithValue(ctx, "bank", bank)
+	}
 
 	DB := DBService.GetBanksDB(request.Headers["Authorization"])
 

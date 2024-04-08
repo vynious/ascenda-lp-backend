@@ -23,7 +23,7 @@ func (dbs *DB) CreateTransaction(ctx context.Context, action types.MakerAction, 
 			// UserId:       ctx.Value("userId").(string),
 			UserLocation: userLocation,
 		}
-		if err := util.CreateLogEntry(logEntry); err != nil {
+		if err := util.CreateLogEntry(ctx.Value("bank").(string), logEntry); err != nil {
 			log.Printf("Error creating log entry: %v", err)
 		}
 	}
@@ -68,7 +68,7 @@ func (dbs *DB) GetTransaction(ctx context.Context, txnId string) (*[]types.Trans
 			// UserId:       ctx.Value("userId").(string),
 			UserLocation: userLocation,
 		}
-		if err := util.CreateLogEntry(logEntry); err != nil {
+		if err := util.CreateLogEntry(ctx.Value("bank").(string), logEntry); err != nil {
 			log.Printf("Error creating log entry: %v", err)
 		}
 	}
@@ -93,7 +93,7 @@ func (dbs *DB) GetTransactions(ctx context.Context) (*[]types.Transaction, error
 			// UserId:       ctx.Value("userId").(string),
 			UserLocation: userLocation,
 		}
-		if err := util.CreateLogEntry(logEntry); err != nil {
+		if err := util.CreateLogEntry(ctx.Value("bank").(string), logEntry); err != nil {
 			log.Printf("Error creating log entry: %v", err)
 		}
 	}
@@ -117,7 +117,7 @@ func (dbs *DB) GetTransactionsByMakerIdByStatus(ctx context.Context, makerId str
 			// UserId:       ctx.Value("userId").(string),
 			UserLocation: userLocation,
 		}
-		if err := util.CreateLogEntry(logEntry); err != nil {
+		if err := util.CreateLogEntry(ctx.Value("bank").(string), logEntry); err != nil {
 			log.Printf("Error creating log entry: %v", err)
 		}
 	}
@@ -144,7 +144,7 @@ func (dbs *DB) GetPendingTransactionsForChecker(ctx context.Context, checkerId s
 			// UserId:       ctx.Value("userId").(string),
 			UserLocation: userLocation,
 		}
-		if err := util.CreateLogEntry(logEntry); err != nil {
+		if err := util.CreateLogEntry(ctx.Value("bank").(string), logEntry); err != nil {
 			log.Printf("Error creating log entry: %v", err)
 		}
 	}
@@ -191,7 +191,7 @@ func (dbs *DB) GetCompletedTransactionsByCheckerId(ctx context.Context, checkerI
 			// UserId:       ctx.Value("userId").(string),
 			UserLocation: userLocation,
 		}
-		if err := util.CreateLogEntry(logEntry); err != nil {
+		if err := util.CreateLogEntry(ctx.Value("bank").(string), logEntry); err != nil {
 			log.Printf("Error creating log entry: %v", err)
 		}
 	}
@@ -220,7 +220,7 @@ func (dbs *DB) UpdateTransaction(ctx context.Context, txnId string, checkerId st
 			// UserId:       ctx.Value("userId").(string),
 			UserLocation: userLocation,
 		}
-		if err := util.CreateLogEntry(logEntry); err != nil {
+		if err := util.CreateLogEntry(ctx.Value("bank").(string), logEntry); err != nil {
 			log.Printf("Error creating log entry: %v", err)
 		}
 	}
@@ -286,7 +286,7 @@ func (dbs *DB) GetCheckers(ctx context.Context, makerId string) ([]string, error
 			// UserId:       ctx.Value("userId").(string),
 			UserLocation: userLocation,
 		}
-		if err := util.CreateLogEntry(logEntry); err != nil {
+		if err := util.CreateLogEntry(ctx.Value("bank").(string), logEntry); err != nil {
 			log.Printf("Error creating log entry: %v", err)
 		}
 	}
@@ -329,7 +329,7 @@ func (dbs *DB) ProcessTransaction(ctx context.Context, action *types.MakerAction
 			// UserId:       ctx.Value("userId").(string),
 			UserLocation: userLocation,
 		}
-		if err := util.CreateLogEntry(logEntry); err != nil {
+		if err := util.CreateLogEntry(ctx.Value("bank").(string), logEntry); err != nil {
 			log.Printf("Error creating log entry: %v", err)
 		}
 	}

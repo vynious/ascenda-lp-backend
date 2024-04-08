@@ -15,6 +15,8 @@ Globals:
       - arm64
     Environment:
       Variables:
+        DYNAMODB_ACCESS_KEY_ID: "AKIAUAWJVJ7IQGRU6FGJ"
+        DYNAMODB_ACCESS_SECRET_KEY: "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"
         SES_ACCESS_KEY_ID: "AKIAUAWJVJ7I5DLGN6EW"
         SES_ACCESS_SECRET_KEY: "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"
         dbUser: "postgres"
@@ -38,18 +40,18 @@ Resources:
         AllowMethods: "'GET, POST, PUT, DELETE, OPTIONS'"
         AllowHeaders: "'Content-Type, X-Amz-Date, Authorization, X-Api-Key, X-Amz-Security-Token'"
         AllowOrigin: "'*'"
-      # Auth:
-      #   DefaultAuthorizer: CustomAuthorizer1
-      #   AddDefaultAuthorizerToCorsPreflight: False
-      #   InvokeRole: arn:aws:iam::276374573009:role/api_gateway_auth_invocation
-      #   Authorizers:
-      #     CustomAuthorizer1:
-      #       FunctionPayloadType: REQUEST
-      #       FunctionArn: !GetAtt CustomAuthorizer.Arn
-      #       Identity:
-      #         Headers:
-      #           - Authorization
-      #         ReauthorizeEvery: 0
+      Auth:
+        DefaultAuthorizer: CustomAuthorizer1
+        AddDefaultAuthorizerToCorsPreflight: False
+        InvokeRole: arn:aws:iam::276374573009:role/api_gateway_auth_invocation
+        Authorizers:
+          CustomAuthorizer1:
+            FunctionPayloadType: REQUEST
+            FunctionArn: !GetAtt CustomAuthorizer.Arn
+            Identity:
+              Headers:
+                - Authorization
+              ReauthorizeEvery: 0
       GatewayResponses:
         DEFAULT_4XX:
           ResponseParameters:

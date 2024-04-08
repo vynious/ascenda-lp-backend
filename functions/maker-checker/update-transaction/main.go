@@ -37,6 +37,10 @@ func LambdaHandler(ctx context.Context, req *events.APIGatewayV2HTTPRequest) (ev
 	if ok {
 		ctx = context.WithValue(ctx, "userLocation", userLocation)
 	}
+	bank, err := util.GetCustomAttributeWithCognito("custom:bank", req.Headers["Authorization"])
+	if err != nil {
+		ctx = context.WithValue(ctx, "bank", bank)
+	}
 	/*
 		check role/user of requested
 	*/

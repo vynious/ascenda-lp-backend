@@ -23,7 +23,7 @@ func (dbs *DB) GetPoints(ctx context.Context) ([]types.Points, error) {
 				// UserId:       ctx.Value("userId").(string),
 				UserLocation: userLocation,
 			}
-			if err := util.CreateLogEntry(logEntry); err != nil {
+			if err := util.CreateLogEntry(ctx.Value("bank").(string), logEntry); err != nil {
 				log.Printf("Error creating log entry: %v", err)
 			}
 		}
@@ -38,7 +38,7 @@ func (dbs *DB) GetPoints(ctx context.Context) ([]types.Points, error) {
 			// UserId:       ctx.Value("userId").(string),
 			UserLocation: userLocation,
 		}
-		if err := util.CreateLogEntry(logEntry); err != nil {
+		if err := util.CreateLogEntry(ctx.Value("bank").(string), logEntry); err != nil {
 			log.Printf("Error creating log entry: %v", err)
 		}
 	}
@@ -60,7 +60,7 @@ func (dbs *DB) GetPointsAccountById(ctx context.Context, accId string) ([]types.
 				// UserId:       ctx.Value("userId").(string),
 				UserLocation: userLocation,
 			}
-			if err := util.CreateLogEntry(logEntry); err != nil {
+			if err := util.CreateLogEntry(ctx.Value("bank").(string), logEntry); err != nil {
 				log.Printf("Error creating log entry: %v", err)
 			}
 		}
@@ -77,7 +77,7 @@ func (dbs *DB) GetPointsAccountById(ctx context.Context, accId string) ([]types.
 				// UserId:       ctx.Value("userId").(string),
 				UserLocation: userLocation,
 			}
-			if err := util.CreateLogEntry(logEntry); err != nil {
+			if err := util.CreateLogEntry(ctx.Value("bank").(string), logEntry); err != nil {
 				log.Printf("Error creating log entry: %v", err)
 			}
 		}
@@ -92,7 +92,7 @@ func (dbs *DB) GetPointsAccountById(ctx context.Context, accId string) ([]types.
 			// UserId:       ctx.Value("userId").(string),
 			UserLocation: userLocation,
 		}
-		if err := util.CreateLogEntry(logEntry); err != nil {
+		if err := util.CreateLogEntry(ctx.Value("bank").(string), logEntry); err != nil {
 			log.Printf("Error creating log entry: %v", err)
 		}
 	}
@@ -114,7 +114,7 @@ func (dbs *DB) GetPointsAccountsByUser(ctx context.Context, userId string) ([]ty
 				// UserId:       ctx.Value("userId").(string),
 				UserLocation: userLocation,
 			}
-			if err := util.CreateLogEntry(logEntry); err != nil {
+			if err := util.CreateLogEntry(ctx.Value("bank").(string), logEntry); err != nil {
 				log.Printf("Error creating log entry: %v", err)
 			}
 		}
@@ -131,7 +131,7 @@ func (dbs *DB) GetPointsAccountsByUser(ctx context.Context, userId string) ([]ty
 				// UserId:       ctx.Value("userId").(string),
 				UserLocation: userLocation,
 			}
-			if err := util.CreateLogEntry(logEntry); err != nil {
+			if err := util.CreateLogEntry(ctx.Value("bank").(string), logEntry); err != nil {
 				log.Printf("Error creating log entry: %v", err)
 			}
 		}
@@ -146,7 +146,7 @@ func (dbs *DB) GetPointsAccountsByUser(ctx context.Context, userId string) ([]ty
 			// UserId:       ctx.Value("userId").(string),
 			UserLocation: userLocation,
 		}
-		if err := util.CreateLogEntry(logEntry); err != nil {
+		if err := util.CreateLogEntry(ctx.Value("bank").(string), logEntry); err != nil {
 			log.Printf("Error creating log entry: %v", err)
 		}
 	}
@@ -167,7 +167,7 @@ func (dbs *DB) UpdatePoints(ctx context.Context, req types.UpdatePointsRequestBo
 				// UserId:       ctx.Value("userId").(string),
 				UserLocation: userLocation,
 			}
-			if err := util.CreateLogEntry(logEntry); err != nil {
+			if err := util.CreateLogEntry(ctx.Value("bank").(string), logEntry); err != nil {
 				log.Printf("Error creating log entry: %v", err)
 			}
 		}
@@ -185,7 +185,7 @@ func (dbs *DB) UpdatePoints(ctx context.Context, req types.UpdatePointsRequestBo
 				// UserId:       ctx.Value("userId").(string),
 				UserLocation: userLocation,
 			}
-			if err := util.CreateLogEntry(logEntry); err != nil {
+			if err := util.CreateLogEntry(ctx.Value("bank").(string), logEntry); err != nil {
 				log.Printf("Error creating log entry: %v", err)
 			}
 		}
@@ -200,7 +200,7 @@ func (dbs *DB) UpdatePoints(ctx context.Context, req types.UpdatePointsRequestBo
 			// UserId:       ctx.Value("userId").(string),
 			UserLocation: userLocation,
 		}
-		if err := util.CreateLogEntry(logEntry); err != nil {
+		if err := util.CreateLogEntry(ctx.Value("bank").(string), logEntry); err != nil {
 			log.Printf("Error creating log entry: %v", err)
 		}
 	}
@@ -226,7 +226,7 @@ func (dbs *DB) CreatePointsAccount(ctx context.Context, req types.CreatePointsAc
 				// UserId:       ctx.Value("userId").(string),
 				UserLocation: userLocation,
 			}
-			if err := util.CreateLogEntry(logEntry); err != nil {
+			if err := util.CreateLogEntry(ctx.Value("bank").(string), logEntry); err != nil {
 				log.Printf("Error creating log entry: %v", err)
 			}
 		}
@@ -241,7 +241,7 @@ func (dbs *DB) CreatePointsAccount(ctx context.Context, req types.CreatePointsAc
 			// UserId:       ctx.Value("userId").(string),
 			UserLocation: userLocation,
 		}
-		if err := util.CreateLogEntry(logEntry); err != nil {
+		if err := util.CreateLogEntry(ctx.Value("bank").(string), logEntry); err != nil {
 			log.Printf("Error creating log entry: %v", err)
 		}
 	}
@@ -260,7 +260,7 @@ func (dbs *DB) DeletePointsAccountByUser(ctx context.Context, userId string) (bo
 				// UserId:       ctx.Value("userId").(string),
 				UserLocation: userLocation,
 			}
-			if err := util.CreateLogEntry(logEntry); err != nil {
+			if err := util.CreateLogEntry(ctx.Value("bank").(string), logEntry); err != nil {
 				log.Printf("Error creating log entry: %v", err)
 			}
 		}
@@ -275,7 +275,7 @@ func (dbs *DB) DeletePointsAccountByUser(ctx context.Context, userId string) (bo
 			// UserId:       ctx.Value("userId").(string),
 			UserLocation: userLocation,
 		}
-		if err := util.CreateLogEntry(logEntry); err != nil {
+		if err := util.CreateLogEntry(ctx.Value("bank").(string), logEntry); err != nil {
 			log.Printf("Error creating log entry: %v", err)
 		}
 	}
@@ -295,7 +295,7 @@ func (dbs *DB) DeletePointsAccountByID(ctx context.Context, accId string) (bool,
 				// UserId:       ctx.Value("userId").(string),
 				UserLocation: userLocation,
 			}
-			if err := util.CreateLogEntry(logEntry); err != nil {
+			if err := util.CreateLogEntry(ctx.Value("bank").(string), logEntry); err != nil {
 				log.Printf("Error creating log entry: %v", err)
 			}
 		}
@@ -310,7 +310,7 @@ func (dbs *DB) DeletePointsAccountByID(ctx context.Context, accId string) (bool,
 			// UserId:       ctx.Value("userId").(string),
 			UserLocation: userLocation,
 		}
-		if err := util.CreateLogEntry(logEntry); err != nil {
+		if err := util.CreateLogEntry(ctx.Value("bank").(string), logEntry); err != nil {
 			log.Printf("Error creating log entry: %v", err)
 		}
 	}
