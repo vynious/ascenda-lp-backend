@@ -750,7 +750,6 @@ Resources:
     Metadata:
       BuildMethod: go1.x
     Properties:
-      Role: !Sub arn:aws:iam::${AWS::AccountId}:role/AscendaLambdaRole
       FunctionName: "get_logs"
       # must refer to the directory containing your main package
       CodeUri: functions/logs/get-logs/

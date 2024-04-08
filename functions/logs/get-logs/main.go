@@ -19,7 +19,14 @@ import (
 	"github.com/vynious/ascenda-lp-backend/util"
 )
 
-var svc *dynamodb.DynamoDB
+var (
+	svc     *dynamodb.DynamoDB
+	headers = map[string]string{
+		"Access-Control-Allow-Headers": "Content-Type",
+		"Access-Control-Allow-Origin":  "*",
+		"Access-Control-Allow-Methods": "GET",
+	}
+)
 
 func init() {
 	log.Printf("INIT")
@@ -37,10 +44,11 @@ func init() {
 
 func handler(request events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyResponse, error) {
 	bank, err := util.GetCustomAttributeWithCognito("custom:bank", request.Headers["Authorization"])
-	if err == nil {
+	if err != nil {
 		log.Printf("failed to get custom:bank from cognito")
 	}
 	logsTable := fmt.Sprintf("%s_logs", bank)
+	log.Printf("Fetch logs from %s", logsTable)
 
 	ttlStr := request.QueryStringParameters["TTL"]
 	if ttlStr != "" {
@@ -111,11 +119,13 @@ func fetchLogs(request events.APIGatewayV2HTTPRequest, tableName string) (events
 			log.Printf("Failed to marshal response: %v", err)
 			return events.APIGatewayProxyResponse{
 				StatusCode: 500,
+				Headers:    headers,
 				Body:       "Internal server error",
 			}, nil
 		}
 		return events.APIGatewayProxyResponse{
 			StatusCode: 200,
+			Headers:    headers,
 			Body:       string(responseBody),
 		}, nil
 	}
@@ -127,11 +137,13 @@ func fetchLogs(request events.APIGatewayV2HTTPRequest, tableName string) (events
 		log.Printf("Failed to marshal response: %v", err)
 		return events.APIGatewayProxyResponse{
 			StatusCode: 500,
+			Headers:    headers,
 			Body:       "Internal server error",
 		}, nil
 	}
 	return events.APIGatewayProxyResponse{
 		StatusCode: 200,
+		Headers:    headers,
 		Body:       string(responseBody),
 	}, nil
 }
