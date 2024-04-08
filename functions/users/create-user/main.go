@@ -38,7 +38,6 @@ func init() {
 
 func cognitoCreateUser(userRequestBody types.CreateUserRequestBody, newUUID string) error {
 	userPoolID := os.Getenv("COGNITO_USER_POOL_ID")
-	log.Println(userPoolID)
 	cognitoInput := &cognitoidentityprovider.AdminCreateUserInput{
 		ForceAliasCreation: aws.Bool(true),
 		DesiredDeliveryMediums: []*string{
@@ -65,9 +64,8 @@ func cognitoCreateUser(userRequestBody types.CreateUserRequestBody, newUUID stri
 		UserPoolId: aws.String(userPoolID),
 		Username:   aws.String(userRequestBody.Email),
 	}
-	log.Println("try create user in user pool")
+	log.Println("creating user in user pool")
 	_, err := cognitoClient.AdminCreateUser(cognitoInput)
-	log.Println("tried")
 	if err != nil {
 		log.Println(err)
 		return err
