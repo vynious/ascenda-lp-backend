@@ -15,12 +15,11 @@ Globals:
       - arm64
     Environment:
       Variables:
-        SES_ACCESS_KEY_ID: "AKIAUAWJVJ7I5DLGN6EW"
-        SES_ACCESS_SECRET_KEY: "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"
+        SES_ACCESS_KEY_ID: ""
+        SES_ACCESS_SECRET_KEY: ""
         dbUser: "postgres"
         dbName: "ascenda"
         dbHost: "db-dev.cluster-cyzzcyzcqgrq.ap-southeast-1.rds.amazonaws.com"
-        # dbPwd: '{{resolve:secretsmanager:arn:aws:secretsmanager:ap-southeast-1:276374573009:secret:rds-admin-EtkU6T:SecretString:password}}'
         dbPwd: "{{resolve:secretsmanager:arn:aws:secretsmanager:ap-southeast-1:276374573009:secret:rds-dev-0YKFuB:SecretString:password}}"
 
 Parameters:
