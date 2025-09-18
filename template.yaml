@@ -22,7 +22,6 @@ Globals:
         dbUser: "postgres"
         dbName: "ascenda"
         dbHost: "db-dev.cluster-cyzzcyzcqgrq.ap-southeast-1.rds.amazonaws.com"
-        # dbPwd: '{{resolve:secretsmanager:arn:aws:secretsmanager:ap-southeast-1:276374573009:secret:rds-admin-EtkU6T:SecretString:password}}'
         dbPwd: "{{resolve:secretsmanager:arn:aws:secretsmanager:ap-southeast-1:276374573009:secret:rds-dev-0YKFuB:SecretString:password}}"
 
 Parameters:
@@ -57,12 +56,6 @@ Resources:
           ResponseParameters:
             Headers:
               Access-Control-Allow-Origin: "'*'"
-      # Domain:
-      #   DomainName: itsag1t2.com
-      #   CertificateArn: arn:aws:acm:ap-southeast-1:276374573009:certificate/d72f5e58-096f-4917-a848-14fad7b26d49
-      #   Route53:
-      #     HostedZoneId: Z05937523KU9FR1TMTEUC
-      #     EvaluateTargetHealth: false
 
   CustomAuthorizer:
     Type: AWS::Serverless::Function
